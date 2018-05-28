@@ -28,10 +28,10 @@ module InterfaceTableVisualizer like IInterfaceTableVisualizer
     submodules:
         canvasVisualizer: <canvasVisualizerType> like IInterfaceTableVisualizer if canvasVisualizerType != "" {
             parameters:
-                @display("p=100,50");
+                @display("p=100,100");
         }
         osgVisualizer: <osgVisualizerType> like IInterfaceTableVisualizer if osgVisualizerType != "" {
             parameters:
-                @display("p=100,150");
+                @display("p=100,200");
         }
 }

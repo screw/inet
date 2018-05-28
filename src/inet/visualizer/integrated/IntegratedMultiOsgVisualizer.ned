@@ -50,7 +50,7 @@ import inet.visualizer.contract.ITransportRouteVisualizer;
 module IntegratedMultiOsgVisualizer like IIntegratedVisualizer
 {
     parameters:
-        @display("i=block/app_s");
+        @display("i=block/app");
         int numSceneVisualizers = default(1);
         int numPhysicalEnvironmentVisualizers = default(1);
         int numNetworkNodeVisualizers = default(1);
@@ -95,94 +95,94 @@ module IntegratedMultiOsgVisualizer like IIntegratedVisualizer
         string routingTableVisualizerType = default("RoutingTableOsgVisualizer");
         string transportRouteVisualizerType = default("TransportRouteOsgVisualizer");
         string transportConnectionVisualizerType = default("TransportConnectionOsgVisualizer");
-   		*.networkNodeVisualizerModule = default(absPath(".networkNodeVisualizer[0]"));
+        *.networkNodeVisualizerModule = default(absPath(".networkNodeVisualizer[0]"));
     submodules:
         sceneVisualizer[numSceneVisualizers]: <sceneVisualizerType> like ISceneVisualizer if sceneVisualizerType != "" {
             parameters:
-                @display("p=150,50,row,25");
+                @display("p=150,100,row,100");
         }
         physicalEnvironmentVisualizer[numPhysicalEnvironmentVisualizers]: <physicalEnvironmentVisualizerType> like IPhysicalEnvironmentVisualizer if physicalEnvironmentVisualizerType != "" {
             parameters:
-                @display("p=150,150,row,25");
+                @display("p=150,200,row,100");
         }
         networkNodeVisualizer[numNetworkNodeVisualizers]: <networkNodeVisualizerType> like INetworkNodeVisualizer if networkNodeVisualizerType != "" {
             parameters:
-                @display("p=150,250,row,25");
+                @display("p=150,300,row,100");
         }
         networkConnectionVisualizer[numNetworkConnectionVisualizers]: <networkConnectionVisualizerType> like INetworkConnectionVisualizer if networkConnectionVisualizerType != "" {
             parameters:
-                @display("p=150,350,row,25");
+                @display("p=150,400,row,100");
         }
         mobilityVisualizer[numMobilityVisualizers]: <mobilityVisualizerType> like IMobilityVisualizer if mobilityVisualizerType != "" {
             parameters:
-                @display("p=150,450,row,25");
+                @display("p=150,500,row,100");
         }
         statisticVisualizer[numStatisticVisualizers]: <statisticVisualizerType> like IStatisticVisualizer if statisticVisualizerType != "" {
             parameters:
-                @display("p=150,550,row,25");
+                @display("p=150,600,row,100");
         }
         infoVisualizer[numInfoVisualizers]: <infoVisualizerType> like IInfoVisualizer if infoVisualizerType != "" {
             parameters:
-                @display("p=150,650,row,25");
+                @display("p=150,700,row,100");
         }
         energyStorageVisualizer[numEnergyStorageVisualizers]: <energyStorageVisualizerType> like IEnergyStorageVisualizer if energyStorageVisualizerType != "" {
             parameters:
-                @display("p=150,750,row,25");
+                @display("p=150,800,row,100");
         }
         mediumVisualizer[numMediumVisualizers]: <mediumVisualizerType> like IMediumVisualizer if mediumVisualizerType != "" {
             parameters:
-                @display("p=150,850,row,25");
+                @display("p=150,900,row,100");
         }
         obstacleLossVisualizer[numObstacleLossVisualizers]: <obstacleLossVisualizerType> like ITracingObstacleLossVisualizer if obstacleLossVisualizerType != "" {
             parameters:
-                @display("p=150,950,row,25");
+                @display("p=150,1000,row,100");
         }
         packetDropVisualizer[numPacketDropVisualizers]: <packetDropVisualizerType> like IPacketDropVisualizer if packetDropVisualizerType != "" {
             parameters:
-                @display("p=150,1050,row,25");
+                @display("p=150,1100,row,100");
         }
         queueVisualizer[numQueueVisualizers]: <queueVisualizerType> like IQueueVisualizer if queueVisualizerType != "" {
             parameters:
-                @display("p=450,50,row,25");
+                @display("p=450,100,row,100");
         }
         radioVisualizer[numRadioVisualizers]: <radioVisualizerType> like IRadioVisualizer if radioVisualizerType != "" {
             parameters:
-                @display("p=450,150,row,25");
+                @display("p=450,200,row,100");
         }
         physicalLinkVisualizer[numPhysicalLinkVisualizers]: <physicalLinkVisualizerType> like IPhysicalLinkVisualizer if physicalLinkVisualizerType != "" {
             parameters:
-                @display("p=450,250,row,25");
+                @display("p=450,300,row,100");
         }
         interfaceTableVisualizer[numInterfaceTableVisualizers]: <interfaceTableVisualizerType> like IInterfaceTableVisualizer if interfaceTableVisualizerType != "" {
             parameters:
-                @display("p=450,350,row,25");
+                @display("p=450,400,row,100");
         }
         dataLinkVisualizer[numDataLinkVisualizers]: <dataLinkVisualizerType> like IDataLinkVisualizer if dataLinkVisualizerType != "" {
             parameters:
-                @display("p=450,450,row,25");
+                @display("p=450,500,row,100");
         }
         linkBreakVisualizer[numLinkBreakVisualizers]: <linkBreakVisualizerType> like ILinkBreakVisualizer if linkBreakVisualizerType != "" {
             parameters:
-                @display("p=450,550,row,25");
+                @display("p=450,600,row,100");
         }
         ieee80211Visualizer[numIeee80211Visualizers]: <ieee80211VisualizerType> like IIeee80211Visualizer if ieee80211VisualizerType != "" {
             parameters:
-                @display("p=450,650,row,25");
+                @display("p=450,700,row,100");
         }
         networkRouteVisualizer[numNetworkRouteVisualizers]: <networkRouteVisualizerType> like INetworkRouteVisualizer if networkRouteVisualizerType != "" {
             parameters:
-                @display("p=450,750,row,25");
+                @display("p=450,800,row,100");
         }
         routingTableVisualizer[numRoutingTableVisualizers]: <routingTableVisualizerType> like IRoutingTableVisualizer if routingTableVisualizerType != "" {
             parameters:
-                @display("p=450,850,row,25");
+                @display("p=450,900,row,100");
         }
         transportRouteVisualizer[numTransportRouteVisualizers]: <transportRouteVisualizerType> like ITransportRouteVisualizer if transportRouteVisualizerType != "" {
             parameters:
-                @display("p=450,950,row,25");
+                @display("p=450,1000,row,100");
         }
         transportConnectionVisualizer[numTransportConnectionVisualizers]: <transportConnectionVisualizerType> like ITransportConnectionVisualizer if transportConnectionVisualizerType != "" {
             parameters:
-                @display("p=450,1050,row,25");
+                @display("p=450,1100,row,100");
         }
 }

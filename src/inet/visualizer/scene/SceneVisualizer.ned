@@ -27,16 +27,16 @@ import inet.visualizer.contract.ISceneVisualizer;
 module SceneVisualizer like ISceneVisualizer
 {
     parameters:
-        @display("i=block/app_s");
+        @display("i=block/app");
         string canvasVisualizerType = default("SceneCanvasVisualizer");
         string osgVisualizerType = default("SceneOsgVisualizer");
     submodules:
         canvasVisualizer: <canvasVisualizerType> like ISceneVisualizer if canvasVisualizerType != "" {
             parameters:
-                @display("p=100,50");
+                @display("p=100,100");
         }
         osgVisualizer: <osgVisualizerType> like ISceneVisualizer if osgVisualizerType != "" {
             parameters:
-                @display("p=100,150");
+                @display("p=100,200");
         }
 }

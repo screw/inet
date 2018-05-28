@@ -27,16 +27,16 @@ import inet.visualizer.contract.IDataLinkVisualizer;
 module DataLinkVisualizer like IDataLinkVisualizer
 {
     parameters:
-        @display("i=block/app_s");
+        @display("i=block/app");
         string canvasVisualizerType = default("DataLinkCanvasVisualizer");
         string osgVisualizerType = default("DataLinkOsgVisualizer");
     submodules:
         canvasVisualizer: <canvasVisualizerType> like IDataLinkVisualizer if canvasVisualizerType != "" {
             parameters:
-                @display("p=100,50");
+                @display("p=100,100");
         }
         osgVisualizer: <osgVisualizerType> like IDataLinkVisualizer if osgVisualizerType != "" {
             parameters:
-                @display("p=100,150");
+                @display("p=100,200");
         }
 }

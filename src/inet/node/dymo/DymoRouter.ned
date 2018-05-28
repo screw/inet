@@ -16,7 +16,7 @@ module DymoRouter extends WirelessHost
 
     submodules:
         dymo: Dymo {
-            @display("p=700,300");
+            @display("p=825,226");
         }
 
     connections:

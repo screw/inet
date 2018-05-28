@@ -27,16 +27,16 @@ import inet.visualizer.contract.ITransportRouteVisualizer;
 module TransportRouteVisualizer like ITransportRouteVisualizer
 {
     parameters:
-        @display("i=block/app_s");
+        @display("i=block/app");
         string canvasVisualizerType = default("TransportRouteCanvasVisualizer");
         string osgVisualizerType = default("TransportRouteOsgVisualizer");
     submodules:
         canvasVisualizer: <canvasVisualizerType> like ITransportRouteVisualizer if canvasVisualizerType != "" {
             parameters:
-                @display("p=100,50");
+                @display("p=100,100");
         }
         osgVisualizer: <osgVisualizerType> like ITransportRouteVisualizer if osgVisualizerType != "" {
             parameters:
-                @display("p=100,150");
+                @display("p=100,200");
         }
 }

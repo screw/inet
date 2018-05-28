@@ -27,16 +27,16 @@ import inet.visualizer.contract.IMediumVisualizer;
 module MediumVisualizer like IMediumVisualizer
 {
     parameters:
-        @display("i=block/app_s");
+        @display("i=block/app");
         string canvasVisualizerType = default("MediumCanvasVisualizer");
         string osgVisualizerType = default("MediumOsgVisualizer");
     submodules:
         canvasVisualizer: <canvasVisualizerType> like IMediumVisualizer if canvasVisualizerType != "" {
             parameters:
-                @display("p=100,50");
+                @display("p=100,100");
         }
         osgVisualizer: <osgVisualizerType> like IMediumVisualizer if osgVisualizerType != "" {
             parameters:
-                @display("p=100,150");
+                @display("p=100,200");
         }
 }

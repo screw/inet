@@ -49,21 +49,21 @@ module EtherHost
         inout ethg @labels(EtherFrame-conn);
     submodules:
         status: NodeStatus if hasStatus {
-            @display("p=50,50;is=s");
+            @display("p=100,100;is=s");
         }
         cli: EtherAppClient {
             parameters:
                 registerSAP = true;
-                @display("p=120,58,col");
+                @display("p=250,100");
         }
         srv: EtherAppServer {
             parameters:
                 registerSAP = true;
-                @display("p=310,58,col");
+                @display("p=450,100");
         }
         llc: EtherLlc {
             parameters:
-                @display("p=215,118");
+                @display("p=350,200");
             gates:
                 upperLayerIn[2];
                 upperLayerOut[2];
@@ -71,12 +71,12 @@ module EtherHost
         queue: EtherQosQueue if queueType != "" {
             parameters:
                 dataQueueType = queueType;
-                @display("p=159,199;q=l2queue");
+                @display("p=250,300;q=l2queue");
         }
         mac: <macType> like IEtherMac {
             parameters:
                 queueModule = (queueType == "" ? "" : "^.queue");
-                @display("p=215,270;q=txQueue");
+                @display("p=350,400;q=txQueue");
         }
     connections:
 

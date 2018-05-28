@@ -64,24 +64,24 @@ module Router extends ApplicationLayerNodeBase
     submodules:
         ospf: <"Ospf"> like IOspf if hasOSPF {
             parameters:
-                @display("p=800,300,row");
+                @display("p=975,226");
         }
         bgp: <"Bgp"> like IBgp if hasBGP {
             parameters:
                 ospfRoutingModule = default(hasOSPF ? "^.ospf" : "");
-                @display("p=600,100");
+                @display("p=825,76");
         }
         rip: <"Rip"> like IApp if hasRIP {
             parameters:
-                @display("p=700,100");
+                @display("p=975,76");
         }
         pim: <"Pim"> like IPim if hasPIM {
             parameters:
-                @display("p=700,300");
+                @display("p=825,226");
         }
         dhcp: <"DhcpServer"> like IApp if hasDHCP {
             parameters:
-                @display("p=800,100");
+                @display("p=1125,76");
         }
 
     connections allowunconnected:

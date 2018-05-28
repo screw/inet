@@ -45,19 +45,19 @@ module EtherHost2
         inout ethg @labels(EtherFrame-conn);
     submodules:
         app: EtherTrafGen {
-            @display("p=155,59");
+            @display("p=200,100");
         }
         encap: <default("EtherEncap")> like IEtherEncap {
-            @display("p=155,146");
+            @display("p=200,200");
         }
         queue: EtherQosQueue if queueType != "" {
             parameters:
                 dataQueueType = queueType;
-                @display("p=87,207;q=l2queue");
+                @display("p=100,300;q=l2queue");
         }
         mac: <macType> like IEtherMac {
             queueModule = (queueType == "" ? "" : "^.queue");
-            @display("p=155,272;q=txQueue");
+            @display("p=200,400;q=txQueue");
         }
     connections:
         app.out --> encap.upperLayerIn;

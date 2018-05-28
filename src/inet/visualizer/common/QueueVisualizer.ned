@@ -27,16 +27,16 @@ import inet.visualizer.contract.IQueueVisualizer;
 module QueueVisualizer like IQueueVisualizer
 {
     parameters:
-        @display("i=block/app_s");
+        @display("i=block/app");
         string canvasVisualizerType = default("QueueCanvasVisualizer");
         string osgVisualizerType = default("QueueOsgVisualizer");
     submodules:
         canvasVisualizer: <canvasVisualizerType> like IQueueVisualizer if canvasVisualizerType != "" {
             parameters:
-                @display("p=100,50");
+                @display("p=100,100");
         }
         osgVisualizer: <osgVisualizerType> like IQueueVisualizer if osgVisualizerType != "" {
             parameters:
-                @display("p=100,150");
+                @display("p=100,200");
         }
 }
