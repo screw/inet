@@ -27,11 +27,10 @@ import inet.physicallayer.unitdisk.UnitDiskRadioMedium;
 network SimpleRREQ
 {
     parameters:
-        @display("bgb=525,437");
     submodules:
         radioMedium: UnitDiskRadioMedium {
             parameters:
-                @display("p=50,50");
+                @display("p=100,200;is=s");
         }
         configurator: Ipv4NetworkConfigurator {
             parameters:
@@ -39,28 +38,28 @@ network SimpleRREQ
                 addStaticRoutes = false;
                 addSubnetRoutes = false;
                 config = xml("<config><interface hosts='*' address='145.236.x.x' netmask='255.255.0.0'/></config>");
-                @display("p=50,100");
+                @display("p=100,100;is=s");
         }
         routingTableRecorder: RoutingTableRecorder {
             parameters:
-                @display("p=50,150");
+                @display("p=100,300;is=s");
         }
         scenarioManager: ScenarioManager {
             parameters:
                 script = default(xml("<scenario/>"));
-                @display("p=50,250");
+                @display("p=100,400;is=s");
         }
         sender: AodvRouter {
             parameters:
-                @display("i=device/pocketpc_s;r=,,#707070;p=270,51");
+                @display("i=device/pocketpc_s;r=,,#707070;p=400,100");
         }
         intermediateNode: AodvRouter {
             parameters:
-                @display("i=device/pocketpc_s;r=,,#707070;p=270,214");
+                @display("i=device/pocketpc_s;r=,,#707070;p=400,250");
         }
         receiver: AodvRouter {
             parameters:
-                @display("i=device/pocketpc_s;r=,,#707070;p=270,377");
+                @display("i=device/pocketpc_s;r=,,#707070;p=400,400");
         }
     connections allowunconnected:
 }
@@ -68,11 +67,10 @@ network SimpleRREQ
 network SimpleRREQ2
 {
     parameters:
-        @display("bgb=961,662");
     submodules:
         radioMedium: UnitDiskRadioMedium {
             parameters:
-                @display("p=50,50");
+                @display("p=100,200;is=s");
         }
         configurator: Ipv4NetworkConfigurator {
             parameters:
@@ -80,32 +78,32 @@ network SimpleRREQ2
                 addStaticRoutes = false;
                 addSubnetRoutes = false;
                 config = xml("<config><interface hosts='*' address='145.236.x.x' netmask='255.255.0.0'/></config>");
-                @display("p=50,100");
+                @display("p=100,100;is=s");
         }
         routingTableRecorder: RoutingTableRecorder {
             parameters:
-                @display("p=50,150");
+                @display("p=100,300;is=s");
         }
         scenarioManager: ScenarioManager {
             parameters:
                 script = default(xml("<scenario/>"));
-                @display("p=50,250");
+                @display("p=100,400;is=s");
         }
         sender: AodvRouter {
             parameters:
-                @display("i=device/pocketpc_s;r=,,#707070;p=284,51");
+                @display("i=device/pocketpc_s;r=,,#707070;p=400,100");
         }
         intermediateNodeA: AodvRouter {
             parameters:
-                @display("i=device/pocketpc_s;r=,,#707070;p=203,206");
+                @display("i=device/pocketpc_s;r=,,#707070;p=300,250");
         }
         intermediateNodeB: AodvRouter {
             parameters:
-                @display("i=device/pocketpc_s;r=,,#707070;p=386,206");
+                @display("i=device/pocketpc_s;r=,,#707070;p=500,250");
         }
         receiver: AodvRouter {
             parameters:
-                @display("i=device/pocketpc_s;r=,,#707070;p=284,378");
+                @display("i=device/pocketpc_s;r=,,#707070;p=400,400");
         }
     connections allowunconnected:
 }
@@ -113,11 +111,11 @@ network SimpleRREQ2
 network ShortestPath
 {
     parameters:
-        @display("bgb=961,662");
+        @display("bgb=650,550");
     submodules:
         radioMedium: UnitDiskRadioMedium {
             parameters:
-                @display("p=50,50");
+                @display("p=100,200;is=s");
         }
         configurator: Ipv4NetworkConfigurator {
             parameters:
@@ -125,36 +123,36 @@ network ShortestPath
                 addStaticRoutes = false;
                 addSubnetRoutes = false;
                 config = xml("<config><interface hosts='*' address='145.236.x.x' netmask='255.255.0.0'/></config>");
-                @display("p=50,100");
+                @display("p=100,100;is=s");
         }
         routingTableRecorder: RoutingTableRecorder {
             parameters:
-                @display("p=50,150");
+                @display("p=100,300;is=s");
         }
         scenarioManager: ScenarioManager {
             parameters:
                 script = default(xml("<scenario/>"));
-                @display("p=50,250");
+                @display("p=100,400;is=s");
         }
         sender: AodvRouter {
             parameters:
-                @display("i=device/pocketpc_s;r=,,#707070;p=283,63");
+                @display("i=device/pocketpc_s;r=,,#707070;p=400,100");
         }
         intermediateNodeA: AodvRouter {
             parameters:
-                @display("i=device/pocketpc_s;r=,,#707070;p=203,206");
+                @display("i=device/pocketpc_s;r=,,#707070;p=300,200");
         }
         intermediateNodeB: AodvRouter {
             parameters:
-                @display("i=device/pocketpc_s;r=,,#707070;p=385,256");
+                @display("i=device/pocketpc_s;r=,,#707070;p=500,250");
         }
         intermediateNodeC: AodvRouter {
             parameters:
-                @display("i=device/pocketpc_s;r=,,#707070;p=292,325");
+                @display("i=device/pocketpc_s;r=,,#707070;p=350,350");
         }
         receiver: AodvRouter {
             parameters:
-                @display("i=device/pocketpc_s;r=,,#707070;p=292,454");
+                @display("i=device/pocketpc_s;r=,,#707070;p=400,450");
         }
     connections allowunconnected:
 }

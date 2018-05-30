@@ -15,41 +15,40 @@ import ned.DatarateChannel;
 network MultiRadio
 {
     parameters:
-        @display("bgb=500,300");
         bool useEthernetSwitching = default(true);
         bool useRouting = default(false);
     submodules:
         visualizer: <default("IntegratedCanvasVisualizer")> like IIntegratedVisualizer if hasVisualizer() {
             parameters:
-                @display("p=100,50");
+                @display("p=100,300;is=s");
         }
         radioMedium: Ieee80211ScalarRadioMedium {
             parameters:
-                @display("p=100,150");
+                @display("p=100,200;is=s");
         }
         configurator: Ipv4NetworkConfigurator {
             parameters:
-                @display("p=100,250");
+                @display("p=100,100;is=s");
         }
         host1: WirelessHost {
             parameters:
-                @display("p=85,203");
+                @display("p=250,300");
         }
         host2: WirelessHost {
             parameters:
-                @display("p=454,203");
+                @display("p=590,300");
         }
         accessPoint1: AccessPoint {
             parameters:
-                @display("p=150,99");
+                @display("p=320,100");
         }
         accessPoint2: AccessPoint {
             parameters:
-                @display("p=354,99");
+                @display("p=520,100");
         }
         router: Router if useRouting {
             parameters:
-                @display("p=255,168");
+                @display("p=420,200");
         }
     connections:
         accessPoint1.ethg++ <--> DatarateChannel {  datarate = 100Mbps; } <--> accessPoint2.ethg++ if useEthernetSwitching;

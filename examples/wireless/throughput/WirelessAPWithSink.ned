@@ -39,21 +39,21 @@ module WirelessAPWithSink
     submodules:
         interfaceTable: InterfaceTable {
             parameters:
-                @display("p=71,207;is=s");
+                @display("p=100,100;is=s");
         }
         sink: Sink {
             parameters:
-                @display("p=169,124");
+                @display("p=300,100");
         }
         wlan: Ieee80211Interface {
             parameters:
-                @display("p=169,231;q=queue");
+                @display("p=250,200;q=queue");
                 llcType = default("Ieee80211Portal");
                 mgmtType = default("Ieee80211MgmtApSimplified");
         }
         mobility: StationaryMobility {
             parameters:
-                @display("p=71,121;is=s");
+                @display("p=100,200;is=s");
         }
     connections allowunconnected:
         radioIn --> { @display("m=s"); } --> wlan.radioIn;

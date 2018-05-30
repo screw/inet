@@ -29,59 +29,58 @@ import inet.visualizer.contract.IIntegratedVisualizer;
 network ComplexConfiguratorNetwork
 {
     parameters:
-        @display("bgb=1138,534");
     submodules:
         visualizer: <default("IntegratedCanvasVisualizer")> like IIntegratedVisualizer if hasVisualizer() {
             parameters:
-                @display("p=200,50");
+                @display("p=100,400;is=s");
         }
         configurator: Ipv4NetworkConfigurator {
             parameters:
-                @display("p=50,50");
+                @display("p=100,100;is=s");
         }
         radioMediumA: Ieee80211ScalarRadioMedium {
             parameters:
-                @display("p=50,150");
+                @display("p=100,200;is=s");
         }
         radioMediumB: Ieee80211ScalarRadioMedium {
             parameters:
-                @display("p=50,250");
+                @display("p=100,300;is=s");
         }
         source: AdhocHost {
-            @display("p=50,271;i=device/laptop");
+            @display("p=250,300;i=device/laptop");
         }
         wirelessA1: AdhocHost {
-            @display("p=201,230");
+            @display("p=375,270");
         }
         wirelessA2: AdhocHost {
-            @display("p=334,304");
+            @display("p=475,370");
         }
         wiredA1: Router {
-            @display("p=107,458");
+            @display("p=350,500");
         }
         wiredA2: Router {
-            @display("p=398,458");
+            @display("p=500,500");
         }
         shared1: AdhocHost {
-            @display("p=481,271;i=device/laptop");
+            @display("p=600,300;i=device/laptop");
         }
         shared2: AdhocHost {
-            @display("p=674,271;i=device/laptop");
+            @display("p=750,300;i=device/laptop");
         }
         wirelessB1: AdhocHost {
-            @display("p=822,197");
+            @display("p=875,230");
         }
         wirelessB2: AdhocHost {
-            @display("p=925,307");
+            @display("p=975,330");
         }
         wiredB1: Router {
-            @display("p=737,82");
+            @display("p=850,100");
         }
         wiredB2: Router {
-            @display("p=977,82");
+            @display("p=1000,100");
         }
         destination: AdhocHost {
-            @display("p=1069,271;i=device/laptop");
+            @display("p=1100,300;i=device/laptop");
         }
     connections:
         source.ethg++ <--> Eth1G <--> wiredA1.ethg++;

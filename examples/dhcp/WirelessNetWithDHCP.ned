@@ -28,31 +28,30 @@ import inet.physicallayer.ieee80211.packetlevel.Ieee80211ScalarRadioMedium;
 
 network WirelessNetWithDHCP
 {
-    @display("bgb=590,407;bgl=2");
     int numHosts;
     **.mgmt.numChannels = 5;
     submodules:
         radioMedium: Ieee80211ScalarRadioMedium {
-            @display("p=64,34");
+            @display("p=100,200;is=s");
         }
         gateway: Router {
-            @display("p=365,35");
+            @display("p=550,150");
         }
         client[numHosts]: WirelessHost {
-            @display("r=,,#707070;p=245,285");
+            @display("r=,,#707070;p=400,250");
         }
         ap: AccessPoint {
-            @display("p=126,98");
+            @display("p=400,150");
         }
         dhcpServer: StandardHost {
-            @display("p=64,307");
+            @display("p=250,150");
         }
         configurator: Ipv4NetworkConfigurator {
             parameters:
-                @display("p=180,35");
+                @display("p=100,100;is=s");
         }
         remote: StandardHost {
-            @display("p=540,204");
+            @display("p=700,150");
         }
     connections:
         gateway.ethg++ <--> Eth100M <--> ap.ethg++;

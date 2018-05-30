@@ -21,21 +21,21 @@ network GPSRNetworkRandom
     submodules:
         radioMedium: Ieee80211ScalarRadioMedium {
             parameters:
-                @display("p=50,50");
+                @display("p=100,200;is=s");
         }
         configurator: Ipv4NetworkConfigurator {
             parameters:
                 config = xml("<config><interface hosts='*' address='145.236.x.x' netmask='255.255.0.0'/></config>");
-                @display("p=50,100");
+                @display("p=100,100;is=s");
         }
         routingTableRecorder: RoutingTableRecorder {
             parameters:
-                @display("p=50,150");
+                @display("p=100,300;is=s");
         }
         scenarioManager: ScenarioManager {
             parameters:
                 script = default(xml("<scenario/>"));
-                @display("p=50,250");
+                @display("p=100,400;is=s");
         }
         host[numHosts]: GpsrRouter {
             parameters:
@@ -49,59 +49,59 @@ network GPSRNetworkManual
     submodules:
         radioMedium: Ieee80211ScalarRadioMedium {
             parameters:
-                @display("p=50,50");
+                @display("p=100,200;is=s");
         }
         configurator: Ipv4NetworkConfigurator {
             parameters:
                 config = xml("<config><interface hosts='*' address='145.236.x.x' netmask='255.255.0.0'/></config>");
-                @display("p=50,100");
+                @display("p=100,100;is=s");
         }
         routingTableRecorder: RoutingTableRecorder {
             parameters:
-                @display("p=50,150");
+                @display("p=100,300;is=s");
         }
         host0: GpsrRouter {
             parameters:
-                @display("i=device/pocketpc_s;r=,,#707070;p=37,300");
+                @display("i=device/pocketpc_s;r=,,#707070;p=37,380");
         }
         host1: GpsrRouter {
             parameters:
-                @display("i=device/pocketpc_s;r=,,#707070;p=723,300");
+                @display("i=device/pocketpc_s;r=,,#707070;p=724,380");
         }
         host2: GpsrRouter {
             parameters:
-                @display("i=device/pocketpc_s;r=,,#707070;p=185,300");
+                @display("i=device/pocketpc_s;r=,,#707070;p=185,380");
         }
         host3: GpsrRouter {
             parameters:
-                @display("i=device/pocketpc_s;r=,,#707070;p=345,300");
+                @display("i=device/pocketpc_s;r=,,#707070;p=345,380");
         }
         host4: GpsrRouter {
             parameters:
-                @display("i=device/pocketpc_s;r=,,#707070;p=345,157");
+                @display("i=device/pocketpc_s;r=,,#707070;p=345,230");
         }
         host5: GpsrRouter {
             parameters:
-                @display("i=device/pocketpc_s;r=,,#707070;p=346,26");
+                @display("i=device/pocketpc_s;r=,,#707070;p=346,100");
         }
         host6: GpsrRouter {
             parameters:
-                @display("i=device/pocketpc_s;r=,,#707070;p=446,26");
+                @display("i=device/pocketpc_s;r=,,#707070;p=446,100");
         }
         host7: GpsrRouter {
             parameters:
-                @display("i=device/pocketpc_s;r=,,#707070;p=346,446");
+                @display("i=device/pocketpc_s;r=,,#707070;p=346,530");
         }
         host8: GpsrRouter {
             parameters:
-                @display("i=device/pocketpc_s;r=,,#707070;p=345,572");
+                @display("i=device/pocketpc_s;r=,,#707070;p=345,630");
         }
         host9: GpsrRouter {
             parameters:
-                @display("i=device/pocketpc_s;r=,,#707070;p=446,572");
+                @display("i=device/pocketpc_s;r=,,#707070;p=446,630");
         }
         host10: GpsrRouter {
             parameters:
-                @display("i=device/pocketpc_s;r=,,#707070;p=642,100");
+                @display("i=device/pocketpc_s;r=,,#707070;p=642,180");
         }
 }
