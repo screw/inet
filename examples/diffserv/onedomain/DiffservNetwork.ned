@@ -26,7 +26,7 @@ import inet.node.inet.Router;
 import inet.node.inet.StandardHost;
 
 
-network DiffservNetwork
+network DiffservNetworkExample
 {
     parameters:
         double edgeDatarate @unit(bps);

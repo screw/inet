@@ -92,7 +92,7 @@ module ThroughputServer
         sink.in++ <-- wlan.upperLayerOut;
 }
 
-network Throughput
+network Ieee80211ThroughputExample
 {
     parameters:
         int numCli;

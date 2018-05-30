@@ -6,7 +6,7 @@ import inet.node.inet.Router;
 import inet.node.inet.StandardHost;
 
 
-network Tunnel
+network TunnelExample
 {
     submodules:
         configurator: Ipv4NetworkConfigurator {
@@ -35,8 +35,8 @@ network Tunnel
         }
     connections:
         client.ethg++ <--> Eth1G <--> inlet.ethg++;
-        inlet.pppg++ <--> { delay = 1us; datarate = 1Gbps; } <--> router.pppg++;
-        router.pppg++ <--> { delay = 1us; datarate = 1Gbps; } <--> outlet.pppg++;
+        inlet.pppg++ <--> {  delay = 1us; datarate = 1Gbps; } <--> router.pppg++;
+        router.pppg++ <--> {  delay = 1us; datarate = 1Gbps; } <--> outlet.pppg++;
         outlet.ethg++ <--> Eth1G <--> server.ethg++;
 }
 

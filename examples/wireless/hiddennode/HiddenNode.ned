@@ -92,7 +92,7 @@ module SinkNode
 }
 
 
-network HiddenNode
+network HiddenNodeExample
 {
     parameters:
     submodules:

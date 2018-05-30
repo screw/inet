@@ -23,7 +23,7 @@ import inet.networklayer.configurator.ipv4.Ipv4NetworkConfigurator;
 import inet.node.inet.StandardHost;
 import ned.DatarateChannel;
 
-network UdpClientServer
+network UdpClientServerExample
 {
     parameters:
         double per = default(0);

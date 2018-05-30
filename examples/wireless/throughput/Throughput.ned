@@ -59,11 +59,10 @@ module ThroughputClient
         cli.out --> wlan.upperLayerIn;
 }
 
-network Throughput
+network WirelessThroughputExample
 {
     parameters:
         int numCli;
-        @display("b=297,203");
     submodules:
         visualizer: <default("IntegratedCanvasVisualizer")> like IIntegratedVisualizer if hasVisualizer() {
             parameters:

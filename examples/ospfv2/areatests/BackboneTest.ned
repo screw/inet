@@ -6,7 +6,7 @@ import inet.common.scenario.ScenarioManager;
 import inet.networklayer.configurator.ipv4.Ipv4NetworkConfigurator;
 
 
-network OSPF_BackboneTest
+network OspfBackboneTestExample
 {
     submodules:
         Backbone: TestArea {
@@ -16,6 +16,7 @@ network OSPF_BackboneTest
         }
         configurator: Ipv4NetworkConfigurator {
             parameters:
+                //                            "<route hosts='Backbone.R[*]' destination='224.0.0.0' netmask='240.0.0.0' interface='eth0' />"+
                 //                            "<route hosts='Backbone.R[*]' destination='224.0.0.0' netmask='240.0.0.0' interface='eth0' />"+
                 //                            "<route hosts='Backbone.R[*]' destination='224.0.0.0' netmask='240.0.0.0' interface='eth0' />"+
                 //                            "<route hosts='Backbone.R[*]' destination='224.0.0.0' netmask='240.0.0.0' interface='eth0' />"+

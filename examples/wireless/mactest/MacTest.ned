@@ -23,10 +23,9 @@ import inet.node.inet.WirelessHost;
 import inet.physicallayer.ieee80211.packetlevel.Ieee80211ScalarRadioMedium;
 
 
-network MacTest
+network MacTestExample
 {
     parameters:
-        @display("b=297,203");
     submodules:
         configurator: Ipv4NetworkConfigurator {
             @display("p=100,100;is=s");

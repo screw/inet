@@ -90,11 +90,11 @@ module Client
         cli.out --> wlan.upperLayerIn;
 }
 
-network RateControlTest
+network Ieee80211RateControlExample
 {
     parameters:
         int numCli;
-        @display("b=297,203;bgb=1300,460");
+        @display("bgb=1300,460");
     submodules:
         cliHost[numCli]: Client {
             parameters:
