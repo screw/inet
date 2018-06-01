@@ -51,7 +51,7 @@ import inet.physicallayer.contract.bitlevel.IPulseFilter;
 module ApskLayeredReceiver like IReceiver
 {
     parameters:
-        string levelOfDetail @enum("packet", "bit", "symbol", "sample") = default("symbol");
+        string levelOfDetail @enum("packet","bit","symbol","sample") = default("symbol");
         string errorModelType = default("ApskLayeredErrorModel");
         string decoderType = default("ApskDecoder");
         string demodulatorType = default("ApskDemodulator");

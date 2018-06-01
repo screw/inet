@@ -37,7 +37,7 @@ module Ieee80211LayeredOfdmReceiver like IReceiver
 {
     parameters:
         bool isCompliant = default(true);
-        string levelOfDetail @enum("packet", "bit","symbol","sample") = default("symbol");
+        string levelOfDetail @enum("packet","bit","symbol","sample") = default("symbol");
         string errorModelType = default("");
         string signalDecoderType = default("");
         string dataDecoderType = default("");
