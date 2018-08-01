@@ -88,6 +88,12 @@ class INET_API RoutingTableEntry : public Ipv4Route
     void clearNextHops() { nextHops.clear(); }
     unsigned int getNextHopCount() const { return nextHops.size(); }
     NextHop getNextHop(unsigned int index) const { return nextHops[index]; }
+
+    /** Next hop address */
+       Ipv4Address getGateway() const;
+
+       /** Next hop interface */
+       InterfaceEntry *getInterface() const;
 };
 
 std::ostream& operator<<(std::ostream& out, const RoutingTableEntry& entry);

@@ -301,6 +301,16 @@ void InterfaceEntry::setIeee8021dInterfaceData(Ieee8021dInterfaceData *p)
     configChanged(F_IEEE8021D_DATA);
 }
 
+void InterfaceEntry::setDmprInterfaceData(DmprInterfaceData *p)
+{
+    if (dmprdata && ((InterfaceProtocolData *)dmprdata)->ownerp == this) // Khmm...
+        delete (InterfaceProtocolData *)dmprdata; // Khmm...
+    dmprdata = p;
+    ((InterfaceProtocolData *)p)->ownerp = this;    // Khmm...
+    configChanged(F_DMPR_DATA);
+}
+
+
 bool InterfaceEntry::setEstimateCostProcess(int position, MacEstimateCostProcess *p)
 {
     ASSERT(position >= 0);

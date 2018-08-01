@@ -16,6 +16,7 @@
 //
 
 #include "inet/routing/ospfv2/router/OspfRoutingTableEntry.h"
+#include "inet/routing/dmpr/DmprInterfaceData.h"
 
 namespace inet {
 
@@ -32,6 +33,7 @@ RoutingTableEntry::RoutingTableEntry(IInterfaceTable *_ift) :
 }
 
 RoutingTableEntry::RoutingTableEntry(const RoutingTableEntry& entry) :
+    ift(entry.ift),
     destinationType(entry.destinationType),
     optionalCapabilities(entry.optionalCapabilities),
     area(entry.area),
@@ -43,8 +45,8 @@ RoutingTableEntry::RoutingTableEntry(const RoutingTableEntry& entry) :
 {
     setDestination(entry.getDestination());
     setNetmask(entry.getNetmask());
-    setGateway(entry.getGateway());
     setInterface(entry.getInterface());
+    setGateway(entry.getGateway());
     setSourceType(entry.getSourceType());
     setMetric(entry.getMetric());
 }
@@ -176,6 +178,68 @@ std::ostream& operator<<(std::ostream& out, const RoutingTableEntry& entry)
     }
 
     return out;
+}
+
+/** Next hop address */
+Ipv4Address RoutingTableEntry::getGateway() const
+{
+
+//  int congestLevel = INT_MAX;
+//  Ipv4Address nextHop = Ipv4Address::UNSPECIFIED_ADDRESS;
+//
+//  for (auto it : nextHops)
+//  {
+//    InterfaceEntry* ie = ift->getInterfaceById(it.ifIndex);
+//    DmprInterfaceData *dmprData = ie->dmprData();
+//    if (dmprData->getCongestionLevel() < congestLevel)
+//    {
+//      congestLevel = dmprData->getCongestionLevel();
+//      nextHop = it.hopAddress;
+//    }
+//
+//  }
+//  return nextHop;
+
+  return Ipv4Route::getGateway();
+
+}
+
+/** Next hop interface */
+InterfaceEntry *RoutingTableEntry::getInterface() const
+{
+//  initstate()
+  if(!ift){
+    return Ipv4Route::getInterface();
+  }
+  int congestLevel = INT_MAX;
+  Ipv4Address nextHopAddr = Ipv4Address::UNSPECIFIED_ADDRESS;
+  NextHop nextHop, tmpNextHop;
+  nextHop.hopAddress = Ipv4Address::UNSPECIFIED_ADDRESS;
+  int count = nextHops.size();
+  for (int i = 0; i < count; i++)
+  {
+    tmpNextHop = nextHops.at(i);
+    InterfaceEntry* ie = ift->getInterfaceById(tmpNextHop.ifIndex);
+    if (ie)
+    {
+      DmprInterfaceData *dmprData = ie->dmprData();
+      if (dmprData->getCongestionLevel() < congestLevel)
+      {
+        nextHop = tmpNextHop;
+        congestLevel = dmprData->getCongestionLevel();
+//      nextHopAddr = it.hopAddress;
+      }
+    }
+  }
+
+  if(nextHop.hopAddress != Ipv4Address::UNSPECIFIED_ADDRESS){
+    //TODO FIX Dirty hack with const_cast
+    const_cast<RoutingTableEntry*> ( this )->setInterface(ift->getInterfaceById(nextHop.ifIndex));
+    const_cast<RoutingTableEntry*> ( this )->setGateway(nextHop.hopAddress);
+  }
+
+
+  return Ipv4Route::getInterface();
 }
 
 } // namespace ospf

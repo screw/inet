@@ -1,0 +1,9 @@
+The base of this example is copy-paste from OSPFv2 Routing Dynamic test (inet.examples.ospf2.dynamictest)
+Extended of Dynamic MultiPath Routing (first step).
+
+OSPFv2 Routing
+
+This example simulation has been used to test the OSPF model during
+development.
+
+Testing: cut off a connection and reconnect it later.
