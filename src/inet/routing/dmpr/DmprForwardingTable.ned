@@ -13,33 +13,14 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef INET_ROUTING_DMPR_DMPRINTERFACEDATA_H_
-#define INET_ROUTING_DMPR_DMPRINTERFACEDATA_H_
+package inet.routing.dmpr;
 
-#include "inet/common/INETDefs.h"
-#include "inet/networklayer/common/InterfaceEntry.h"
-
-namespace inet {
-
-class INET_API DmprInterfaceData : public InterfaceProtocolData
+//
+// TODO auto-generated module
+//
+simple DmprForwardingTable
 {
-  private:
-    int congestionLevel;
-
-  public:
-
-    DmprInterfaceData();
-    virtual ~DmprInterfaceData();
-    virtual std::string str() const override;
-    virtual std::string detailedInfo() const override;
-    int getCongestionLevel() const;
-    void setCongestionLevel(int congestionLevel);
-    void incCongestionLevel();
-
-
-
-};
-
-} /* namespace inet */
-
-#endif /* INET_ROUTING_DMPR_DMPRINTERFACEDATA_H_ */
+    parameters:
+        @display("i=block/table");
+}
+		

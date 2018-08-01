@@ -15,6 +15,7 @@
 
 #include "inet/routing/dmpr/DmprInterfaceData.h"
 
+
 namespace inet {
 
 DmprInterfaceData::DmprInterfaceData()
