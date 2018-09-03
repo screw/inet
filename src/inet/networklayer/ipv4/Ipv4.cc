@@ -34,6 +34,7 @@
 #include "inet/networklayer/arp/ipv4/ArpPacket_m.h"
 #include "inet/networklayer/common/DscpTag_m.h"
 #include "inet/networklayer/common/EcnTag_m.h"
+#include "inet/networklayer/common/RouteRecordTag_m.h"
 #include "inet/networklayer/common/FragmentationTag_m.h"
 #include "inet/networklayer/common/HopLimitTag_m.h"
 #include "inet/networklayer/common/L3AddressTag_m.h"
@@ -1046,8 +1047,30 @@ void Ipv4::encapsulate(Packet *transportPacket)
         default:
             throw cRuntimeError("Unknown CRC mode");
     }
+
+    TlvOptions options;
+    ipv4Header->setOptions(options);
+
     insertNetworkProtocolHeader(transportPacket, Protocol::ipv4, ipv4Header);
     // setting Ipv4 options is currently not supported
+}
+
+void Ipv4::setOptions(Packet *transportPacket, Ipv4Header* ipv4Header)
+{
+
+//  TlvOptions ipv4Options;
+  auto tag = transportPacket->findTag<Ipv4RouteRecordReq>();
+  if(tag != nullptr)
+  {
+    Ipv4OptionRecordRoute* routeRecord = new Ipv4OptionRecordRoute();
+    routeRecord->setType(IPOPTION_RECORD_ROUTE);
+//    ipv4Options.insertTlvOption(&routeRecord);
+    ipv4Header->addOption(routeRecord);
+
+  }
+
+
+
 }
 
 void Ipv4::sendDatagramToOutput(Packet *packet)
