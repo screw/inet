@@ -40,6 +40,7 @@
 #include "inet/transportlayer/tcp_common/TcpHeader.h"
 #include "inet/networklayer/common/DscpTag_m.h"
 #include "inet/networklayer/common/HopLimitTag_m.h"
+#include "inet/networklayer/common/RouteRecordTag_m.h"
 
 namespace inet {
 namespace tcp {
@@ -653,6 +654,21 @@ void TcpConnection::sendAck()
         tcpseg->setEceBit(true);
         state->ecnCe = false;
     }
+    
+    //clean IPv4 options from state
+    for(int i = state->ipv4Options.getTlvOptionArraySize(); i > 0; i--)
+    {
+      if(state->ipv4Options.getTlvOptionForUpdate(i)->getType() == IPOPTION_RECORD_ROUTE)
+      {
+        Ipv4StrictSourceRoutingReq* ssrTag = tcpseg->addTag<Ipv4StrictSourceRoutingReq>();
+        TlvOptionBase *option = (state->ipv4Options.getTlvOptionForUpdate(i));
+        ssrTag->setOption(*(const_cast<Ipv4Option*>(static_cast<Ipv4Option*>(option))));
+
+//        const Ipv4Option ipOption = *(state->ipv4Options.getTlvOption(i));
+//        ssrTag->setOption(static_cast<inet::Ipv4Option*>(option));
+//        ssrTag->setOption(const_cast<const inet::Ipv4Option>((state->ipv4Options.getTlvOption(i))));
+      }
+    }
 
     // write header options
     writeHeaderOptions(tcpseg);
@@ -759,6 +775,9 @@ void TcpConnection::sendSegment(uint32 bytes)
     tcpseg->setChunkLength(B(tcpseg->getHeaderLength()));
 
     ASSERT(tcpseg->getHeaderLength() == tcpseg_temp->getHeaderLength());
+
+    // TODO add .ned variable to activate this feature
+    auto routeRecordTag  = packet->addTagIfAbsent<Ipv4RouteRecordReq>();
 
     // send it
     sendToIP(packet, tcpseg);

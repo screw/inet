@@ -24,13 +24,13 @@ DmprInterfaceData::DmprInterfaceData()
 
 }
 
-int DmprInterfaceData::getCongestionLevel() const
+double DmprInterfaceData::getCongestionLevel() const
 {
   return congestionLevel;
 }
 
 
-void DmprInterfaceData::setCongestionLevel(int congestionLevel)
+void DmprInterfaceData::setCongestionLevel(double congestionLevel)
 {
   this->congestionLevel = congestionLevel;
 }
