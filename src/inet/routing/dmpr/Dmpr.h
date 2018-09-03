@@ -46,6 +46,8 @@ class Dmpr : public cSimpleModule, public NetfilterBase::HookBase
     INetfilter *networkProtocol = nullptr;
     DmprForwardingTable *forwardingTable = nullptr;
 
+    double alpha;
+
   protected:
     virtual void initialize(int stage);
     virtual void handleMessage(cMessage *msg);
