@@ -34,6 +34,7 @@
 #include "inet/networklayer/arp/ipv4/ArpPacket_m.h"
 #include "inet/networklayer/common/DscpTag_m.h"
 #include "inet/networklayer/common/EcnTag_m.h"
+#include "inet/networklayer/common/RouteRecordTag_m.h"
 #include "inet/networklayer/common/FragmentationTag_m.h"
 #include "inet/networklayer/common/HopLimitTag_m.h"
 #include "inet/networklayer/common/L3AddressTag_m.h"
@@ -255,6 +256,33 @@ Ipv4Address Ipv4::getNextHop(Packet *packet)
     return tag != nullptr ? tag->getNextHopAddress().toIpv4() : Ipv4Address::UNSPECIFIED_ADDRESS;
 }
 
+void Ipv4::optionsToTags(const inet::Ptr<const inet::Ipv4Header>& ipv4Header, Packet* packet)
+{
+  int size = ipv4Header->getOptionArraySize();
+  for (int i = 0; i < size; i++)
+  {
+    if (ipv4Header->getOption(i).getType() == IPOPTION_RECORD_ROUTE)
+    {
+      const TlvOptionBase& option = ipv4Header->getOption(i);
+      short type = option.getType();
+      Ipv4RouteRecordInd* tag = packet->addTag<Ipv4RouteRecordInd>();
+      tag->setType(IPOPTION_RECORD_ROUTE);
+      //        tag->setOption(ipv4Header->getOption(i));
+      //        TlvOptionBase *option = (ipv4Header->getOption(i).dup());
+      //        tag->setOption(*(const_cast<Ipv4Option*>(dynamic_cast<Ipv4Option*>(option))));
+      //        const TlvOptionBase testOption = TlvOptionBase();
+      //        const Ipv4Option ipOption = dynamic_cast<const Ipv4Option&>(ipv4Header->getOption(i));
+      const Ipv4OptionRecordRoute routeRecord = dynamic_cast<const Ipv4OptionRecordRoute&>(ipv4Header->getOption(i));
+      routeRecord.getRecordAddressArraySize();
+      tag->setOption(routeRecord);
+      //        testOption = &(ipv4Header->getOption(i));
+      ////        static_cast<Ipv4OptionRecordRoute>
+      //        Ipv4Option testOption = tag->getOptionForUpdate();
+      //        Ipv4OptionRecordRoute* testRecord = dynamic_cast<Ipv4OptionRecordRoute*>(testOption);
+    }
+  }
+}
+
 void Ipv4::handleIncomingDatagram(Packet *packet)
 {
     ASSERT(packet);
@@ -302,6 +330,8 @@ void Ipv4::handleIncomingDatagram(Packet *packet)
     }
 
     EV_DETAIL << "Received datagram `" << ipv4Header->getName() << "' with dest=" << ipv4Header->getDestAddress() << "\n";
+
+    optionsToTags(ipv4Header, packet);
 
     if (datagramPreRoutingHook(packet) == INetfilter::IHook::ACCEPT)
         preroutingFinish(packet);
@@ -1046,8 +1076,78 @@ void Ipv4::encapsulate(Packet *transportPacket)
         default:
             throw cRuntimeError("Unknown CRC mode");
     }
+
+
+    setOptions(transportPacket, ipv4Header);
+
+//    int size = ipv4Header->getOptionArraySize();
+//        for(int i = 0; i < size; i++)
+//        {
+//          if(ipv4Header->getOption(i).getType() == IPOPTION_RECORD_ROUTE)
+//          {
+//            const TlvOptionBase& option = ipv4Header->getOption(i);
+//            short type = option.getType();
+//
+////            Ipv4RouteRecordInd* tag = packet->addTag<Ipv4RouteRecordInd>();
+////            tag->setType(IPOPTION_RECORD_ROUTE);
+//    //        tag->setOption(ipv4Header->getOption(i));
+//    //        TlvOptionBase *option = (ipv4Header->getOption(i).dup());
+//    //        tag->setOption(*(const_cast<Ipv4Option*>(dynamic_cast<Ipv4Option*>(option))));
+//
+//    //        const TlvOptionBase testOption = TlvOptionBase();
+//            const Ipv4Option ipOption = dynamic_cast<const Ipv4Option&>(ipv4Header->getOption(i));
+//            const Ipv4OptionRecordRoute routeRecord = dynamic_cast<const Ipv4OptionRecordRoute&>(ipv4Header->getOption(i));
+////            routeRecord.getRecordAddressArraySize();
+////            tag->setOption(ipOption);
+////    //        testOption = &(ipv4Header->getOption(i));
+//
+//    ////        static_cast<Ipv4OptionRecordRoute>
+//    //        Ipv4Option testOption = tag->getOptionForUpdate();
+//    //        Ipv4OptionRecordRoute* testRecord = dynamic_cast<Ipv4OptionRecordRoute*>(testOption);
+//          }
+//        }
+//
+
+
+
     insertNetworkProtocolHeader(transportPacket, Protocol::ipv4, ipv4Header);
     // setting Ipv4 options is currently not supported
+}
+
+void Ipv4::setOptions(Packet *transportPacket, const Ptr<Ipv4Header>& ipv4Header)
+{
+
+//  TlvOptions ipv4Options;
+  auto tag = transportPacket->findTag<Ipv4RouteRecordReq>();
+  if(tag != nullptr)
+  {
+    Ipv4OptionRecordRoute* routeRecord = new Ipv4OptionRecordRoute();
+    routeRecord->getRecordAddressArraySize();
+    routeRecord->setType(IPOPTION_RECORD_ROUTE);
+    routeRecord->insertRecordAddress(Ipv4Address::ALLONES_ADDRESS);
+//    ipv4Options.insertTlvOption(&routeRecord);
+
+    ipv4Header->addOption(routeRecord);
+
+//    TlvOptionBase *option = (ipv4Header->getOption(i).dup());
+//    ipv4Header->getOption
+
+  }
+
+    auto tagStrictRouting = transportPacket->findTag<Ipv4StrictSourceRoutingReq>();
+    if(tagStrictRouting != nullptr)
+    {
+      Ipv4OptionRecordRoute* ssRouting = new Ipv4OptionRecordRoute();
+      ssRouting->setType(IPOPTION_STRICT_SOURCE_ROUTING);
+      const Ipv4Option& ssRoutingOption =  tagStrictRouting->getOption();
+
+
+      ipv4Header->addOption(ssRoutingOption.dup());
+
+    }
+
+
+
 }
 
 void Ipv4::sendDatagramToOutput(Packet *packet)
