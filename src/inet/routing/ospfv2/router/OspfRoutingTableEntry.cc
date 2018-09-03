@@ -211,7 +211,7 @@ InterfaceEntry *RoutingTableEntry::getInterface() const
   if(!ift){
     return Ipv4Route::getInterface();
   }
-  int congestLevel = INT_MAX;
+  double congestLevel = INT_MAX;
   Ipv4Address nextHopAddr = Ipv4Address::UNSPECIFIED_ADDRESS;
   NextHop nextHop, tmpNextHop;
   nextHop.hopAddress = Ipv4Address::UNSPECIFIED_ADDRESS;

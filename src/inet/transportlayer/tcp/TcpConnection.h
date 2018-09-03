@@ -21,6 +21,7 @@
 #define __INET_TCPCONNECTION_H
 
 #include "inet/common/INETDefs.h"
+#include "inet/common/TlvOptions_m.h"
 
 #include "inet/networklayer/common/L3Address.h"
 #include "inet/transportlayer/tcp/Tcp.h"
@@ -274,6 +275,8 @@ class INET_API TcpStateVariables : public cObject
     bool ecnActive; // ecn echoing is used on this connection (assumes ecnEnabled=true and successful handshake)
 
     bool ecnCe;
+
+    TlvOptions ipv4Options;
 };
 
 /**

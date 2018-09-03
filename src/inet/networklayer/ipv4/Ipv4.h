@@ -141,6 +141,12 @@ class INET_API Ipv4 : public QueueBase, public NetfilterBase, public ILifecycle,
      */
     virtual void encapsulate(Packet *packet);
 
+
+    /**
+     * Set IPv4 options
+     */
+    virtual void setOptions(Packet *transportPacket, Ipv4Header* ipv4Header);
+
     /**
      * Handle Ipv4Header messages arriving from lower layer.
      * Decrements TTL, then invokes routePacket().

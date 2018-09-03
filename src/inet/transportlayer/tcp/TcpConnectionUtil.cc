@@ -31,6 +31,7 @@
 #include "inet/networklayer/common/IpProtocolId_m.h"
 #include "inet/networklayer/common/L3AddressTag_m.h"
 #include "inet/networklayer/common/EcnTag_m.h"
+#include "inet/networklayer/common/RouteRecordTag_m.h"
 #include "inet/transportlayer/tcp/TcpSendQueue.h"
 #include "inet/transportlayer/tcp/TcpSackRexmitQueue.h"
 #include "inet/transportlayer/tcp/TcpReceiveQueue.h"
@@ -281,6 +282,8 @@ void TcpConnection::sendToIP(Packet *packet, const Ptr<TcpHeader>& tcpseg)
     {
       ecnTag->setExplicitCongestionNotification(IP_ECN_NOT_ECT);
     }
+
+
     tcpMain->send(packet, "ipOut");
 }
 
@@ -627,6 +630,22 @@ void TcpConnection::sendAck()
       state->ecnCe = false;
     }
 
+
+    //clean IPv4 options from state
+    for(int i = state->ipv4Options.getTlvOptionArraySize(); i > 0; i--)
+    {
+      if(state->ipv4Options.getTlvOptionForUpdate(i)->getType() == IPOPTION_RECORD_ROUTE)
+      {
+        Ipv4StrictSourceRoutingReq* ssrTag = tcpseg->addTag<Ipv4StrictSourceRoutingReq>();
+        TlvOptionBase *option = (state->ipv4Options.getTlvOptionForUpdate(i));
+        ssrTag->setOption(*(const_cast<Ipv4Option*>(static_cast<Ipv4Option*>(option))));
+
+//        const Ipv4Option ipOption = *(state->ipv4Options.getTlvOption(i));
+//        ssrTag->setOption(static_cast<inet::Ipv4Option*>(option));
+//        ssrTag->setOption(const_cast<const inet::Ipv4Option>((state->ipv4Options.getTlvOption(i))));
+      }
+    }
+
     // write header options
     writeHeaderOptions(tcpseg);
     Packet *fp = new Packet("TcpAck");
@@ -729,6 +748,9 @@ void TcpConnection::sendSegment(uint32 bytes)
     tcpseg->setChunkLength(B(tcpseg->getHeaderLength()));
 
     ASSERT(tcpseg->getHeaderLength() == tcpseg_temp->getHeaderLength());
+
+    // TODO add .ned variable to activate this feature
+    auto routeRecordTag  = packet->addTagIfAbsent<Ipv4RouteRecordReq>();
 
     // send it
     sendToIP(packet, tcpseg);
