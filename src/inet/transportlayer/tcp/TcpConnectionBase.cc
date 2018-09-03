@@ -28,6 +28,9 @@
 #include "inet/transportlayer/tcp/TcpSendQueue.h"
 #include "inet/transportlayer/tcp_common/TcpHeader.h"
 
+#include "inet/common/TlvOptions_m.h"
+#include "inet/networklayer/common/RouteRecordTag_m.h"
+
 namespace inet {
 namespace tcp {
 
@@ -303,8 +306,31 @@ bool TcpConnection::processTCPSegment(Packet *packet, const Ptr<const TcpHeader>
     if (tryFastRoute(tcpseg))
         return true;
 
+    Ipv4RouteRecordInd* tag = packet->findTag<Ipv4RouteRecordInd>();
+    if(tag != nullptr)
+    {
+//      state->ipv4Options.insertTlvOption(tag->getOption().dup());
+      const Ipv4OptionRecordRoute recordRoute = dynamic_cast<const Ipv4OptionRecordRoute&>(tag->getOption());
+      state->ipv4Options.insertTlvOption(recordRoute.dup());
+
+
+//      Ipv4StrictSourceRoutingInd* tag = packet->getTag<Ipv4StrictSourceRoutingInd>();
+
+    }
+
     // first do actions
     TcpEventCode event = process_RCV_SEGMENT(packet, tcpseg, segSrcAddr, segDestAddr);
+
+
+    //clean IP options state
+    //clean IPv4 options from state
+    int size = state->ipv4Options.getTlvOptionArraySize();
+    for(int i = size; i > 0 ; i--)
+    {
+      state->ipv4Options.dropTlvOption(i-1);
+      state->ipv4Options.eraseTlvOption(i-1);
+    }
+
 
     // then state transitions
     return performStateTransition(event);

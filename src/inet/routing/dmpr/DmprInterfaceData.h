@@ -24,7 +24,7 @@ namespace inet {
 class INET_API DmprInterfaceData : public InterfaceProtocolData
 {
   private:
-    int congestionLevel;
+    double congestionLevel;
 
   public:
 
@@ -32,8 +32,8 @@ class INET_API DmprInterfaceData : public InterfaceProtocolData
     virtual ~DmprInterfaceData();
     virtual std::string str() const override;
     virtual std::string detailedInfo() const override;
-    int getCongestionLevel() const;
-    void setCongestionLevel(int congestionLevel);
+    double getCongestionLevel() const;
+    void setCongestionLevel(double congestionLevel);
     void incCongestionLevel();
 
 
