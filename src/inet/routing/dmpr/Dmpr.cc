@@ -15,6 +15,8 @@
 
 #include "inet/routing/dmpr/Dmpr.h"
 
+
+#include "inet/transportlayer/tcp/Tcp.h"
 #include "inet/common/packet/printer/PacketPrinter.h"
 #include "inet/linklayer/common/InterfaceTag_m.h"
 
@@ -30,6 +32,14 @@
 #include "inet/common/packet/Packet.h"
 
 #include "inet/transportlayer/common/L4Tools.h"
+#include "inet/transportlayer/tcp_common/TcpHeader_m.h"
+
+#include "inet/transportlayer/common/TransportPseudoHeader_m.h"
+#include "inet/transportlayer/contract/tcp/TcpCommand_m.h"
+#include "inet/transportlayer/tcp/TcpConnection.h"
+#include "inet/transportlayer/tcp/TcpSendQueue.h"
+#include "inet/transportlayer/tcp_common/TcpHeader.h"
+#include "inet/transportlayer/tcp/TcpReceiveQueue.h"
 
 #include "inet/routing/dmpr/DmprInterfaceData.h"
 
@@ -48,6 +58,8 @@ void Dmpr::initialize(int stage)
     interfaceTable = getModuleFromPar<IInterfaceTable>(par("interfaceTableModule"), this);
     networkProtocol = getModuleFromPar<INetfilter>(par("networkProtocolModule"), this);
     forwardingTable = getModuleFromPar<DmprForwardingTable>(par("dmprForwardingTableModule"), this);
+
+    alpha = par("alpha").doubleValue();
   }
   else if (stage == INITSTAGE_LINK_LAYER)
   {
@@ -84,6 +96,46 @@ INetfilter::IHook::Result Dmpr::datagramPreRoutingHook(Packet* datagram)
 //  std::cout << "DMPR: PreRouting: Packet: ";
 //  printer.printPacket(std::cout, datagram);
 //  EV_DEBUG << "DMPR Prerouting detailedInf: " << datagram->;
+  const auto& ipv4Header = datagram->peekAtFront<Ipv4Header>();
+
+  const Protocol *protocolPtr = ipv4Header->getProtocol();
+  if(*protocolPtr == Protocol::tcp)
+  {
+    auto headerOffset = datagram->getFrontOffset();
+    datagram->setFrontOffset(headerOffset + ipv4Header->getChunkLength());
+    const auto& transportHeader = peekTransportProtocolHeader(datagram, *protocolPtr);
+
+    // must be a TcpHeader
+    auto tcpHeader = datagram->peekAtFront<tcp::TcpHeader>();
+
+//    auto tcpHeader = datagram->peekAtFront<TcpHeader>();
+    datagram->setFrontOffset(headerOffset);
+
+    int64_t payload = (ipv4Header->getTotalLengthField() - ipv4Header->getHeaderLength() - tcpHeader->getHeaderLength()).get();
+
+    if (tcpHeader->getAckBit() && !(payload > 0))
+    {
+      //ACKnowledgement
+      int interfaceId = datagram->getTag<InterfaceInd>()->getInterfaceId();
+      DmprInterfaceData *dmprData =  interfaceTable->getInterfaceById(interfaceId)->dmprData();
+
+      int ece = tcpHeader->getEceBit();
+
+      double p = dmprData->getCongestionLevel();
+//      double alpha = 0.1
+      p = (1 - alpha) * p + ece * alpha;
+      dmprData->setCongestionLevel(p);
+
+      for(int i = ipv4Header->getOptionArraySize(); i > 0; i--)
+      {
+
+        if(ipv4Header->getOption(i).getType() == IPOPTION_STRICT_SOURCE_ROUTING)
+        {
+
+        }
+      }
+    }
+  }
 
 
 
@@ -116,7 +168,7 @@ INetfilter::IHook::Result Dmpr::datagramForwardHook(Packet* datagram)
   const Protocol *protocolPtr = ipv4Header->getProtocol();
   if (!protocolPtr || !isTransportProtocol(*protocolPtr))
   {
-    // only inteded for transport level traffic (NB isTransportProtocol() currently supports only TCP and UDP)
+    // only intended for transport level traffic (NB isTransportProtocol() currently supports only TCP and UDP)
     return ACCEPT;
   }
   auto headerOffset = datagram->getFrontOffset();
