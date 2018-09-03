@@ -26,4 +26,6 @@ simple Dmpr
         string networkProtocolModule = default("^.ipv4.ip");
         string dmprForwardingTableModule = default("^.dmprForwardingTable");
         
+        double alpha = default(0.01);
+        
 }
