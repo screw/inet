@@ -122,6 +122,20 @@ class Ipv4OptionRecordRoute extends Ipv4Option
 }
 
 //
+// Option structure: Record Route
+//
+//class Ipv4OptionStrictSourceRouting extends Ipv4Option
+//{
+//
+//     type = IPOPTION_STRICT_SOURCE_ROUTING;
+//     
+//      short nextAddressIdx;
+//    // pointer = 4 + 4 * nextAddressIdx
+//    Ipv4Address recordAddress[];    // max size is 9
+//
+//}
+
+//
 // Option structure: Timestamp
 //
 class Ipv4OptionTimestamp extends Ipv4Option
