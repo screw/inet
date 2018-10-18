@@ -145,7 +145,7 @@ class INET_API Ipv4 : public QueueBase, public NetfilterBase, public ILifecycle,
     /**
      * Set IPv4 options
      */
-    virtual void setOptions(Packet *transportPacket, Ipv4Header* ipv4Header);
+    virtual void setOptions(Packet *transportPacket,  const Ptr<Ipv4Header>& ipv4Header);
 
     /**
      * Handle Ipv4Header messages arriving from lower layer.
@@ -311,6 +311,9 @@ class INET_API Ipv4 : public QueueBase, public NetfilterBase, public ILifecycle,
     virtual void stop();
     virtual void start();
     virtual void flush();
+
+  private:
+    void optionsToTags(const inet::Ptr<const inet::Ipv4Header>& ipv4Header, Packet* packet);
 };
 
 } // namespace inet

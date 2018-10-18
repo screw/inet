@@ -22,18 +22,20 @@ namespace inet;
 class Ipv4OptionTagBase extends TagBase
 {
     Ipv4OptionType type;
-    Ipv4Option option;
+    
 }
 
 
 class Ipv4RouteRecordTagBase extends Ipv4OptionTagBase
 {
 	type = IPOPTION_RECORD_ROUTE;
+	Ipv4OptionRecordRoute option;
 }
 
 // request the 
 class Ipv4RouteRecordReq extends Ipv4RouteRecordTagBase
 {
+    
     
     
 }
@@ -47,6 +49,7 @@ class Ipv4RouteRecordInd extends Ipv4RouteRecordTagBase
 class Ipv4StrictSourceRoutingTagBase extends Ipv4OptionTagBase
 {
  	type = IPOPTION_STRICT_SOURCE_ROUTING;  
+ 	Ipv4OptionRecordRoute option;
 } 
 
 
