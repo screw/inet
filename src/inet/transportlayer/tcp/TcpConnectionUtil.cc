@@ -608,6 +608,7 @@ void TcpConnection::sendSynAck()
         for(int k = 0; k < routeRecordSize; k++){
           strictRoute.insertRecordAddress(routeRecord.getRecordAddress(k));
         }
+        strictRoute.setNextAddressIdx(strictRoute.getRecordAddressArraySize() - 1);
         ssrTag->setOption(strictRoute);
 //        ssrTag->setOption(*(const_cast<Ipv4Option*>(static_cast<Ipv4Option*>(strictRoute))));
 
