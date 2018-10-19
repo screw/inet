@@ -1124,7 +1124,7 @@ void Ipv4::setOptions(Packet *transportPacket, const Ptr<Ipv4Header>& ipv4Header
     Ipv4OptionRecordRoute* routeRecord = new Ipv4OptionRecordRoute();
     routeRecord->getRecordAddressArraySize();
     routeRecord->setType(IPOPTION_RECORD_ROUTE);
-    routeRecord->insertRecordAddress(Ipv4Address::ALLONES_ADDRESS);
+//    routeRecord->insertRecordAddress(Ipv4Address::ALLONES_ADDRESS);
 //    ipv4Options.insertTlvOption(&routeRecord);
 
     ipv4Header->addOption(routeRecord);
