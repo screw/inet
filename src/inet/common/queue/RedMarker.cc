@@ -22,7 +22,11 @@
 
 
 #include "inet/networklayer/ipv4/Ipv4Header_m.h"
+#include "inet/linklayer/ethernet/EtherFrame_m.h"
+#include "inet/linklayer/ethernet/Ethernet.h"
+#include "inet/linklayer/ethernet/EtherEncap.h"
 
+#include "inet/networklayer/common/L3Tools.h"
 
 //#ifdef WITH_IPv6
 //#include "inet/networklayer/ipv6/Ipv6Header.h"
@@ -39,6 +43,7 @@ Define_Module(RedMarker);
 
 RedMarker::RedMarker()
 {
+  markNext = false;
 
 
 }
@@ -70,21 +75,72 @@ void RedMarker::initialize()
 
 void RedMarker::handleMessage(cMessage *msg)
 {
-  cPacket *packet = check_and_cast<cPacket *>(msg);
+  Packet *packet = check_and_cast<Packet *>(msg);
+
+  const Protocol *payloadProtocol = nullptr;
+  auto headerOffset = packet->getFrontOffset();
+
+  auto ethHeader = packet->peekAtFront<EthernetMacHeader>();
+  if (isEth2Header(*ethHeader))
+  {
+    payloadProtocol = ProtocolGroup::ethertype.getProtocol(ethHeader->getTypeOrLength());
+    if (*payloadProtocol == Protocol::ipv4)
+    {
+//      auto headerOffset = packet->getFrontOffset();
+
+      packet->setFrontOffset(headerOffset + ethHeader->getChunkLength());
+      auto ipv4Header = packet->peekAtFront<Ipv4Header>();
+
+      //congestion experiencd CE
+      int ect = ipv4Header->getExplicitCongestionNotification();
+  //      packet->insertAtFront(ipv4Header);
+
+  // if packet supports marking (ECT(1) or ECT(0))
+      if ((ect & 0x01) || (ect & 0x02))
+      {
+
+        // if next packet should be marked and it is not
+        if (markNext && !(ect & 0x03))
+        {
+          markPacket(packet);
+          markNext = false;
+        }
+        else if (ect & 0x03)
+        {
+          if (shouldMark(packet))
+          {
+            markNext = true;
+          }
+        }
+        else
+        {
+          shouldMark(packet);
+
+        }
+        packet->setFrontOffset(headerOffset);
+        sendOut(packet);
+        return;
+      }
+      packet->setFrontOffset(headerOffset);
+
+    }
+  }
+
 
   if (shouldDrop(packet)){
     dropPacket(packet);
     return;
   }
-//  else if (shouldMark(packet))
-//  {
-//    markPacket(check_and_cast<Packet *>(packet));
-//  }
+
 
    sendOut(packet);
 }
-
-bool RedMarker::shouldDrop(cPacket *packet)
+/** It is almost copy&paste from RedDropper::shouldDrop.
+ *  Marks packet if avg queue lenght > maxth or random  when  minth < avg < maxth.
+ *  Drops when size is bigger then max allowed size.
+ *  Returns true when drop or mark occurs, false otherwise.
+ * **/
+bool RedMarker::shouldMark(cPacket *packet)
 {
     const int i = packet->getArrivalGate()->getIndex();
     ASSERT(i >= 0 && i < numGates);
@@ -118,18 +174,19 @@ bool RedMarker::shouldDrop(cPacket *packet)
             EV << "Random early packet drop (avg queue len=" << avg << ", pa=" << pb << ")\n";
             count[i] = 0;
             markPacket(check_and_cast<Packet *>(packet));
-            return false;
+            return true;
         }
     }
     else if (avg >= maxth) {
         EV << "Avg queue len " << avg << " >= maxth, dropping packet.\n";
         count[i] = 0;
         markPacket(check_and_cast<Packet *>(packet));
-        return false;
+        return true;
     }
     else if (queueLength >= maxth) {    // maxth is also the "hard" limit
         EV << "Queue len " << queueLength << " >= maxth, dropping packet.\n";
         count[i] = 0;
+        dropPacket(packet);
         return true;
     }
     else
@@ -140,7 +197,7 @@ bool RedMarker::shouldDrop(cPacket *packet)
     return false;
 }
 
-bool RedMarker::shouldMark(cPacket *packet)
+bool RedMarker::shouldDrop(cPacket *packet)
 {
   const int i = packet->getArrivalGate()->getIndex();
    ASSERT(i >= 0 && i < numGates);
@@ -196,20 +253,35 @@ bool RedMarker::shouldMark(cPacket *packet)
 bool RedMarker::markPacket(Packet *packet)
 {
   EV_DETAIL << "Marking packet with ECN \n";
+  std::cout << "Marking packet with ECN \n";
 
-  auto protocol = packet->getTag<PacketProtocolTag>()->getProtocol();
+  packet->setFrontOffset(b(0));
+  auto macHeader = packet->popAtFront<EthernetMacHeader>();
+  packet->popAtBack<EthernetFcs>(ETHER_FCS_BYTES);
 
-  //TODO processing link-layer headers when exists
+  const auto& ipv4Header = removeNetworkProtocolHeader<Ipv4Header>(packet);
+  ipv4Header->setExplicitCongestionNotification(3);
+  insertNetworkProtocolHeader(packet, Protocol::ipv4, ipv4Header);
+
+  packet->insertAtFront(macHeader);
+
+  EtherEncap::addPaddingAndFcs(packet, FCS_DECLARED_CORRECT);
 
 
-  if (protocol == &Protocol::ipv4) {
-      packet->trimFront();
-      const auto& ipv4Header = packet->removeAtFront<Ipv4Header>();
+//
+//  auto networkHeader = getNetworkProtocolHeader(packet);
+//
+//  Ipv4Header* ipv4Header = static_cast<Ipv4Header*>(networkHeader);
+//
+//  //  auto ipv4Header = packet->peekAtFront<Ipv4Header>();
+////  auto ipv4Header = removeNetworkProtocolHeader<Ipv4Header>(packet);
+//
+//  //congestion experiencd CE
+//  ipv4Header->setExplicitCongestionNotification(3);
+//  insertNetworkProtocolHeader(packet, Protocol::ipv4, ipv4Header);
 
-      ipv4Header->setExplicitCongestionNotification(1);
-      packet->insertAtFront(ipv4Header);
-      return true;
-  }
+  return true;
+
 
 //#ifdef WITH_IPv6
 //  if (protocol == &Protocol::ipv6) {
