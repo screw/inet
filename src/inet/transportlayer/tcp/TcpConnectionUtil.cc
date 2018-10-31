@@ -591,6 +591,7 @@ void TcpConnection::sendSynAck()
 
     Packet *fp = new Packet("SYN+ACK");
 
+
     int size = state->ipv4Options.getTlvOptionArraySize();
     for(int i = 0; i < size; i++)
     {
@@ -623,6 +624,9 @@ void TcpConnection::sendSynAck()
 //  {
 //    state->ipv4Options.eraseTlvOption(i);
 //  }
+
+
+
     // send it
     sendToIP(fp, tcpseg);
 
@@ -708,7 +712,9 @@ void TcpConnection::sendAck()
         Ipv4StrictSourceRoutingReq* ssrTag = fp->addTag<Ipv4StrictSourceRoutingReq>();
         ssrTag->setType(IPOPTION_STRICT_SOURCE_ROUTING);
         TlvOptionBase *option = (state->ipv4Options.getTlvOptionForUpdate(i));
-        ssrTag->setOption(*(const_cast<Ipv4OptionRecordRoute*>(static_cast<Ipv4OptionRecordRoute*>(option))));
+                Ipv4OptionRecordRoute* strictRouting = static_cast<Ipv4OptionRecordRoute*>(option);
+        strictRouting->setType(IPOPTION_STRICT_SOURCE_ROUTING);
+        ssrTag->setOption(*(const_cast<Ipv4OptionRecordRoute*>(strictRouting)));
 
 //        const Ipv4Option ipOption = *(state->ipv4Options.getTlvOption(i));
 //        ssrTag->setOption(static_cast<inet::Ipv4Option*>(option));
