@@ -25,6 +25,10 @@ class INET_API DmprInterfaceData : public InterfaceProtocolData
 {
   private:
     double congestionLevel;
+    double inUseCongLevel;
+    int packetCount;
+
+    simtime_t lastChange;
 
   public:
     DmprInterfaceData();
@@ -34,8 +38,13 @@ class INET_API DmprInterfaceData : public InterfaceProtocolData
     double getCongestionLevel() const;
     void setCongestionLevel(double congestionLevel);
     void incCongestionLevel();
-
-
+    int getPacketCount() const;
+    void setPacketCount(int packetCount);
+    void incPacketCount();
+    double getInUseCongLevel() const;
+    void setInUseCongLevel(double inUseCongLevel);
+    const simtime_t& getLastChange() const;
+    void setLastChange(const simtime_t& lastChange);
 };
 
 } /* namespace inet */
