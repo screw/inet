@@ -215,22 +215,103 @@ InterfaceEntry *RoutingTableEntry::getInterface() const
   Ipv4Address nextHopAddr = Ipv4Address::UNSPECIFIED_ADDRESS;
   NextHop nextHop, tmpNextHop;
   nextHop.hopAddress = Ipv4Address::UNSPECIFIED_ADDRESS;
+
   int count = nextHops.size();
+
+  double loadIndicator[count];
+  double availableLoad[count];
+  double maxRatio[count];
+  double actualRatio[count];
+  double ratioDiff[count];
+  int packetCount[count];
+  double availableLoadSum = 0;
+  int packetSum = 0;
+
+
+
   for (int i = 0; i < count; i++)
   {
     tmpNextHop = nextHops.at(i);
-    InterfaceEntry* ie = ift->getInterfaceById(tmpNextHop.ifIndex);
-    if (ie)
+        InterfaceEntry* ie = ift->getInterfaceById(tmpNextHop.ifIndex);
+        if (ie)
+        {
+          DmprInterfaceData *dmprData = ie->dmprData();
+
+
+          if(dmprData->getLastChange() + 0.5 < simTime())
+          {
+            dmprData->setInUseCongLevel(dmprData->getCongestionLevel());
+            dmprData->setLastChange(simTime());
+            dmprData->setPacketCount(0);
+          }
+
+          packetCount[i] = dmprData->getPacketCount();
+          //          availableLoad[i] = 1 - dmprData->getCongestionLevel();
+          availableLoad[i] = 1 - dmprData->getInUseCongLevel();
+
+          availableLoadSum += availableLoad[i];
+          packetSum += packetCount[i];
+        } else
+        {
+          packetCount[i] = 0;
+          availableLoad[i] = 0;
+        }
+
+  }
+
+  for (int i = 0; i < count; i++)
+  {
+    maxRatio[i] = availableLoadSum == 0 ? 0 : availableLoad[i] / availableLoadSum; // This can be pre-computed;
+
+    actualRatio[i] =  (packetSum == 0) ? 0 : (double) packetCount[i] / (double)packetSum;
+
+
+    //if the current portion of packets send over this hop exceeds the maxRatio, then skip this interface in the decision process
+    if (actualRatio[i] > maxRatio[i])
     {
-      DmprInterfaceData *dmprData = ie->dmprData();
-      if (dmprData->getCongestionLevel() < congestLevel)
+      maxRatio[i] = 0;
+    }
+
+    ratioDiff[i] = maxRatio[i] - actualRatio[i];
+  }
+
+
+
+  double ratio = -1;
+
+
+  /*
+   * Chooses the one with the highest available ratio (except the ones that already exceeded maxRatio)
+   */
+//  std::cout<< "DMPR: load balancing between: " << std::endl;
+  for (int i = 0; i < count; i++)
+  {
+
+
+    tmpNextHop = nextHops.at(i);
+//    std::cout << "DMPR: nextHop: "<< tmpNextHop.hopAddress << " availableLoad: "<< availableLoad[i] << " loadSum: " << availableLoadSum << " ratioDiff: " << ratioDiff[i] << " maxRatio: " << maxRatio[i] << " actualRatio: "<< actualRatio[i] << " packets: " << packetCount[i] << " packetSum: " << packetSum << std::endl;
+
+      if (ratioDiff[i] > ratio)
       {
         nextHop = tmpNextHop;
-        congestLevel = dmprData->getCongestionLevel();
-//      nextHopAddr = it.hopAddress;
-      }
+        ratio = ratioDiff[i];
     }
   }
+
+
+//  /*
+//   * Chooses the one with the highest available ratio (except the ones that already exceeded maxRatio)
+//   */
+//  for (int i = 0; i < count; i++)
+//  {
+//    tmpNextHop = nextHops.at(i);
+//
+//      if (maxRatio[i] > ratio)
+//      {
+//        nextHop = tmpNextHop;
+//        ratio = maxRatio[i];
+//    }
+//  }
 
   if(nextHop.hopAddress != Ipv4Address::UNSPECIFIED_ADDRESS){
     //TODO FIX Dirty hack with const_cast
