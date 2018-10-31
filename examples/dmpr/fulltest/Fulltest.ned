@@ -35,15 +35,7 @@ module RedMarkerQueue like IOutputQueue
         output out;
 
     submodules:
-        red: RedMarker {
-            numGates = 1;
-            wq = 0.0032;
-            minths = "5";
-            maxths = "40";
-            maxps = "0.10";
-            pkrates = "8333.333";
-            marks = "1";
-        }
+        red: RedMarker;
         fifo: FifoQueue;
     connections:
         in --> red.in[0];
@@ -108,6 +100,7 @@ network Fulltest
         configurator: Ipv4NetworkConfigurator {
             parameters:
                 @display("p=100,100;is=s");
+                addStaticRoutes = false;
                 config = xml("<config>"
                         + "<interface among='routerCore1 routerCore2' address='10.1.2.x' netmask='255.255.255.x' />"
                         + "<interface among='routerCore2 routerCore3' address='10.2.3.x' netmask='255.255.255.x' />"
