@@ -122,6 +122,8 @@ INetfilter::IHook::Result Dmpr::datagramPreRoutingHook(Packet* datagram)
       p = (1 - alpha) * p + ece * alpha;
       dmprData->setCongestionLevel(p);
 
+      std::cout << "DMPR: Updated congestionLevel: " << p << std::endl;
+
 //      for(int i = ipv4Header->getOptionArraySize(); i > 0; i--)
 //      {
 //
@@ -155,6 +157,8 @@ INetfilter::IHook::Result Dmpr::datagramPreRoutingHook(Packet* datagram)
 
 INetfilter::IHook::Result Dmpr::datagramForwardHook(Packet* datagram)
 {
+
+  std::cout<< "DMPR: ForwardHook" <<std::endl;
   PacketPrinter printer;
 //  if(datagram->findTag<NextHopAddressReq() != nullptr)
 //  {
@@ -174,20 +178,61 @@ INetfilter::IHook::Result Dmpr::datagramForwardHook(Packet* datagram)
     printer.printPacket(std::cout, datagram);
     return ACCEPT;
   }
-//  std::cout << "DMPR: ForwardHook: Processing: ";
-//  printer.printPacket(std::cout, datagram);
 
-//  DmprSocket socket;
+  // if this packet is using Source Routing then override the DMPR mechanism
+  for(int i = ipv4Header->getOptionArraySize(); i > 0; i--)
+  {
 
-        // if this packet is using Source Routing then override the DMPR mechanism
-        for(int i = ipv4Header->getOptionArraySize(); i > 0; i--)
-        {
+    if(ipv4Header->getOption(i-1).getType() == IPOPTION_STRICT_SOURCE_ROUTING)
+    {
+      return ACCEPT;
+    }
+  }
 
-          if(ipv4Header->getOption(i-1).getType() == IPOPTION_STRICT_SOURCE_ROUTING)
-          {
-            return ACCEPT;
-          }
-        }
+
+  //This flow is not yet in our forwarding table -> create new entry
+  Ipv4Route *route = routingTable->findBestMatchingRoute(destAddr);
+
+  if (route)
+  {
+    InterfaceEntry* ie = route->getInterface();
+
+    Ipv4Address nextHopAddr = route->getGateway();
+//    DmprForwardingTable::NextHopInterface nextHop;
+    int interfaceId = ie->getInterfaceId();
+//    nextHop.nextHop = nextHopAddr;
+
+//    forwardingTable->insertEntry(socket, nextHop);
+//    std::cout << "DMPR: Adding socket: " << socket.str() << std::endl;
+
+    DmprInterfaceData* dmprData = ie->dmprData();
+    dmprData->incPacketCount();
+
+    datagram->addTagIfAbsent<InterfaceReq>()->setInterfaceId(interfaceId);
+    datagram->addTagIfAbsent<NextHopAddressReq>()->setNextHopAddress(nextHopAddr);
+    std::cout << "DMPR: new nextHop: " << nextHopAddr.str() << " with congest: " << dmprData->getCongestionLevel()
+        << " and packetCount: " << dmprData->getPacketCount()  <<"\n";
+  }
+
+
+
+
+
+
+  return ACCEPT;
+
+
+
+
+  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+
 
   DmprForwardingTable::Socket socket;
   socket.dstIp = destAddr;
@@ -225,7 +270,7 @@ INetfilter::IHook::Result Dmpr::datagramForwardHook(Packet* datagram)
   }
 
   //This flow is not yet in our forwarding table -> create new entry
-  Ipv4Route *route = routingTable->findBestMatchingRoute(destAddr);
+  route = routingTable->findBestMatchingRoute(destAddr);
 
   if (route)
   {
@@ -240,7 +285,7 @@ INetfilter::IHook::Result Dmpr::datagramForwardHook(Packet* datagram)
     std::cout << "DMPR: Adding socket: " << socket.str() << std::endl;
 
     DmprInterfaceData* dmprData = ie->dmprData();
-    dmprData->incCongestionLevel();
+//    dmprData->incCongestionLevel();
 
     datagram->addTagIfAbsent<InterfaceReq>()->setInterfaceId(nextHop.interfaceId);
     datagram->addTagIfAbsent<NextHopAddressReq>()->setNextHopAddress(nextHop.nextHop);
@@ -280,12 +325,9 @@ INetfilter::IHook::Result Dmpr::datagramPostRoutingHook(Packet* datagram)
       int interfaceId = datagram->getTag<InterfaceInd>()->getInterfaceId();
       DmprInterfaceData *dmprData =  interfaceTable->getInterfaceById(interfaceId)->dmprData();
 
-      int ece = tcpHeader->getEceBit();
+//      int ece = tcpHeader->getEceBit();
 
-      double p = dmprData->getCongestionLevel();
-//      double alpha = 0.1
-      p = (1 - alpha) * p + ece * alpha;
-      dmprData->setCongestionLevel(p);
+
 
       for(int i = ipv4Header->getOptionArraySize(); i > 0; i--)
       {
@@ -314,20 +356,24 @@ INetfilter::IHook::Result Dmpr::datagramPostRoutingHook(Packet* datagram)
 
           }
           insertNetworkProtocolHeader(datagram, Protocol::ipv4, ipv4HeaderForUpdate);
-        }else if (ipv4Header->getOption(i-1).getType() == IPOPTION_RECORD_ROUTE)
-        {
-          NextHopAddressReq* nextHopTag = datagram->findTag<NextHopAddressReq>();
 
-          //if this is the last hop, don't add it
-          if(nextHopTag != nullptr && !nextHopTag->getNextHopAddress().toIpv4().isUnspecified() && nextHopTag->getNextHopAddress().toIpv4() != ipv4Header->getDestAddress())
-          {
-          const InterfaceEntry *destIE = interfaceTable->getInterfaceById(datagram->getTag<InterfaceReq>()->getInterfaceId());
+        }
+        else if (ipv4Header->getOption(i-1).getType() == IPOPTION_RECORD_ROUTE)
+        {
+
+        NextHopAddressReq* nextHopTag = datagram->findTag<NextHopAddressReq>();
+
+        //if this is the last hop, don't add it
+        if (nextHopTag != nullptr && !nextHopTag->getNextHopAddress().toIpv4().isUnspecified()
+            && nextHopTag->getNextHopAddress().toIpv4() != ipv4Header->getDestAddress())
+        {
+          const InterfaceEntry *destIE = interfaceTable->getInterfaceById(
+              datagram->getTag<InterfaceReq>()->getInterfaceId());
 
           auto ipv4HeaderForUpdate = removeNetworkProtocolHeader<Ipv4Header>(datagram);
 
-
 //          destIE->ipv4Data()->getIPAddress();
-          TlvOptionBase& option = ipv4HeaderForUpdate->getOptionForUpdate(i-1);
+          TlvOptionBase& option = ipv4HeaderForUpdate->getOptionForUpdate(i - 1);
           Ipv4OptionRecordRoute& recordRoute = dynamic_cast<Ipv4OptionRecordRoute&>(option);
 
           recordRoute.insertRecordAddress(destIE->ipv4Data()->getIPAddress());
