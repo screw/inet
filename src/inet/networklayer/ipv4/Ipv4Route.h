@@ -172,7 +172,7 @@ class INET_API Ipv4MulticastRoute : public cObject, public IMulticastRoute
     Ipv4MulticastRoute() : rt(nullptr), inInterface(nullptr), sourceType(MANUAL), source(nullptr), metric(0) {}
     virtual ~Ipv4MulticastRoute();
     virtual std::string str() const override;
-    virtual std::string detailedInfo() const OMNETPP5_CODE(override);
+    virtual std::string detailedInfo() const OMNETPP5_CODE(override); 
 
     /** To be called by the routing table when this route is added or removed from it */
     virtual void setRoutingTable(IIpv4RoutingTable *rt) { this->rt = rt; }
