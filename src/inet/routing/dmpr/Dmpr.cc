@@ -122,7 +122,7 @@ INetfilter::IHook::Result Dmpr::datagramPreRoutingHook(Packet* datagram)
       p = (1 - alpha) * p + ece * alpha;
       dmprData->setCongestionLevel(p);
 
-      std::cout << "DMPR: Updated congestionLevel: " << p << std::endl;
+//      std::cout << "DMPR: Updated congestionLevel: " << p << std::endl;
 
 //      for(int i = ipv4Header->getOptionArraySize(); i > 0; i--)
 //      {
@@ -158,7 +158,7 @@ INetfilter::IHook::Result Dmpr::datagramPreRoutingHook(Packet* datagram)
 INetfilter::IHook::Result Dmpr::datagramForwardHook(Packet* datagram)
 {
 
-  std::cout<< "DMPR: ForwardHook" <<std::endl;
+//  std::cout<< "DMPR: ForwardHook" <<std::endl;
   PacketPrinter printer;
 //  if(datagram->findTag<NextHopAddressReq() != nullptr)
 //  {
@@ -174,7 +174,7 @@ INetfilter::IHook::Result Dmpr::datagramForwardHook(Packet* datagram)
   if(!destAddr.isUnicast())
   {
     //Only supports unicast
-    std::cout << "DMPR: ForwardHook: Skipping: ";
+//    std::cout << "DMPR: ForwardHook: Skipping: ";
     printer.printPacket(std::cout, datagram);
     return ACCEPT;
   }
@@ -210,8 +210,8 @@ INetfilter::IHook::Result Dmpr::datagramForwardHook(Packet* datagram)
 
     datagram->addTagIfAbsent<InterfaceReq>()->setInterfaceId(interfaceId);
     datagram->addTagIfAbsent<NextHopAddressReq>()->setNextHopAddress(nextHopAddr);
-    std::cout << "DMPR: new nextHop: " << nextHopAddr.str() << " with congest: " << dmprData->getCongestionLevel()
-        << " and packetCount: " << dmprData->getPacketCount()  <<"\n";
+//    std::cout << "DMPR: new nextHop: " << nextHopAddr.str() << " with congest: " << dmprData->getCongestionLevel()
+//        << " and packetCount: " << dmprData->getPacketCount()  <<"\n";
   }
 
 
