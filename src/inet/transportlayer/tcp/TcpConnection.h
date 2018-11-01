@@ -133,7 +133,7 @@ enum IpEcnCode {
 
 #define MAX_SYN_REXMIT_COUNT          12  // will only be used with SYN+ACK: with SYN CONN_ESTAB occurs sooner
 #define TCP_MAX_WIN                   65535  // 65535 bytes, largest value (16 bit) for (unscaled) window size
-#define DUPTHRESH                     3  // used for TcpTahoe, TcpReno and SACK (RFC 3517)
+#define DUPTHRESH                     30  // used for TcpTahoe, TcpReno and SACK (RFC 3517)
 #define MAX_SACK_BLOCKS               60  // will only be used with SACK
 #define PAWS_IDLE_TIME_THRESH         (24 * 24 * 3600)  // 24 days in seconds (RFC 1323)
 
