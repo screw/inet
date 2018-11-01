@@ -52,6 +52,7 @@ void Ospfv2::initialize(int stage)
         host = getContainingNode(this);
         ift = getModuleFromPar<IInterfaceTable>(par("interfaceTableModule"), this);
         rt = getModuleFromPar<IIpv4RoutingTable>(par("routingTableModule"), this);
+        hasDmpr = par("hasDmpr");
         startupTimer = new cMessage("OSPF-startup");
     }
     else if (stage == INITSTAGE_ROUTING_PROTOCOLS) {  // interfaces and static routes are already initialized
@@ -73,7 +74,7 @@ void Ospfv2::handleMessageWhenUp(cMessage *msg)
 
 void Ospfv2::createOspfRouter()
 {
-    ospfRouter = new Router(this, ift, rt);
+    ospfRouter = new Router(this, ift, rt, hasDmpr);
 
     // read the OSPF AS configuration
     cXMLElement *ospfConfig = par("ospfConfig");
