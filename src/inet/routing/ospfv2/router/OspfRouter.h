@@ -54,13 +54,13 @@ class INET_API Router
     std::vector<RoutingTableEntry *> routingTable;    ///< The OSPF routing table - contains more information than the one in the IP layer.
     MessageHandler *messageHandler;    ///< The message dispatcher class.
     bool rfc1583Compatibility;    ///< Decides whether to handle the preferred routing table entry to an AS boundary router as defined in RFC1583 or not.
-
+    bool hasDmpr;
   public:
     /**
      * Constructor.
      * Initializes internal variables, adds a MessageHandler and starts the Database Age timer.
      */
-    Router(RouterId id, cSimpleModule *containingModule, IInterfaceTable *ift, IIpv4RoutingTable *rt);
+    Router(RouterId id, cSimpleModule *containingModule, IInterfaceTable *ift, IIpv4RoutingTable *rt, bool hasDmpr);
 
     /**
      * Destructor.
@@ -266,6 +266,7 @@ class INET_API Router
      * @sa Area::originateSummaryLSA
      */
     RoutingTableEntry *getPreferredEntry(const OspfLsa& lsa, bool skipSelfOriginated, std::vector<RoutingTableEntry *> *fromRoutingTable = nullptr);
+    bool isHasDmpr() const;
 
   private:
     /**

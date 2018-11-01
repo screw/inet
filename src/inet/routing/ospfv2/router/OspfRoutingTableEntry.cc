@@ -41,7 +41,8 @@ RoutingTableEntry::RoutingTableEntry(const RoutingTableEntry& entry) :
     cost(entry.cost),
     type2Cost(entry.type2Cost),
     linkStateOrigin(entry.linkStateOrigin),
-    nextHops(entry.nextHops)
+    nextHops(entry.nextHops),
+    hasDmpr(entry.hasDmpr)
 {
     setDestination(entry.getDestination());
     setNetmask(entry.getNetmask());
@@ -204,11 +205,21 @@ Ipv4Address RoutingTableEntry::getGateway() const
 
 }
 
+bool RoutingTableEntry::isHasDmpr() const
+{
+  return hasDmpr;
+}
+
+void RoutingTableEntry::setHasDmpr(bool hasDmpr)
+{
+  this->hasDmpr = hasDmpr;
+}
+
 /** Next hop interface */
 InterfaceEntry *RoutingTableEntry::getInterface() const
 {
 //  initstate()
-  if(!ift){
+  if(!ift || !hasDmpr){
     return Ipv4Route::getInterface();
   }
   double congestLevel = INT_MAX;

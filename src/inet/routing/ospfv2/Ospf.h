@@ -42,6 +42,7 @@ class Ospf : public cSimpleModule, public ILifecycle
     IInterfaceTable *ift = nullptr;
     bool isUp = false;
     Router *ospfRouter = nullptr;    // root object of the OSPF data structure
+    bool hasDmpr = false;
 
   public:
     Ospf();

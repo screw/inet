@@ -9,6 +9,7 @@ import inet.node.ethernet.EtherSwitch;
 import inet.node.inet.Router;
 import inet.node.dmpr.DmprRouter;
 //import inet.nodes.inet.Router;
+//import inet.node.ospfv2.OspfRouter;
 import inet.node.inet.StandardHost;
 //import inet.nodes.inet.StandardHost;
 import ned.DatarateChannel;
@@ -52,7 +53,7 @@ network Fulltest
         channel NormalP extends DatarateChannel
         {
             parameters:
-                datarate = 10Mbps;
+                datarate = 100Mbps;
                 delay = 1ms;
                 per = 0;
                 ber = 0;
@@ -278,6 +279,8 @@ network Fulltest
 
 
 }
+
+
 
 
 
