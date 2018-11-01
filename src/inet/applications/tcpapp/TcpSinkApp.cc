@@ -43,6 +43,19 @@ void TcpSinkApp::initialize(int stage)
     if (stage == INITSTAGE_LOCAL) {
         bytesRcvd = 0;
         WATCH(bytesRcvd);
+
+//        cResultFilter *packetBytesFilter = cResultFilterType::get("packetBytes")->create();
+        cResultFilter *throughputFilter = cResultFilterType::get("throughput")->create();
+        cResultRecorder *vectorRecorder = cResultRecorderType::get("vector")->create();
+
+        opp_string_map *attrs = new opp_string_map;
+        (*attrs)["title"] = "Throughput B/s";
+        (*attrs)["unit"] = "bytes";
+
+        vectorRecorder->init(this, "throughput", "vector", nullptr, attrs);
+        subscribe (packetReceivedSignal, throughputFilter);
+//        packetBytesFilter->addDelegate(throughputFilter);
+        throughputFilter->addDelegate(vectorRecorder);
     }
 }
 
