@@ -42,6 +42,7 @@ class Ospfv2 : public RoutingProtocolBase, protected cListener
     IInterfaceTable *ift = nullptr;
     Router *ospfRouter = nullptr;    // root object of the OSPF data structure
     cMessage *startupTimer = nullptr;    // timer for delayed startup
+    bool hasDmpr = false;
 
   public:
     Ospfv2();
