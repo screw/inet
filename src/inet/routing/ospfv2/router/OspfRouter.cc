@@ -21,11 +21,12 @@ namespace inet {
 
 namespace ospf {
 
-Router::Router(RouterId id, cSimpleModule *containingModule, IInterfaceTable *ift, IIpv4RoutingTable *rt) :
+Router::Router(RouterId id, cSimpleModule *containingModule, IInterfaceTable *ift, IIpv4RoutingTable *rt, bool hasDmpr) :
     ift(ift),
     rt(rt),
     routerID(id),
-    rfc1583Compatibility(false)
+    rfc1583Compatibility(false),
+    hasDmpr(hasDmpr)
 {
     messageHandler = new MessageHandler(this, containingModule);
     ageTimer = new cMessage();
@@ -965,6 +966,7 @@ void Router::calculateASExternalRoutes(std::vector<RoutingTableEntry *>& newRout
                 nextHop.advertisingRouter = originatingRouter;
                 newEntry->addNextHop(nextHop);
             }
+            newEntry->setHasDmpr(hasDmpr);
 
             newRoutingTable.push_back(newEntry);
         }
@@ -1419,7 +1421,13 @@ void Router::removeExternalRoute(Ipv4Address networkAddress)
     }
 }
 
+bool Router::isHasDmpr() const
+{
+  return hasDmpr;
+}
+
 } // namespace ospf
 
 } // namespace inet
+
 

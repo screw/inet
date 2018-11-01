@@ -53,8 +53,10 @@ void Ospf::initialize(int stage)
         ift = getModuleFromPar<IInterfaceTable>(par("interfaceTableModule"), this);
         rt = getModuleFromPar<IIpv4RoutingTable>(par("routingTableModule"), this);
         isUp = isNodeUp();
+        hasDmpr = par("hasDmpr");
         if (isUp)
             createOspfRouter();
+
         registerService(Protocol::ospf, nullptr, gate("ipIn"));
         registerProtocol(Protocol::ospf, gate("ipOut"), nullptr);
     }
@@ -62,7 +64,7 @@ void Ospf::initialize(int stage)
 
 void Ospf::createOspfRouter()
 {
-    ospfRouter = new Router(rt->getRouterId(), this, ift, rt);
+    ospfRouter = new Router(rt->getRouterId(), this, ift, rt, hasDmpr);
 
     // read the OSPF AS configuration
     cXMLElement *ospfConfig = par("ospfConfig");

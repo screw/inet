@@ -147,6 +147,8 @@ simple Ospf like IOspf
         string areaID = default("");
         int externalInterfaceOutputCost = default(1);  // cost of link (1-1000)
         string externalInterfaceOutputType = default("");  // Type1|Type2
+        
+        bool hasDmpr = default(false);
 
         @display("i=block/network2");
     gates:
