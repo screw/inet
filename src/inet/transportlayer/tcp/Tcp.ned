@@ -209,6 +209,7 @@ simple Tcp like ITcp
         string tcpAlgorithmClass @enum("TcpVegas", "TcpWestwood", "TcpNewReno", "TcpReno", "TcpTahoe", "TcpNoCongestionControl") = default("TcpReno");
         bool useDataNotification = default(false); // turn the notifications for arrived data on or off
         bool ecnEnabled = default(false);
+        int dupthresh = default(3); //nobody ever needs to change this, except this one time
         double stopOperationExtraTime @unit(s) = default(0s);    // extra time after lifecycle stop operation finished
         double stopOperationTimeout @unit(s) = default(2s);    // timeout value for lifecycle stop operation
         @display("i=block/wheelbarrow");
