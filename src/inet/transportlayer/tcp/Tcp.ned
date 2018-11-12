@@ -210,6 +210,7 @@ simple Tcp like ITcp
         bool recordStats = default(true); // recording of seqNum etc. into output vectors enabled/disabled
         bool useDataNotification = default(false); // turn the notifications for arrived data on or off
         bool ecnEnabled = default(false);
+        int dupthresh = default(3); //nobody ever needs to change this, except this one time
         @display("i=block/wheelbarrow");
         @signal[tcpConnectionAdded];
         @signal[tcpConnectionRemoved];
