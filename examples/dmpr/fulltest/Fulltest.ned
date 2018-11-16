@@ -38,6 +38,14 @@ network Hexagon
         channel NormalP extends DatarateChannel
         {
             parameters:
+                datarate = 10Mbps;
+                delay = 1ms;
+                per = 0;
+                ber = 0;
+        }
+        channel FastP extends DatarateChannel
+        {
+            parameters:
                 datarate = 100Mbps;
                 delay = 1ms;
                 per = 0;
@@ -198,12 +206,12 @@ network Hexagon
         }
     connections:
 
-        etherSwitch1.ethg++ <--> GEth <--> routerCore1.ethg++;
-        etherSwitch2.ethg++ <--> GEth <--> routerCore2.ethg++;
-        etherSwitch3.ethg++ <--> GEth <--> routerCore3.ethg++;
-        etherSwitch4.ethg++ <--> GEth <--> routerCore4.ethg++;
-        etherSwitch5.ethg++ <--> GEth <--> routerCore5.ethg++;
-        etherSwitch6.ethg++ <--> GEth <--> routerCore6.ethg++;
+        etherSwitch1.ethg++ <--> FastP <--> routerCore1.ethg++;
+        etherSwitch2.ethg++ <--> FastP <--> routerCore2.ethg++;
+        etherSwitch3.ethg++ <--> FastP <--> routerCore3.ethg++;
+        etherSwitch4.ethg++ <--> FastP <--> routerCore4.ethg++;
+        etherSwitch5.ethg++ <--> FastP <--> routerCore5.ethg++;
+        etherSwitch6.ethg++ <--> FastP <--> routerCore6.ethg++;
 
         routerCore1.ethg++ <--> NormalP <--> routerCore2.ethg++;
         routerCore2.ethg++ <--> NormalP <--> routerCore3.ethg++;
@@ -218,34 +226,34 @@ network Hexagon
 
 
         //      Switch1
-        etherSwitch1.ethg++ <--> GEth <--> client101.ethg++;
+        etherSwitch1.ethg++ <--> FastP <--> client101.ethg++;
 
-        etherSwitch1.ethg++ <--> GEth <--> client199.ethg++;
+        etherSwitch1.ethg++ <--> FastP <--> client199.ethg++;
 
         //      Switch2        
-        etherSwitch2.ethg++ <--> GEth <--> client201.ethg++;
+        etherSwitch2.ethg++ <--> FastP <--> client201.ethg++;
 
-        etherSwitch2.ethg++ <--> GEth <--> client299.ethg++;
+        etherSwitch2.ethg++ <--> FastP <--> client299.ethg++;
 
         //      Switch3       
-        etherSwitch3.ethg++ <--> GEth <--> client301.ethg++;
+        etherSwitch3.ethg++ <--> FastP <--> client301.ethg++;
 
-        etherSwitch3.ethg++ <--> GEth <--> client399.ethg++;
+        etherSwitch3.ethg++ <--> FastP <--> client399.ethg++;
 
         //      Switch4        
-        etherSwitch4.ethg++ <--> GEth <--> client401.ethg++;
+        etherSwitch4.ethg++ <--> FastP <--> client401.ethg++;
 
-        etherSwitch4.ethg++ <--> GEth <--> client499.ethg++;
+        etherSwitch4.ethg++ <--> FastP <--> client499.ethg++;
 
         //      Switch5        
-        etherSwitch5.ethg++ <--> GEth <--> client501.ethg++;
+        etherSwitch5.ethg++ <--> FastP <--> client501.ethg++;
 
-        etherSwitch5.ethg++ <--> GEth <--> client599.ethg++;
+        etherSwitch5.ethg++ <--> FastP <--> client599.ethg++;
 
         //      Switch6    
-        etherSwitch6.ethg++ <--> GEth <--> client601.ethg++;
+        etherSwitch6.ethg++ <--> FastP <--> client601.ethg++;
 
-        etherSwitch6.ethg++ <--> GEth <--> client699.ethg++;
+        etherSwitch6.ethg++ <--> FastP <--> client699.ethg++;
 
 }
 
@@ -253,62 +261,7 @@ network Hexagon
 network Fulltest extends Hexagon
 {
     parameters:
-//        @display("bgb=4166.738,3051.564;bgl=8");
-//    //        double ldelay @unit(s) = default(0.1s);
-//    //            double ldatarate @unit(Mbps) = default(10Mbps);
-//    types:
-//        channel NormalP extends DatarateChannel
-//        {
-//            parameters:
-//                datarate = 100Mbps;
-//                delay = 1ms;
-//                per = 0;
-//                ber = 0;
-//        }
-//        channel GEth extends DatarateChannel
-//        {
-//            parameters:
-//                datarate = 1Gbps;
-//                delay = 1ms;
-//                per = 0;
-//                ber = 0;
-//        }
 
-
-//    submodules:
-//        visualizer: IntegratedCanvasVisualizer {
-//            @display("p=356.4,118.799995");
-//        }
-//
-//        routerCore1: DmprRouter {
-//            parameters:
-//                @display("p=1040.518,1371.804;i=abstract/router");
-//        }
-//        routerCore2: DmprRouter {
-//            parameters:
-//                @display("p=1068.5139,1903.7279;i=abstract/router");
-//        }
-//        routerCore3: DmprRouter {
-//            parameters:
-//                @display("p=1871.0659,2090.368;i=abstract/router");
-//        }
-//        routerCore4: DmprRouter {
-//            parameters:
-//                @display("p=2766.938,1871.0659;i=abstract/router");
-//        }
-//        routerCore5: DmprRouter {
-//            parameters:
-//                @display("p=2696.948,1222.492;i=abstract/router");
-//        }
-//        routerCore6: DmprRouter {
-//            parameters:
-//                @display("p=1861.7339,1035.8519;i=abstract/router");
-//        }
-//
-//        configurator: Ipv4NetworkConfigurator {
-//          parameters:
-//                @display("p=100,100;is=s");
-//                configurator.addStaticRoutes = false;
                 configurator.config = xml("<config>"
                         + "<interface among='routerCore1 routerCore2' address='10.1.2.x' netmask='255.255.255.x' />"
                         + "<interface among='routerCore2 routerCore3' address='10.2.3.x' netmask='255.255.255.x' />"
@@ -347,92 +300,8 @@ network Fulltest extends Hexagon
                         + "<route hosts='client6*' destination='*' gateway='routerCore6'/>"
                         + "</config>");
 
-        
-
-
-//        etherSwitch1: EtherSwitch {
-//            @display("p=676.56995,1236.49");
-//        }
-//        etherSwitch2: EtherSwitch {
-//            @display("p=676.56995,2281.6738");
-//        }
-//        etherSwitch3: EtherSwitch {
-//            @display("p=1833.7379,2407.656");
-//        }
-//        etherSwitch4: EtherSwitch {
-//            @display("p=3186.878,2193.02");
-//        }
-//        etherSwitch5: EtherSwitch {
-//            @display("p=3107.556,1082.512");
-//        }
-//        etherSwitch6: EtherSwitch {
-//            @display("p=1833.7379,713.89795");
-//        }
-//
-//
-//        client101: StandardHost {
-//            parameters:
-//                @display("p=517.92596,835.214");
-//        }
-//        client199: StandardHost {
-//            parameters:
-//                @display("p=186.64,1245.8219");
-//        }
-//
-//
-//        client201: StandardHost {
-//            parameters:
-//                @display("p=144.646,2160.358");
-//        }
-//        client299: StandardHost {
-//            parameters:
-//                @display("p=681.23596,2715.6118");
-//        }
-//
-//        client301: StandardHost {
-//            parameters:
-//                @display("p=2277.0078,2734.276");
-//        }
-//        client399: StandardHost {
-//            parameters:
-//                @display("p=1493.12,2762.272");
-//        }
-//        client401: StandardHost {
-//            parameters:
-//                @display("p=2874.2559,2510.3079");
-//        }
-//        client499: StandardHost {
-//            parameters:
-//                @display("p=3835.452,2076.3699");
-//        }
-//        client501: StandardHost {
-//            parameters:
-//                @display("p=3606.8179,1362.4719");
-//        }
-//
-//        client599: StandardHost {
-//            parameters:
-//                @display("p=3406.18,718.56396");
-//        }
-//
-//        client601: StandardHost {
-//            parameters:
-//                @display("p=2165.024,513.26");
-//        }
-//
-//        client699: StandardHost {
-//            parameters:
-//                @display("p=1329.8099,545.922");
-//        }
+   
     connections:
-
-
-//        routerCore1.ethg++ <--> NormalP <--> routerCore2.ethg++;
-//        routerCore2.ethg++ <--> NormalP <--> routerCore3.ethg++;
-//        routerCore3.ethg++ <--> NormalP <--> routerCore4.ethg++;
-//        routerCore4.ethg++ <--> NormalP <--> routerCore5.ethg++;
-//        routerCore5.ethg++ <--> NormalP <--> routerCore6.ethg++;
-//        routerCore6.ethg++ <--> NormalP <--> routerCore1.ethg++;
 
         routerCore1.ethg++ <--> NormalP <--> routerCore3.ethg++;
         routerCore2.ethg++ <--> NormalP <--> routerCore4.ethg++;
@@ -440,48 +309,6 @@ network Fulltest extends Hexagon
         routerCore4.ethg++ <--> NormalP <--> routerCore6.ethg++;
         routerCore5.ethg++ <--> NormalP <--> routerCore1.ethg++;
         routerCore6.ethg++ <--> NormalP <--> routerCore2.ethg++;
-
-
-//        etherSwitch1.ethg++ <--> GEth <--> routerCore1.ethg++;
-//        etherSwitch2.ethg++ <--> GEth <--> routerCore2.ethg++;
-//        etherSwitch3.ethg++ <--> GEth <--> routerCore3.ethg++;
-//        etherSwitch4.ethg++ <--> GEth <--> routerCore4.ethg++;
-//        etherSwitch5.ethg++ <--> GEth <--> routerCore5.ethg++;
-//        etherSwitch6.ethg++ <--> GEth <--> routerCore6.ethg++;
-
-
-//
-//
-//        //      Switch1
-//        etherSwitch1.ethg++ <--> GEth <--> client101.ethg++;
-//
-//        etherSwitch1.ethg++ <--> GEth <--> client199.ethg++;
-//
-//        //      Switch2        
-//        etherSwitch2.ethg++ <--> GEth <--> client201.ethg++;
-//
-//        etherSwitch2.ethg++ <--> GEth <--> client299.ethg++;
-//
-//        //      Switch3       
-//        etherSwitch3.ethg++ <--> GEth <--> client301.ethg++;
-//
-//        etherSwitch3.ethg++ <--> GEth <--> client399.ethg++;
-//
-//        //      Switch4        
-//        etherSwitch4.ethg++ <--> GEth <--> client401.ethg++;
-//
-//        etherSwitch4.ethg++ <--> GEth <--> client499.ethg++;
-//
-//        //      Switch5        
-//        etherSwitch5.ethg++ <--> GEth <--> client501.ethg++;
-//
-//        etherSwitch5.ethg++ <--> GEth <--> client599.ethg++;
-//
-//        //      Switch6    
-//        etherSwitch6.ethg++ <--> GEth <--> client601.ethg++;
-//
-//        etherSwitch6.ethg++ <--> GEth <--> client699.ethg++;
-
 
 
 
