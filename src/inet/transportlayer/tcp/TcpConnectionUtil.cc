@@ -40,6 +40,8 @@
 #include "inet/common/packet/Message.h"
 #include "inet/common/ProtocolTag_m.h"
 
+#include "inet/transportlayer/tcp/flavours/TcpTahoeRenoFamily.h"
+
 namespace inet {
 
 namespace tcp {
@@ -442,6 +444,12 @@ void TcpConnection::configureStateVariables()
     }
 
     state->ecnEnabled = tcpMain->par("ecnEnabled");
+
+    if(tcpMain->par("tcpAlgorithmClass").stdstringValue() == std::string("TcpReno"))
+    {
+      TcpTahoeRenoFamilyStateVariables *tmp_state = dynamic_cast<TcpTahoeRenoFamilyStateVariables*>(state);
+      tmp_state->ssthresh = tcpMain->par("ssthresh");
+    }
 }
 
 void TcpConnection::selectInitialSeqNum()

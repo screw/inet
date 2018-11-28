@@ -211,6 +211,7 @@ simple Tcp like ITcp
         bool useDataNotification = default(false); // turn the notifications for arrived data on or off
         bool ecnEnabled = default(false);
         int dupthresh = default(3); //nobody ever needs to change this, except this one time
+        int ssthresh = default(0xFFFFFFFF);
         @display("i=block/wheelbarrow");
         @signal[tcpConnectionAdded];
         @signal[tcpConnectionRemoved];
