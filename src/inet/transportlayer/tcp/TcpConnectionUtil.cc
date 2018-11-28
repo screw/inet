@@ -42,6 +42,8 @@
 #include "inet/networklayer/common/HopLimitTag_m.h"
 #include "inet/networklayer/common/RouteRecordTag_m.h"
 
+#include "inet/transportlayer/tcp/flavours/TcpTahoeRenoFamily.h"
+
 namespace inet {
 namespace tcp {
 
@@ -470,6 +472,12 @@ void TcpConnection::configureStateVariables()
     }
 
     state->ecnEnabled = tcpMain->par("ecnEnabled");
+
+    if(tcpMain->par("tcpAlgorithmClass").stdstringValue() == std::string("TcpReno"))
+    {
+      TcpTahoeRenoFamilyStateVariables *tmp_state = dynamic_cast<TcpTahoeRenoFamilyStateVariables*>(state);
+      tmp_state->ssthresh = tcpMain->par("ssthresh");
+    }
 }
 
 void TcpConnection::selectInitialSeqNum()
