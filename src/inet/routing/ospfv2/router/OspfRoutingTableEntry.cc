@@ -238,6 +238,7 @@ InterfaceEntry *RoutingTableEntry::getInterface() const
   double availableLoadSum = 0;
   int packetSum = 0;
 
+  double interval = 0.30;
 
 
   for (int i = 0; i < count; i++)
@@ -249,7 +250,7 @@ InterfaceEntry *RoutingTableEntry::getInterface() const
           DmprInterfaceData *dmprData = ie->dmprData();
 
 
-          if(dmprData->getLastChange() + 0.5 < simTime())
+          if(dmprData->getLastChange() + interval < simTime())
           {
             dmprData->setInUseCongLevel(dmprData->getCongestionLevel());
             dmprData->setLastChange(simTime());
