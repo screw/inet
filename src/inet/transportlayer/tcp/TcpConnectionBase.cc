@@ -229,6 +229,7 @@ TcpConnection::TcpConnection(Tcp *_mod, int _socketId)
         sackedBytesVector = new cOutVector("rcvd sackedBytes");
         tcpRcvQueueBytesVector = new cOutVector("tcpRcvQueueBytes");
         tcpRcvQueueDropsVector = new cOutVector("tcpRcvQueueDrops");
+        tcpRcvPayloadBytesVector = new cOutVector("tcpRcvPayloadBytes");
     }
 }
 
@@ -267,6 +268,7 @@ TcpConnection::~TcpConnection()
     delete tcpRcvQueueDropsVector;
     delete pipeVector;
     delete sackedBytesVector;
+    delete tcpRcvPayloadBytesVector;
 }
 
 bool TcpConnection::processTimer(cMessage *msg)

@@ -397,6 +397,8 @@ class INET_API TcpConnection : public cObject
     cOutVector *tcpRcvQueueBytesVector = nullptr;    // current amount of used bytes in tcp receive queue
     cOutVector *tcpRcvQueueDropsVector = nullptr;    // number of drops in tcp receive queue
 
+    cOutVector *tcpRcvPayloadBytesVector = nullptr; // amount of payload bytes received (including duplicates, out of order etc) for TCP throughput
+
   protected:
     /** @name FSM transitions: analysing events and executing state transitions */
     //@{
