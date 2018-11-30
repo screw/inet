@@ -238,7 +238,7 @@ InterfaceEntry *RoutingTableEntry::getInterface() const
   double availableLoadSum = 0;
   int packetSum = 0;
 
-  double interval = 0.30;
+  double interval = 0.15;
 
 
   for (int i = 0; i < count; i++)
