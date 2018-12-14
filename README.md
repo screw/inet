@@ -55,12 +55,12 @@ either in the IDE or using the inet_featuretool then regenerate the INET makefil
 using 'make makefiles'.
 
 
-[travis-master]: https://travis-ci.org/inet-framework/inet.svg?branch=master
+[travis-master]: https://travis-ci.org/screw/inet.svg?branch=dmpr-test
 [travis-integration]: https://travis-ci.org/inet-framework/inet.svg?branch=integration
 [circle-master]: https://circleci.com/gh/inet-framework/inet/tree/master.svg?style=svg
 [circle-integration]: https://circleci.com/gh/inet-framework/inet/tree/integration.svg?style=svg
 
-[1]: https://travis-ci.org/inet-framework/inet/branches
+[1]: https://travis-ci.org/screw/inet/branches
 [2]: https://travis-ci.org/inet-framework/inet/branches
 [3]: https://circleci.com/gh/inet-framework/workflows/inet/tree/master
 [4]: https://circleci.com/gh/inet-framework/workflows/inet/tree/integration
