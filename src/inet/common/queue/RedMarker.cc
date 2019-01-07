@@ -27,6 +27,10 @@
 #include "inet/linklayer/ethernet/EtherEncap.h"
 
 #include "inet/networklayer/common/L3Tools.h"
+#include "inet/networklayer/common/EcnTag_m.h"
+
+#include "inet/applications/udpapp/UdpEcnAppHeader_m.h"
+
 
 //#ifdef WITH_IPv6
 //#include "inet/networklayer/ipv6/Ipv6Header.h"
@@ -45,7 +49,6 @@ RedMarker::RedMarker()
 {
   markNext = false;
 
-
 }
 
 RedMarker::~RedMarker()
@@ -58,7 +61,7 @@ void RedMarker::initialize()
 {
   RedDropper::initialize();
 
-
+  frameQueueCapacity = par("frameQueueCapacity");
   marks = new double[numGates];
 
   cStringTokenizer marksTokens(par("marks"));
@@ -96,25 +99,37 @@ void RedMarker::handleMessage(cMessage *msg)
   //      packet->insertAtFront(ipv4Header);
 
   // if packet supports marking (ECT(1) or ECT(0))
-      if ((ect & 0x01) || (ect & 0x02))
+      if ((ect == IP_ECN_ECT_0) || (ect == IP_ECN_ECT_1))
       {
 
         // if next packet should be marked and it is not
-        if (markNext && !(ect & 0x03))
+        if (markNext && !(ect == IP_ECN_CE))
         {
           markPacket(packet);
           markNext = false;
         }
-        else if (ect & 0x03)
+        else if (ect == IP_ECN_CE)
         {
           if (shouldMark(packet))
           {
             markNext = true;
+            if(packetDropped)
+            {
+              packetDropped = false;
+              return;
+            }
           }
         }
         else
         {
-          shouldMark(packet);
+          if(shouldMark(packet))
+          {
+            if(packetDropped)
+            {
+              packetDropped = false;
+              return;
+            }
+          }
 
         }
         packet->setFrontOffset(headerOffset);
@@ -128,7 +143,7 @@ void RedMarker::handleMessage(cMessage *msg)
 
 
   if (shouldDrop(packet)){
-    std::cout<< "RedMarker: Dropping packet "<< std::endl;
+    EV_DETAIL<< "RedMarker: Dropping packet\n";
     dropPacket(packet);
     return;
   }
@@ -141,7 +156,7 @@ void RedMarker::handleMessage(cMessage *msg)
  *  Drops when size is bigger then max allowed size.
  *  Returns true when drop or mark occurs, false otherwise.
  * **/
-bool RedMarker::shouldMark(cPacket *packet)
+bool RedMarker::shouldMark(Packet *packet)
 {
     const int i = packet->getArrivalGate()->getIndex();
     ASSERT(i >= 0 && i < numGates);
@@ -150,6 +165,12 @@ bool RedMarker::shouldMark(cPacket *packet)
     const double maxp = maxps[i];
     const double pkrate = pkrates[i];
     const int queueLength = getLength();
+
+    if(maxth > frameQueueCapacity)
+    {
+      EV <<"Warning: FrameQueueCapacity < max_th. Setting capacity to max_th\n";
+      frameQueueCapacity = maxth;
+    }
 
     if (queueLength > 0)
     {
@@ -165,31 +186,33 @@ bool RedMarker::shouldMark(cPacket *packet)
 
 //    Random dropping is disabled; returns true only for hard limit
 
-    if (minth <= avg && avg < maxth)
+    if (queueLength >= frameQueueCapacity) {    // maxth is also the "hard" limit
+            EV << "Queue len " << queueLength << " >= frameQueueCapacity, dropping packet.\n";
+            count[i] = 0;
+            dropPacket(packet);
+            packetDropped = true;
+            return true;
+    }
+    else if (minth <= avg && avg < maxth)
     {
         count[i]++;
         const double pb = maxp * (avg - minth) / (maxth - minth);
         const double pa = pb / (1 - count[i] * pb); // TD: Adapted to work as in [Floyd93].
         if (dblrand() < pa)
         {
-            EV << "Random early packet drop (avg queue len=" << avg << ", pa=" << pb << ")\n";
+            EV << "Random early packet mark (avg queue len=" << avg << ", pa=" << pb << ")\n";
             count[i] = 0;
             markPacket(check_and_cast<Packet *>(packet));
             return true;
         }
     }
     else if (avg >= maxth) {
-        EV << "Avg queue len " << avg << " >= maxth, dropping packet.\n";
+        EV << "Avg queue len " << avg << " >= maxth, marking packet.\n";
         count[i] = 0;
         markPacket(check_and_cast<Packet *>(packet));
         return true;
     }
-    else if (queueLength >= maxth) {    // maxth is also the "hard" limit
-        EV << "Queue len " << queueLength << " >= maxth, dropping packet.\n";
-        count[i] = 0;
-        dropPacket(packet);
-        return true;
-    }
+
     else
     {
         count[i] = -1;
@@ -202,9 +225,9 @@ bool RedMarker::shouldDrop(cPacket *packet)
 {
   const int i = packet->getArrivalGate()->getIndex();
    ASSERT(i >= 0 && i < numGates);
-   const double minth = minths[i];
-   const double maxth = maxths[i];
-   const double maxp = maxps[i];
+//   const double minth = minths[i];
+//   const double maxth = maxths[i];
+//   const double maxp = maxps[i];
    const double pkrate = pkrates[i];
    const int queueLength = getLength();
 
@@ -220,24 +243,25 @@ bool RedMarker::shouldDrop(cPacket *packet)
        avg = pow(1 - wq, m) * avg;
    }
 
-   if (minth <= avg && avg < maxth)
-   {
-       count[i]++;
-       const double pb = maxp * (avg - minth) / (maxth - minth);
-       const double pa = pb / (1 - count[i] * pb); // TD: Adapted to work as in [Floyd93].
-       if (dblrand() < pa)
-       {
-           EV << "Random early packet drop (avg queue len=" << avg << ", pa=" << pb << ")\n";
-           count[i] = 0;
-           return true;
-       }
-   }
-   else if (avg >= maxth) {
-       EV << "Avg queue len " << avg << " >= maxth, dropping packet.\n";
-       count[i] = 0;
-       return true;
-   }
-   else if (queueLength >= maxth) {    // maxth is also the "hard" limit
+//   if (minth <= avg && avg < maxth)
+//   {
+//       count[i]++;
+//       const double pb = maxp * (avg - minth) / (maxth - minth);
+//       const double pa = pb / (1 - count[i] * pb); // TD: Adapted to work as in [Floyd93].
+//       if (dblrand() < pa)
+//       {
+//           EV << "Random early packet drop (avg queue len=" << avg << ", pa=" << pb << ")\n";
+//           count[i] = 0;
+//           return true;
+//       }
+//   }
+//   else if (avg >= maxth) {
+//       EV << "Avg queue len " << avg << " >= maxth, dropping packet.\n";
+//       count[i] = 0;
+//       return true;
+//   }
+//   else
+   if (queueLength >= frameQueueCapacity) {    // UPDATE: frameQueueCapacity is the new "hard" limit // maxth is also the "hard" limit
        EV << "Queue len " << queueLength << " >= maxth, dropping packet.\n";
        count[i] = 0;
        return true;
