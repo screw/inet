@@ -238,36 +238,36 @@ InterfaceEntry *RoutingTableEntry::getInterface() const
   double availableLoadSum = 0;
   int packetSum = 0;
 
-  double interval = 0.15;
+  double interval = 0.020;
 
 
   for (int i = 0; i < count; i++)
   {
     tmpNextHop = nextHops.at(i);
-        InterfaceEntry* ie = ift->getInterfaceById(tmpNextHop.ifIndex);
-        if (ie)
-        {
-          DmprInterfaceData *dmprData = ie->dmprData();
+    InterfaceEntry* ie = ift->getInterfaceById(tmpNextHop.ifIndex);
+    if (ie)
+    {
+      DmprInterfaceData *dmprData = ie->dmprData();
 
 
-          if(dmprData->getLastChange() + interval < simTime())
-          {
-            dmprData->setInUseCongLevel(dmprData->getCongestionLevel());
-            dmprData->setLastChange(simTime());
-            dmprData->setPacketCount(0);
-          }
+      if(dmprData->getLastChange() + interval < simTime())
+      {
+        dmprData->setInUseCongLevel(dmprData->getCongestionLevel());
+        dmprData->setLastChange(simTime());
+        dmprData->setPacketCount(0);
+      }
 
-          packetCount[i] = dmprData->getPacketCount();
-          //          availableLoad[i] = 1 - dmprData->getCongestionLevel();
-          availableLoad[i] = 1 - dmprData->getInUseCongLevel();
+      packetCount[i] = dmprData->getPacketCount();
+      //          availableLoad[i] = 1 - dmprData->getCongestionLevel();
+      availableLoad[i] = 1 - dmprData->getInUseCongLevel();
 
-          availableLoadSum += availableLoad[i];
-          packetSum += packetCount[i];
-        } else
-        {
-          packetCount[i] = 0;
-          availableLoad[i] = 0;
-        }
+      availableLoadSum += availableLoad[i];
+      packetSum += packetCount[i];
+    } else
+    {
+      packetCount[i] = 0;
+      availableLoad[i] = 0;
+    }
 
   }
 

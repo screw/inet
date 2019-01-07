@@ -27,6 +27,9 @@
 #include "inet/linklayer/ethernet/EtherEncap.h"
 
 #include "inet/networklayer/common/L3Tools.h"
+#include "inet/networklayer/common/EcnTag_m.h"
+
+#include "inet/applications/udpapp/UdpEcnAppHeader_m.h"
 
 
 //#ifdef WITH_IPv6
@@ -96,16 +99,16 @@ void RedMarker::handleMessage(cMessage *msg)
   //      packet->insertAtFront(ipv4Header);
 
   // if packet supports marking (ECT(1) or ECT(0))
-      if ((ect & 0x01) || (ect & 0x02))
+      if ((ect == IP_ECN_ECT_0) || (ect == IP_ECN_ECT_1))
       {
 
         // if next packet should be marked and it is not
-        if (markNext && !(ect & 0x03))
+        if (markNext && !(ect == IP_ECN_CE))
         {
           markPacket(packet);
           markNext = false;
         }
-        else if (ect & 0x03)
+        else if (ect == IP_ECN_CE)
         {
           if (shouldMark(packet))
           {
@@ -119,7 +122,14 @@ void RedMarker::handleMessage(cMessage *msg)
         }
         else
         {
-          shouldMark(packet);
+          if(shouldMark(packet))
+          {
+            if(packetDropped)
+            {
+              packetDropped = false;
+              return;
+            }
+          }
 
         }
         packet->setFrontOffset(headerOffset);
@@ -133,7 +143,7 @@ void RedMarker::handleMessage(cMessage *msg)
 
 
   if (shouldDrop(packet)){
-    std::cout<< "RedMarker: Dropping packet "<< std::endl;
+    EV_DETAIL<< "RedMarker: Dropping packet\n";
     dropPacket(packet);
     return;
   }
@@ -182,8 +192,8 @@ bool RedMarker::shouldMark(Packet *packet)
             dropPacket(packet);
             packetDropped = true;
             return true;
-        } else
-    if (minth <= avg && avg < maxth)
+    }
+    else if (minth <= avg && avg < maxth)
     {
         count[i]++;
         const double pb = maxp * (avg - minth) / (maxth - minth);
