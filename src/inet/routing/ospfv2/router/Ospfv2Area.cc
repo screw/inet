@@ -1443,8 +1443,12 @@ SummaryLsa *Ospfv2Area::originateSummaryLSA(const SummaryLsa *summaryLSA)
     return nullptr;
 }
 
-void Ospfv2Area::calculateShortestPathTree(std::vector<Ospfv2RoutingTableEntry *>& newRoutingTable)
+void Ospfv2Area::calculateShortestPathTree(std::vector<Ospfv2RoutingTableEntry *>& newRoutingTable, RouterId routerId)
 {
+    if (routerId == Ipv4Address::UNSPECIFIED_ADDRESS)
+    {
+      routerId = parentRouter->getRouterID();
+    }
     bool finished = false;
     std::vector<Ospfv2Lsa *> treeVertices;
     Ospfv2Lsa *justAddedVertex;
