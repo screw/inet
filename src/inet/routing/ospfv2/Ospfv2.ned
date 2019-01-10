@@ -181,6 +181,7 @@ simple Ospfv2 like IOspf
         string authenticationKey = default("0x00");  // 0xnn..nn
 
 		bool hasDmpr = default(false);
+		bool hasUnEqualPaths = default(false);
         @display("i=block/network2");
     gates:
         input ipIn @labels(Ipv4ControlInfo/up);
