@@ -1393,9 +1393,12 @@ SummaryLsa *Area::originateSummaryLSA(const SummaryLsa *summaryLSA)
     return nullptr;
 }
 
-void Area::calculateShortestPathTree(std::vector<RoutingTableEntry *>& newRoutingTable)
+void Area::calculateShortestPathTree(std::vector<RoutingTableEntry *>& newRoutingTable, RouterId routerID)
 {
-    RouterId routerID = parentRouter->getRouterID();
+    if (routerID == Ipv4Address::UNSPECIFIED_ADDRESS)
+    {
+      routerID = parentRouter->getRouterID();
+    }
     bool finished = false;
     std::vector<OspfLsa *> treeVertices;
     OspfLsa *justAddedVertex;
@@ -1414,9 +1417,11 @@ void Area::calculateShortestPathTree(std::vector<RoutingTableEntry *>& newRoutin
         floodLSA(newLSA);
         delete newLSA;
     }
+    spfTreeRoot = findRouterLSA(routerID);
     if (spfTreeRoot == nullptr) {
         return;
     }
+
 
     lsaCount = routerLSAs.size();
     for (i = 0; i < lsaCount; i++) {
@@ -1885,6 +1890,7 @@ void Area::calculateShortestPathTree(std::vector<RoutingTableEntry *>& newRoutin
             }
         }
     }
+    spfTreeRoot = findRouterLSA(parentRouter->getRouterID());
 }
 
 std::vector<NextHop> *Area::calculateNextHops(OspfLsa *destination, OspfLsa *parent) const

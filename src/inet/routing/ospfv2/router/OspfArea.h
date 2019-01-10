@@ -41,7 +41,7 @@ class INET_API Area : public cObject
     AreaId areaID;
     std::map<Ipv4AddressRange, bool> advertiseAddressRanges;
     std::vector<Ipv4AddressRange> areaAddressRanges;
-    std::vector<Interface *> associatedInterfaces;
+
     std::vector<HostRouteParameters> hostRoutes;
     std::map<LinkStateId, RouterLsa *> routerLSAsByID;
     std::vector<RouterLsa *> routerLSAs;
@@ -55,6 +55,8 @@ class INET_API Area : public cObject
     RouterLsa *spfTreeRoot;
 
     Router *parentRouter;
+  public:
+    std::vector<Interface *> associatedInterfaces;
 
   public:
     Area(IInterfaceTable *ift, AreaId id = BACKBONE_AREAID);
@@ -119,7 +121,7 @@ class INET_API Area : public cObject
     SummaryLsa *originateSummaryLSA(const RoutingTableEntry *entry,
             const std::map<LsaKeyType, bool, LsaKeyType_Less>& originatedLSAs,
             SummaryLsa *& lsaToReoriginate);
-    void calculateShortestPathTree(std::vector<RoutingTableEntry *>& newRoutingTable);
+    void calculateShortestPathTree(std::vector<RoutingTableEntry *>& newRoutingTable, RouterId routerID = Ipv4Address::UNSPECIFIED_ADDRESS);
     void calculateInterAreaRoutes(std::vector<RoutingTableEntry *>& newRoutingTable);
     void recheckSummaryLSAs(std::vector<RoutingTableEntry *>& newRoutingTable);
 

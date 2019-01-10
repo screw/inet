@@ -777,8 +777,13 @@ void Neighbor::deleteLastSentDDPacket()
         lastTransmittedDDPacket = nullptr;
     }
 }
+const Ipv4Address& Neighbor::getNeighborIpAddress() const
+{
+  return neighborIPAddress;
+}
 
 } // namespace ospf
 
 } // namespace inet
+
 

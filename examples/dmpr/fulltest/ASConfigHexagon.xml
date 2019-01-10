@@ -49,7 +49,7 @@
   <Router name="routerCore1" RFC1583Compatible="true">
     <BroadcastInterface ifName="eth0" areaID="0.0.0.0" interfaceOutputCost="1" />
     <PointToPointInterface ifName="eth1" areaID="0.0.0.0" interfaceOutputCost="1" />
-    <PointToPointInterface ifName="eth2" areaID="0.0.0.0" interfaceOutputCost="1" />
+    <PointToPointInterface ifName="eth2" areaID="0.0.0.0" interfaceOutputCost="2" />
  
   </Router>
   
@@ -84,7 +84,7 @@
     <Router name="routerCore6" RFC1583Compatible="true">
     <BroadcastInterface ifName="eth0" areaID="0.0.0.0" interfaceOutputCost="1" />
     <PointToPointInterface ifName="eth1" areaID="0.0.0.0" interfaceOutputCost="1" />
-    <PointToPointInterface ifName="eth2" areaID="0.0.0.0" interfaceOutputCost="1" />
+    <PointToPointInterface ifName="eth2" areaID="0.0.0.0" interfaceOutputCost="2" />
  
   </Router>
   
