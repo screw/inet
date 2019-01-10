@@ -42,7 +42,7 @@ class INET_API Ospfv2Area : public cObject
     AreaId areaID;
     std::map<Ipv4AddressRange, bool> advertiseAddressRanges;
     std::vector<Ipv4AddressRange> areaAddressRanges;
-    std::vector<Ospfv2Interface *> associatedInterfaces;
+
     std::vector<HostRouteParameters> hostRoutes;
     std::map<LinkStateId, RouterLsa *> routerLSAsByID;
     std::vector<RouterLsa *> routerLSAs;
@@ -56,6 +56,9 @@ class INET_API Ospfv2Area : public cObject
     RouterLsa *spfTreeRoot;
 
     Router *parentRouter;
+
+  public:
+    std::vector<Ospfv2Interface *> associatedInterfaces;
 
   public:
     Ospfv2Area(CrcMode crcMode, IInterfaceTable *ift, AreaId id = BACKBONE_AREAID);
@@ -124,7 +127,7 @@ class INET_API Ospfv2Area : public cObject
             const std::map<LsaKeyType, bool, LsaKeyType_Less>& originatedLSAs,
             SummaryLsa *& lsaToReoriginate);
     SummaryLsa *originateSummaryLSA_Stub();
-    void calculateShortestPathTree(std::vector<Ospfv2RoutingTableEntry *>& newRoutingTable);
+    void calculateShortestPathTree(std::vector<Ospfv2RoutingTableEntry *>& newRoutingTable, RouterId routerID = Ipv4Address::UNSPECIFIED_ADDRESS);
     void calculateInterAreaRoutes(std::vector<Ospfv2RoutingTableEntry *>& newRoutingTable);
     void recheckSummaryLSAs(std::vector<Ospfv2RoutingTableEntry *>& newRoutingTable);
 

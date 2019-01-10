@@ -31,9 +31,18 @@ namespace ospfv2 {
 
 struct NextHop
 {
+    NextHop(int ifIndex, Ipv4Address hopAddress, RouterId advertisingRouter):
+    ifIndex(ifIndex),
+    hopAddress(hopAddress),
+    advertisingRouter(advertisingRouter)
+    {
+
+    };
+    NextHop(){};
     int ifIndex;
     Ipv4Address hopAddress;
     RouterId advertisingRouter;
+    Metric cost = -1;
 };
 
 class INET_API RoutingInfo
