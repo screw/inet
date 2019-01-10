@@ -79,6 +79,7 @@ class INET_API Neighbor
         Ospfv2DdOptions ddOptions;
         Ospfv2Options options;
         unsigned long sequenceNumber;
+
     };
 
   private:
@@ -159,6 +160,7 @@ class INET_API Neighbor
 
     void setNeighborID(RouterId id) { neighborID = id; }
     RouterId getNeighborID() const { return neighborID; }
+    const Ipv4Address& getNeighborIpAddress() const;
     void setPriority(unsigned char priority) { neighborPriority = priority; }
     unsigned char getPriority() const { return neighborPriority; }
     void setAddress(Ipv4Address address) { neighborIPAddress = address; }
