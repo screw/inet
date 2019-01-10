@@ -55,12 +55,13 @@ class INET_API Router
     MessageHandler *messageHandler;    ///< The message dispatcher class.
     bool rfc1583Compatibility;    ///< Decides whether to handle the preferred routing table entry to an AS boundary router as defined in RFC1583 or not.
     bool hasDmpr;
+    bool hasUnEqualPaths;
   public:
     /**
      * Constructor.
      * Initializes internal variables, adds a MessageHandler and starts the Database Age timer.
      */
-    Router(cSimpleModule *containingModule, IInterfaceTable *ift, IIpv4RoutingTable *rt, bool hasDmpr);
+    Router(cSimpleModule *containingModule, IInterfaceTable *ift, IIpv4RoutingTable *rt, bool hasDmpr, bool hasUnEqualPaths);
 
     /**
      * Destructor.

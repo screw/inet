@@ -5,8 +5,9 @@
   <Area id="0.0.0.0">
     <AddressRange address="RA>R1" mask="RA>R1" status="Advertise" />
     <AddressRange address="RA>R2" mask="RA>R2" status="Advertise" />
-    <AddressRange address="RB>R1" mask="RB>R1" status="Advertise" />
-    <AddressRange address="RB>R2" mask="RB>R2" status="Advertise" />
+    <AddressRange address="R1>R2" mask="R1>R2" status="Advertise" />
+   <!-- <AddressRange address="RB>R1" mask="RB>R1" status="Advertise" /> -->
+   <!-- <AddressRange address="RB>R2" mask="RB>R2" status="Advertise" /> -->
   </Area>
 
   <Area id="0.0.0.1">
@@ -35,9 +36,9 @@
     <PointToPointInterface ifName="eth1" areaID="0.0.0.0" interfaceOutputCost="2" />
   </Router>
 
-  <Router name="RB" RFC1583Compatible="true">
+<!--  <Router name="RB" RFC1583Compatible="true">
     <PointToPointInterface ifName="eth0" areaID="0.0.0.0" interfaceOutputCost="2" />
     <PointToPointInterface ifName="eth1" areaID="0.0.0.0" interfaceOutputCost="2" />
   </Router>
-
+-->
 </OSPFASConfig>
