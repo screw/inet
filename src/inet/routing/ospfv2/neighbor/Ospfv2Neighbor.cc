@@ -700,7 +700,12 @@ void Neighbor::deleteLastSentDDPacket()
         lastTransmittedDDPacket = nullptr;
     }
 }
+const Ipv4Address& Neighbor::getNeighborIpAddress() const
+{
+  return neighborIPAddress;
+}
 
 } // namespace ospfv2
 } // namespace inet
+
 
