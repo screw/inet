@@ -40,12 +40,12 @@ network DynamicTest
             gates:
                 ethg[2];
         }
-        RB: DmprRouter {
-            parameters:
-                @display("p=550,300");
-            gates:
-                ethg[2];
-        }
+//        RB: DmprRouter {
+//            parameters:
+//                @display("p=550,300");
+//            gates:
+//                ethg[2];
+//        }
         R2: DmprRouter {
             parameters:
                 @display("p=700,200");
@@ -79,9 +79,12 @@ network DynamicTest
     connections:
         H1.ethg[0] <--> C <--> R1.ethg[0];
         R1.ethg[1] <--> C <--> RA.ethg[0];
-        R1.ethg[2] <--> C <--> RB.ethg[0];
+//        R1.ethg[2] <--> C <--> RB.ethg[0];
         RA.ethg[1] <--> C <--> R2.ethg[1];
-        RB.ethg[1] <--> C <--> R2.ethg[2];
+//        RB.ethg[1] <--> C <--> R2.ethg[2];
+		R1.ethg[2] <--> C <--> R2.ethg[2];
+		
+		
         R2.ethg[0] <--> C <--> H2.ethg[0];
 }
 
