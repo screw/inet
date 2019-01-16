@@ -88,6 +88,7 @@ class INET_API Ospfv2RoutingTableEntry : public Ipv4Route
     const Ospfv2Lsa *getLinkStateOrigin() const { return linkStateOrigin; }
     void addNextHop(NextHop hop);
     void clearNextHops() { nextHops.clear(); }
+    void removeNextHop(unsigned int index) {nextHops.erase(nextHops.begin() + index); }
     unsigned int getNextHopCount() const { return nextHops.size(); }
     NextHop getNextHop(unsigned int index) const { return nextHops[index]; }
     virtual std::string str() const;
