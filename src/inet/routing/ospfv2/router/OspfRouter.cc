@@ -21,12 +21,13 @@ namespace inet {
 
 namespace ospf {
 
-Router::Router(RouterId id, cSimpleModule *containingModule, IInterfaceTable *ift, IIpv4RoutingTable *rt, bool hasDmpr) :
+Router::Router(RouterId id, cSimpleModule *containingModule, IInterfaceTable *ift, IIpv4RoutingTable *rt, bool hasDmpr, bool hasUnEqualPaths) :
     ift(ift),
     rt(rt),
     routerID(id),
     rfc1583Compatibility(false),
-    hasDmpr(hasDmpr)
+    hasDmpr(hasDmpr),
+    hasUnEqualPaths(hasUnEqualPaths)
 {
     messageHandler = new MessageHandler(this, containingModule);
     ageTimer = new cMessage();
@@ -719,138 +720,167 @@ void Router::rebuildRoutingTable()
       }
     }
 
-    std::cout << "print Table for  " << getRouterID() << std::endl;
-    for(auto tmp = newTable.begin(); tmp != newTable.end(); tmp++)
-    {
-      std::cout << (*tmp) << std::endl;
-    }
+    if(hasUnEqualPaths){
 
-    std::vector<Neighbor *> neighbors;
-    for (i = 0; i < areaCount; i++)
-    {
-      for (int j = 0; j < areas[i]->associatedInterfaces.size(); j++)
+      //set metric for each nextHop
+      for (auto tmp = newTable.begin(); tmp != newTable.end(); tmp++)
       {
-        for (int k = 0; k < areas[i]->associatedInterfaces[j]->getNeighborCount(); k++){
-          neighbors.push_back(areas[i]->associatedInterfaces[j]->getNeighbor(k));
-//          std::cout<< "Neighbor: "  << areas[i]->associatedInterfaces[j]->getNeighbor(k)->getNeighborID() << std::endl;
+        unsigned int count = (*tmp)->getNextHopCount();
+        for (unsigned int i = 0; i < count; i++ ){
+          NextHop hop = (*tmp)->getNextHop(0);
+          hop.cost = (*tmp)->getCost();
+          (*tmp)->addNextHop(hop);
+          (*tmp)->removeNextHop(0);
         }
       }
-    }
 
-    for (auto it = neighbors.begin(); it != neighbors.end(); it++)
-    {
-      std::cout<< "Neighbor: "  << (*it)->getNeighborID() << std::endl;
-      //generate table for the neighbour router
-      std::vector<RoutingTableEntry *> nHTable;
-      for (i = 0; i < areaCount; i++) {
-        areas[i]->calculateShortestPathTree(nHTable, (*it)->getNeighborID());
-//        std::cout << (*it)->getNeighborID() << std::endl;
-        if (areas[i]->getTransitCapability()) {
-          hasTransitAreas = true;
-        }
-      }
-      std::cout << "print Table for  " << (*it)->getNeighborID() << std::endl;
-      for(auto tmp = nHTable.begin(); tmp != nHTable.end(); tmp++)
+      std::cout << "print Table for  " << getRouterID() << std::endl;
+      for(auto tmp = newTable.begin(); tmp != newTable.end(); tmp++)
       {
         std::cout << (*tmp) << std::endl;
       }
 
-
-      //find entry in neighbor's routing table towards this router
-      bool foundEntryToMe = false;
-      auto entryToMe = nHTable.begin();
-      auto saveMe = nHTable.end();
-      std::cout << "Neighbor table:" << std::endl;
-      for(; entryToMe != nHTable.end(); entryToMe++)
+      //get all neighbors
+      std::vector<Neighbor *> neighbors;
+      for (i = 0; i < areaCount; i++)
       {
-        std::cout << "route: " << (*entryToMe) << std::endl;
-        if(isLocalAddress((*entryToMe)->getDestination())){
-          std::cout<< "Route to me: " << (*entryToMe) << std::endl;
-          foundEntryToMe = true;
-          if(saveMe == nHTable.end() || (*saveMe)->getCost() > (*entryToMe)->getCost())
-          {
-            saveMe = entryToMe;
+        for (int j = 0; j < areas[i]->associatedInterfaces.size(); j++)
+        {
+          for (int k = 0; k < areas[i]->associatedInterfaces[j]->getNeighborCount(); k++){
+            neighbors.push_back(areas[i]->associatedInterfaces[j]->getNeighbor(k));
+            //          std::cout<< "Neighbor: "  << areas[i]->associatedInterfaces[j]->getNeighbor(k)->getNeighborID() << std::endl;
           }
-//          break;
         }
       }
 
-      //FIX if there is no route towards this router then there is no loop; right?
-      int metricToMe = 0;
-      if(foundEntryToMe)
+      for (auto it = neighbors.begin(); it != neighbors.end(); it++)
       {
-        entryToMe = saveMe;
-        metricToMe = (*entryToMe)->getCost();
-      }
-
-
-      for (auto entryLocal = newTable.begin(); entryLocal != newTable.end(); entryLocal++)
-      {
-        //skip routes to local addresses
-        if(isLocalAddress((*entryLocal)->getDestination()))
-        {
-          continue;
-        }
-        bool found = false;
-        //find entry in nhTable with same destination as entryLocal
-        auto entryNH = nHTable.begin();
-        for(; entryNH != nHTable.end(); entryNH++)
-        {
-          if((*entryNH)->getDestination() == (*entryLocal)->getDestination()){
-            found = true;
-            break;
+        std::cout<< "Neighbor: "  << (*it)->getNeighborID() << std::endl;
+        //generate table for the neighbour router
+        std::vector<RoutingTableEntry *> nHTable;
+        for (i = 0; i < areaCount; i++) {
+          areas[i]->calculateShortestPathTree(nHTable, (*it)->getNeighborID());
+          //        std::cout << (*it)->getNeighborID() << std::endl;
+          if (areas[i]->getTransitCapability()) {
+            hasTransitAreas = true;
           }
         }
-        if(!found)
+
+        std::cout << "print Table for  " << (*it)->getNeighborID() << std::endl;
+        for(auto tmp = nHTable.begin(); tmp != nHTable.end(); tmp++)
         {
-          continue;
-        }else{
-          std::cout<< "entryNH cost: " << (*entryNH)->getCost() << " entryLocal cost: " << (*entryLocal)->getCost()  << " metricToMe: " << metricToMe << std::endl;
-          std::cout << "entryNH: " << (*entryNH) << std::endl;
-          std::cout << "entryLocal: " << (*entryLocal) << std::endl;
-          if( (*entryNH)->getCost() < ((*entryLocal)->getCost() + metricToMe) )
-          {
+          std::cout << (*tmp) << std::endl;
+        }
 
 
-            bool nextHopExists = false;
-            for (int i = 0; i< (*entryLocal)->getNextHopCount(); i++)
+        //find entry in neighbor's routing table towards this router
+        bool foundEntryToMe = false;
+        auto entryToMe = nHTable.begin();
+        auto saveMe = nHTable.end();
+        std::cout << "Neighbor table:" << std::endl;
+        for(; entryToMe != nHTable.end(); entryToMe++)
+        {
+          std::cout << "route: " << (*entryToMe) << std::endl;
+          if(isLocalAddress((*entryToMe)->getDestination())){
+            std::cout<< "Route to me: " << (*entryToMe) << std::endl;
+            foundEntryToMe = true;
+            if(saveMe == nHTable.end() || (*saveMe)->getCost() > (*entryToMe)->getCost())
             {
-              if((*entryLocal)->getNextHop(i).hopAddress == (*it)->getNeighborIpAddress()){
-                nextHopExists = true;
-                break;
-              }
+              //use entry with the smallest cost
+              saveMe = entryToMe;
             }
+            //          break;
+          }
+        }
 
-            if(!nextHopExists){
-              bool foundToNextHop = false;
-              auto entryToNextHop = newTable.begin();
-              for(; entryToNextHop != newTable.end(); entryToNextHop++)
+        //FIX if there is no route towards this router then there is no loop; right? => metricToMe should be infinite not zero
+        // to indicate forwarding to this hop is safe because it will never send it back
+        int metricToMe = 0;
+        if(foundEntryToMe)
+        {
+          entryToMe = saveMe;
+          metricToMe = (*entryToMe)->getCost();
+        }
+
+
+        for (auto entryLocal = newTable.begin(); entryLocal != newTable.end(); entryLocal++)
+        {
+          //skip routes to local addresses
+          if(isLocalAddress((*entryLocal)->getDestination()))
+          {
+            continue;
+          }
+          bool found = false;
+          //find entry in nhTable with same destination as entryLocal
+          auto entryNH = nHTable.begin();
+          for(; entryNH != nHTable.end(); entryNH++)
+          {
+            if((*entryNH)->getDestination() == (*entryLocal)->getDestination()){
+              found = true;
+              break;
+            }
+          }
+          if(!found)
+          {
+            continue;
+          }else{
+            std::cout<< "entryNH cost: " << (*entryNH)->getCost() << " entryLocal cost: " << (*entryLocal)->getCost()  << " metricToMe: " << metricToMe << std::endl;
+            std::cout << "entryNH: " << (*entryNH) << std::endl;
+            std::cout << "entryLocal: " << (*entryLocal) << std::endl;
+            if( (*entryNH)->getCost() < ((*entryLocal)->getCost() + metricToMe) )
+            {
+
+
+              bool nextHopExists = false;
+              for (int i = 0; i< (*entryLocal)->getNextHopCount(); i++)
               {
-                if((*entryToNextHop)->getDestination() == (*it)->getNeighborIpAddress() && (*entryToNextHop)->getDestination() == (*entryToNextHop)->getNextHop(0).hopAddress){
-                  foundToNextHop = true;
+                if((*entryLocal)->getNextHop(i).hopAddress == (*it)->getNeighborIpAddress()){
+                  nextHopExists = true;
                   break;
                 }
               }
 
-              if(foundToNextHop){
-                (*entryLocal)->addNextHop((*entryToNextHop)->getNextHop(0));
-              }
-              else{
-                NextHop nextHop;
-                nextHop.advertisingRouter = routerID;
-                nextHop.hopAddress = (*it)->getNeighborIpAddress();
-                //                                nextHop.hopAddress =
-                nextHop.ifIndex = (*it)->getInterface()->getIfIndex();
-                (*entryLocal)->addNextHop(nextHop);
+              if(!nextHopExists){
+                bool foundToNextHop = false;
+                auto entryToNextHop = newTable.begin();
+                for(; entryToNextHop != newTable.end(); entryToNextHop++)
+                {
+                  if((*entryToNextHop)->getDestination() == (*it)->getNeighborIpAddress() && (*entryToNextHop)->getDestination() == (*entryToNextHop)->getNextHop(0).hopAddress){
+                    foundToNextHop = true;
+                    break;
+                  }
+                }
+
+                if(foundToNextHop){
+                  (*entryLocal)->addNextHop((*entryToNextHop)->getNextHop(0));
+                }
+                else{
+                  NextHop nextHop;
+                  nextHop.advertisingRouter = routerID;
+                  nextHop.hopAddress = (*it)->getNeighborIpAddress();
+                  //                                nextHop.hopAddress =
+                  nextHop.ifIndex = (*it)->getInterface()->getIfIndex();
+                  for (auto entryLocalToNextHop = newTable.begin(); entryLocalToNextHop != newTable.end(); entryLocalToNextHop++)
+                  {
+                    if((*entryLocalToNextHop)->getDestination() == nextHop.hopAddress){
+
+
+                    nextHop.cost = (*entryLocalToNextHop)->getCost() + (*entryNH)->getCost();
+                    }
+                  }
+
+                  (*entryLocal)->addNextHop(nextHop);
+                }
               }
             }
           }
+
         }
 
       }
-
-
     }
+
+
     if (areaCount > 1) {
         Area *backbone = getAreaByID(BACKBONE_AREAID);
         if (backbone != nullptr) {

@@ -54,6 +54,7 @@ void Ospf::initialize(int stage)
         rt = getModuleFromPar<IIpv4RoutingTable>(par("routingTableModule"), this);
         isUp = isNodeUp();
         hasDmpr = par("hasDmpr");
+        hasUnEqualPaths = par("hasUnEqualPaths");
         if (isUp)
             createOspfRouter();
 
@@ -64,7 +65,7 @@ void Ospf::initialize(int stage)
 
 void Ospf::createOspfRouter()
 {
-    ospfRouter = new Router(rt->getRouterId(), this, ift, rt, hasDmpr);
+    ospfRouter = new Router(rt->getRouterId(), this, ift, rt, hasDmpr, hasUnEqualPaths);
 
     // read the OSPF AS configuration
     cXMLElement *ospfConfig = par("ospfConfig");

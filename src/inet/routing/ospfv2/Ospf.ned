@@ -149,6 +149,7 @@ simple Ospf like IOspf
         string externalInterfaceOutputType = default("");  // Type1|Type2
         
         bool hasDmpr = default(false);
+        bool hasUnEqualPaths = default(false);
 
         @display("i=block/network2");
     gates:
