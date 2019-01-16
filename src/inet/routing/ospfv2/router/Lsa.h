@@ -34,6 +34,7 @@ struct NextHop
     int ifIndex;
     Ipv4Address hopAddress;
     RouterId advertisingRouter;
+    Metric cost = -1;
 };
 
 class INET_API RoutingInfo
