@@ -21,4 +21,7 @@ package inet.applications.udpapp;
 simple UdpEcnReceiver extends UdpEchoApp
 {
     @class("UdpEcnReceiver");
+    @signal[packetReceived](type=Packet);
+    @statistic[rcvdPk](title="packets echoed"; source=packetReceived; record=count,"sum(packetBytes)","vector(packetBytes)"; interpolationmode=none);
+    
 }
