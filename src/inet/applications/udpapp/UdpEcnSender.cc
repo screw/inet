@@ -27,12 +27,13 @@ Define_Module(UdpEcnSender);
 
 void UdpEcnSender::initialize(int stage)
 {
-    UdpBasicApp::initialize(stage);
+    UdpBasicBurst::initialize(stage);
+    packetName = par("packetName");
 }
 
 void UdpEcnSender::handleMessage(cMessage *msg)
 {
-    UdpBasicApp::handleMessage(msg);
+    UdpBasicBurst::handleMessage(msg);
 }
 
 void UdpEcnSender::sendPacket()
