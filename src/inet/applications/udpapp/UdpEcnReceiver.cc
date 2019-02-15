@@ -42,6 +42,7 @@ void UdpEcnReceiver::socketDataArrived(UdpSocket *socket, Packet *pk)
 {
 //  UdpEchoApp::socketDataArrived(socket, pk);
 
+  emit(packetReceivedSignal, pk);
   const auto& appHeader = removeProtocolHeader<UdpEcnAppHeader>(pk);
 
   // determine its source address/port
