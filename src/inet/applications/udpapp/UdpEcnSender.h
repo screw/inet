@@ -17,7 +17,8 @@
 #define __INET_UDPECNSENDER_H_
 
 
-#include "inet/applications/udpapp/UdpBasicApp.h"
+//#include "inet/applications/udpapp/UdpBasicApp.h"
+#include "inet/applications/udpapp/UdpBasicBurst.h"
 
 using namespace omnetpp;
 
@@ -29,8 +30,11 @@ namespace inet {
  * It supplements the ECE-bit missing in UDP header compared to TCP for
  * notifying the sender about the congestion.
  */
-class UdpEcnSender : public UdpBasicApp
+class UdpEcnSender : public UdpBasicBurst
 {
+  private:
+    const char *packetName = nullptr;
+
   protected:
     virtual void initialize(int stage) override;
     virtual void handleMessage(cMessage *msg) override;
