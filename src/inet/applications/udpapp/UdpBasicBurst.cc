@@ -272,6 +272,15 @@ void UdpBasicBurst::processPacket(Packet *pk)
     delete pk;
 }
 
+void UdpBasicBurst::sendPacket()
+{
+  Packet* payload = createPacket();
+  payload->setTimestamp();
+  emit(packetSentSignal, payload);
+  socket.sendTo(payload, destAddr, destPort);
+  numSent++;
+}
+
 void UdpBasicBurst::generateBurst()
 {
     simtime_t now = simTime();
@@ -306,12 +315,7 @@ void UdpBasicBurst::generateBurst()
     if (chooseDestAddrMode == PER_SEND)
         destAddr = chooseDestAddr();
 
-    Packet *payload = createPacket();
-    payload->setTimestamp();
-    emit(packetSentSignal, payload);
-    socket.sendTo(payload, destAddr, destPort);
-    numSent++;
-
+  sendPacket();
     // Next timer
     if (activeBurst && nextPkt >= nextSleep)
         nextPkt = nextBurst;
