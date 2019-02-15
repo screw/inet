@@ -18,8 +18,10 @@ package inet.applications.udpapp;
 //
 // TODO auto-generated module
 //
-simple UdpEcnSender extends UdpBasicApp
+simple UdpEcnSender extends UdpBasicBurst
 {
     @class("UdpEcnSender");
-    packetName = "Data";
+   string packetName = default("Data"); // 
+   chooseDestAddrMode = "once";
+   
 }
