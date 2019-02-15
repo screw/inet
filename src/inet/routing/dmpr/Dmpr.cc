@@ -64,7 +64,7 @@ void Dmpr::initialize(int stage)
 
     alpha = par("alpha").doubleValue();
   }
-  else if (stage == INITSTAGE_LINK_LAYER_2)
+  else if (stage == INITSTAGE_LINK_LAYER)
   {
 
     int numInter = interfaceTable->getNumInterfaces();
@@ -72,13 +72,59 @@ void Dmpr::initialize(int stage)
     for (int i = 0; i < numInter; i++ )
     {
       ie = interfaceTable->getInterface(i);
-      ie->setDmprInterfaceData(new DmprInterfaceData());
+
+      std::stringstream sigCongLevel;
+      sigCongLevel << "congLevel." << ie->getFullName();
+//      std::cout << sigCongLevel.str() << std::endl;
+      std::stringstream sigInUseCongLevel;
+      sigInUseCongLevel<< "inUseCongLevel." << ie->getFullName();
+
+
+      simsignal_t signalCongLevel = cComponent::registerSignal(sigCongLevel.str().c_str());
+      simsignal_t signalInUseCongLevel = cComponent::registerSignal(sigInUseCongLevel.str().c_str());
+
+      cResultRecorder *vectorRecorder = cResultRecorderType::get("vector")->create();
+      opp_string_map *attrs = new opp_string_map;
+      (*attrs)["title"] = "DMPR  Load ";
+      (*attrs)["title"] += ie->getFullName();
+      //      (*attrs)["unit"] = "packets";
+      vectorRecorder->init(this, sigCongLevel.str().c_str() , "vector", nullptr, attrs);
+      subscribe(signalCongLevel,vectorRecorder);
+
+
+      cResultRecorder *vectorRecorderInUse = cResultRecorderType::get("vector")->create();
+      opp_string_map *attrsInUse = new opp_string_map;
+      (*attrsInUse)["title"] = "DMPR  InUse Load ";
+      (*attrsInUse)["title"] += ie->getFullName();
+      //      (*attrs)["unit"] = "packets";
+      vectorRecorderInUse->init(this, sigInUseCongLevel.str().c_str(), "vector", nullptr, attrsInUse);
+      subscribe(signalInUseCongLevel,vectorRecorderInUse);
+
+
+
+
+      DmprInterfaceData *d = new DmprInterfaceData(this);
+      d->setSignalCongLevel(signalCongLevel);
+      d->setSignalInUseCongLevel(signalInUseCongLevel);
+      ie->setDmprInterfaceData(d);
+
+
+
+
+
     }
   }
   else if (stage == INITSTAGE_ROUTING_PROTOCOLS)
   {
     networkProtocol->registerHook(0, this);
   }
+}
+
+void Dmpr::emitSignal(simsignal_t signal, double value)
+{
+  emit(signal, value);
+
+//  std::cout << "DMPR: " << getFullPath() << " signal: " << signal << " value: " << value << std::endl;
 }
 
 void Dmpr::handleMessage(cMessage *msg)
@@ -117,38 +163,14 @@ INetfilter::IHook::Result Dmpr::datagramPreRoutingHook(Packet* datagram)
       int interfaceId = datagram->getTag<InterfaceInd>()->getInterfaceId();
       DmprInterfaceData *dmprData =  interfaceTable->getInterfaceById(interfaceId)->dmprData();
 
+
       int ece = tcpHeader->getEceBit();
 
       double p = dmprData->getCongestionLevel();
 //      double alpha = 0.1
       p = (1 - alpha) * p + ece * alpha;
+
       dmprData->setCongestionLevel(p);
-
-//      std::cout << "DMPR: Updated congestionLevel: " << p << std::endl;
-
-//      for(int i = ipv4Header->getOptionArraySize(); i > 0; i--)
-//      {
-//
-//        if(ipv4Header->getOption(i-1).getType() == IPOPTION_STRICT_SOURCE_ROUTING)
-//        {
-////          ipv4Header->q
-//          auto ipv4HeaderForUpdate = removeNetworkProtocolHeader<Ipv4Header>(datagram);
-//          TlvOptionBase& option = ipv4HeaderForUpdate->getOptionForUpdate(i-1);
-//          Ipv4OptionRecordRoute& strictRoute = dynamic_cast<Ipv4OptionRecordRoute&>(option);
-//          short position = strictRoute.getNextAddressIdx();
-//          if (strictRoute.getRecordAddressArraySize() > 0)
-//          {
-//
-//            const Ipv4Address& nextHop = strictRoute.getRecordAddress(position);
-//            strictRoute.eraseRecordAddress(position);
-//            strictRoute.setNextAddressIdx(position - 1);
-//
-//            datagram->addTagIfAbsent<NextHopAddressReq>()->setNextHopAddress(nextHop);
-//
-//          }
-//          insertNetworkProtocolHeader(datagram, Protocol::ipv4, ipv4HeaderForUpdate);
-//        }
-//      }
     }
   }
   else if (*protocolPtr == Protocol::udp)
@@ -186,7 +208,10 @@ INetfilter::IHook::Result Dmpr::datagramPreRoutingHook(Packet* datagram)
         double p = dmprData->getCongestionLevel();
         //      double alpha = 0.1
         p = (1 - alpha) * p + ece * alpha;
+//        std::cout<< "p: " << p;
         dmprData->setCongestionLevel(p);
+
+//        emit(dmprData->getSignalCongLevel(), p);
 
       }
     }
