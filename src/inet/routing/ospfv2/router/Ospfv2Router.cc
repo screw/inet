@@ -718,7 +718,7 @@ void Router::rebuildRoutingTable()
         }
       }
 
-      std::cout << "print Table for  " << getRouterID() << std::endl;
+//      std::cout << "print Table for  " << getRouterID() << std::endl;
       for(auto tmp = newTable.begin(); tmp != newTable.end(); tmp++)
       {
         std::cout << (*tmp) << std::endl;
@@ -750,7 +750,7 @@ void Router::rebuildRoutingTable()
           }
         }
 
-        std::cout << "print Table for  " << (*it)->getNeighborID() << std::endl;
+//        std::cout << "print Table for  " << (*it)->getNeighborID() << std::endl;
         for(auto tmp = nHTable.begin(); tmp != nHTable.end(); tmp++)
         {
           std::cout << (*tmp) << std::endl;
@@ -761,12 +761,12 @@ void Router::rebuildRoutingTable()
         bool foundEntryToMe = false;
         auto entryToMe = nHTable.begin();
         auto saveMe = nHTable.end();
-        std::cout << "Neighbor table:" << std::endl;
+//        std::cout << "Neighbor table:" << std::endl;
         for(; entryToMe != nHTable.end(); entryToMe++)
         {
-          std::cout << "route: " << (*entryToMe) << std::endl;
+//          std::cout << "route: " << (*entryToMe) << std::endl;
           if(isLocalAddress((*entryToMe)->getDestination())){
-            std::cout<< "Route to me: " << (*entryToMe) << std::endl;
+//            std::cout<< "Route to me: " << (*entryToMe) << std::endl;
             foundEntryToMe = true;
             if(saveMe == nHTable.end() || (*saveMe)->getCost() > (*entryToMe)->getCost())
             {
@@ -808,9 +808,9 @@ void Router::rebuildRoutingTable()
           {
             continue;
           }else{
-            std::cout<< "entryNH cost: " << (*entryNH)->getCost() << " entryLocal cost: " << (*entryLocal)->getCost()  << " metricToMe: " << metricToMe << std::endl;
-            std::cout << "entryNH: " << (*entryNH) << std::endl;
-            std::cout << "entryLocal: " << (*entryLocal) << std::endl;
+//            std::cout<< "entryNH cost: " << (*entryNH)->getCost() << " entryLocal cost: " << (*entryLocal)->getCost()  << " metricToMe: " << metricToMe << std::endl;
+//            std::cout << "entryNH: " << (*entryNH) << std::endl;
+//            std::cout << "entryLocal: " << (*entryLocal) << std::endl;
             if( (*entryNH)->getCost() < ((*entryLocal)->getCost() + metricToMe) )
             {
 
