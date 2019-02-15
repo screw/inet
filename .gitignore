@@ -80,3 +80,4 @@ backups
 xxx
 /tmp/
 /.computed/
+*.DS_Store
