@@ -27,6 +27,7 @@ simple Dmpr
 //        string dmprForwardingTableModule = default("^.dmprForwardingTable");
         
         double alpha = default(0.03);
+        double interval = default(0.020);
         
         @signal[congLevel*](type=double);
         @signal[inUseCongLevel*](type=double);
