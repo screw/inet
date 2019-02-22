@@ -28,37 +28,43 @@ class Dmpr;
 class INET_API DmprInterfaceData : public InterfaceProtocolData
 {
   private:
+
+//    double congLevel;
+//    double fwdCongLevel; //forwarded Congestion level
+//    double inUseCongLevel;
+//    int packetCount;
+
+//    simtime_t lastChange;
+
+//    simsignal_t signalCongLevel;
+//    simsignal_t signalInUseCongLevel;
+
+  public:
     Dmpr* dmpr;
-    double congLevel;
-    double fwdCongLevel; //forwarded Congestion level
-    double inUseCongLevel;
-    int packetCount;
+    DmprForwardingTable* table;
+//    IIpv4RoutingTable *table = nullptr;
 
-    simtime_t lastChange;
-
-    simsignal_t signalCongLevel;
-    simsignal_t signalInUseCongLevel;
 
   public:
     DmprInterfaceData(Dmpr* dmpr);
     virtual ~DmprInterfaceData();
     virtual std::string str() const override;
     virtual std::string detailedInfo() const;
-    double getCongestionLevel() const;
-    void setCongestionLevel(double congestionLevel);
-    int getPacketCount() const;
-    void setPacketCount(int packetCount);
-    void incPacketCount();
-    double getInUseCongLevel() const;
-    void setInUseCongLevel(double inUseCongLevel);
-    const simtime_t& getLastChange() const;
-    void setLastChange(const simtime_t& lastChange);
-    simsignal_t getSignalCongLevel() const;
-    simsignal_t getSignalInUseCongLevel() const;
-    void setSignalCongLevel(simsignal_t signalCongLevel);
-    void setSignalInUseCongLevel(simsignal_t signalInUseCongLevel);
-    double getFwdCongLevel() const;
-    void setFwdCongLevel(double fwdCongLevel);
+//    double getCongestionLevel() const;
+//    void setCongestionLevel(double congestionLevel);
+//    int getPacketCount() const;
+//    void setPacketCount(int packetCount);
+//    void incPacketCount();
+//    double getInUseCongLevel() const;
+//    void setInUseCongLevel(double inUseCongLevel);
+//    const simtime_t& getLastChange() const;
+//    void setLastChange(const simtime_t& lastChange);
+//    simsignal_t getSignalCongLevel() const;
+//    simsignal_t getSignalInUseCongLevel() const;
+//    void setSignalCongLevel(simsignal_t signalCongLevel);
+//    void setSignalInUseCongLevel(simsignal_t signalInUseCongLevel);
+//    double getFwdCongLevel() const;
+//    void setFwdCongLevel(double fwdCongLevel);
 };
 
 } /* namespace inet */
