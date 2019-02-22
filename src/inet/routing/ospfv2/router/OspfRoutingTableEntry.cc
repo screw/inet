@@ -252,14 +252,14 @@ InterfaceEntry *RoutingTableEntry::getInterface() const
 
       if(!entry)
       {
-        break;
+        return Ipv4Route::getInterface();
       }
 
       NextHop dmprNextHop = entry->getNextHop(i);
 
-      if(dmprNextHop.lastChange + interval < simTime())
+      if(dmprNextHop.lastChange + dmprData->dmpr->getInterval() < simTime())
       {
-        dmprNextHop.inUseCongLevel = dmprNextHop.congLevel - dmprNextHop.fwdCongLevel; //dmprData->setInUseCongLevel(dmprData->getCongestionLevel());
+        dmprNextHop.inUseCongLevel = (dmprNextHop.congLevel - dmprNextHop.fwdCongLevel) < 0 ? 0 : dmprNextHop.congLevel - dmprNextHop.fwdCongLevel; //dmprData->setInUseCongLevel(dmprData->getCongestionLevel());
         dmprData->dmpr->emitSignal(dmprNextHop.signalInUseCongLevel, dmprNextHop.inUseCongLevel);
         dmprNextHop.lastChange = simTime(); //dmprData->setLastChange(simTime());
         dmprNextHop.packetCount = 0; //dmprData->setPacketCount(0);
