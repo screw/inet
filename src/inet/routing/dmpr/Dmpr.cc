@@ -89,6 +89,7 @@ void Dmpr::initialize(int stage)
 //    forwardingTable = getModuleFromPar<DmprForwardingTable>(par("dmprForwardingTableModule"), this);
 
     alpha = par("alpha").doubleValue();
+    interval = par("interval").doubleValue();
   }
   else if (stage == INITSTAGE_LINK_LAYER)
   {
@@ -149,6 +150,16 @@ void Dmpr::initialize(int stage)
   {
     networkProtocol->registerHook(0, this);
   }
+}
+
+double Dmpr::getInterval() const
+{
+  return interval;
+}
+
+void Dmpr::setInterval(double interval)
+{
+  this->interval = interval;
 }
 
 void Dmpr::emitSignal(simsignal_t signal, double value)
