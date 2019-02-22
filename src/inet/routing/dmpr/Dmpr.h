@@ -47,6 +47,7 @@ class Dmpr : public cSimpleModule, public NetfilterBase::HookBase
 //    DmprForwardingTable *forwardingTable = nullptr;
 
     double alpha;
+    double interval;
 
   protected:
     virtual void initialize(int stage);
@@ -67,6 +68,8 @@ class Dmpr : public cSimpleModule, public NetfilterBase::HookBase
 
 //    // Lifecycle
 //    virtual bool handleOperationStage(LifecycleOperation *operation, int stage, IDoneCallback *doneCallback) override;
+    double getInterval() const;
+    void setInterval(double interval);
 };
 
 } //namespace
