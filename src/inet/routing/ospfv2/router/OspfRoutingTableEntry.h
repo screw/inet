@@ -90,6 +90,7 @@ class INET_API RoutingTableEntry : public Ipv4Route
     void removeNextHop(unsigned int index) {nextHops.erase(nextHops.begin() + index); }
     unsigned int getNextHopCount() const { return nextHops.size(); }
     NextHop getNextHop(unsigned int index) const { return nextHops[index]; }
+    void setNextHop(unsigned int index, NextHop nextHop) { nextHops[index] = nextHop; }
 
     /** Next hop address */
        Ipv4Address getGateway() const;

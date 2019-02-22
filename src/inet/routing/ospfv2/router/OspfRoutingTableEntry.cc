@@ -248,18 +248,28 @@ InterfaceEntry *RoutingTableEntry::getInterface() const
     if (ie)
     {
       DmprInterfaceData *dmprData = ie->dmprData();
+      RoutingTableEntry* entry = dmprData->table->findBestMatchingRoute(this->getDestination());
 
-
-      if(dmprData->getLastChange() + interval < simTime())
+      if(!entry)
       {
-        dmprData->setInUseCongLevel(dmprData->getCongestionLevel());
-        dmprData->setLastChange(simTime());
-        dmprData->setPacketCount(0);
+        break;
       }
 
-      packetCount[i] = dmprData->getPacketCount();
+      NextHop dmprNextHop = entry->getNextHop(i);
+
+      if(dmprNextHop.lastChange + interval < simTime())
+      {
+        dmprNextHop.inUseCongLevel = dmprNextHop.congLevel - dmprNextHop.fwdCongLevel; //dmprData->setInUseCongLevel(dmprData->getCongestionLevel());
+        dmprData->dmpr->emitSignal(dmprNextHop.signalInUseCongLevel, dmprNextHop.inUseCongLevel);
+        dmprNextHop.lastChange = simTime(); //dmprData->setLastChange(simTime());
+        dmprNextHop.packetCount = 0; //dmprData->setPacketCount(0);
+        entry->setNextHop(i, dmprNextHop);
+
+      }
+
+      packetCount[i] = dmprNextHop.packetCount; //dmprData->getPacketCount();
       //          availableLoad[i] = 1 - dmprData->getCongestionLevel();
-      availableLoad[i] = 1 - dmprData->getInUseCongLevel();
+      availableLoad[i] = 1 - dmprNextHop.inUseCongLevel;// dmprData->getInUseCongLevel();
 
       availableLoadSum += availableLoad[i];
       packetSum += packetCount[i];
