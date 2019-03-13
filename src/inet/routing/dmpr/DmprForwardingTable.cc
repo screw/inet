@@ -14,6 +14,7 @@
 // 
 
 #include "inet/routing/dmpr/DmprForwardingTable.h"
+#include <algorithm>
 
 namespace inet {
 
