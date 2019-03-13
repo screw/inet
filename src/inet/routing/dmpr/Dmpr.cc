@@ -62,7 +62,7 @@ simsignal_t Dmpr::registerSignal(std::stringstream title, std::stringstream name
 
   std::stringstream signalName;
   signalName << name.str();
-  signalName << ". " <<  destination.str() << "_" << interfaceName.str();
+  signalName << "." <<  destination.str() << "_" << interfaceName.str();
   simsignal_t signal = cComponent::registerSignal(signalName.str().c_str());
 
   cResultRecorder *vectorRecorder = cResultRecorderType::get("vector")->create();
