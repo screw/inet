@@ -238,7 +238,7 @@ InterfaceEntry *RoutingTableEntry::getInterface() const
   double availableLoadSum = 0;
   int packetSum = 0;
 
-  double interval = 0.020;
+//  double interval = 0.020;
 
 
   for (int i = 0; i < count; i++)
@@ -297,10 +297,7 @@ InterfaceEntry *RoutingTableEntry::getInterface() const
     ratioDiff[i] = maxRatio[i] - actualRatio[i];
   }
 
-
-
   double ratio = -1;
-
 
   /*
    * Chooses the one with the highest available ratio (except the ones that already exceeded maxRatio)
