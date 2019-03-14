@@ -157,6 +157,16 @@ double Dmpr::getInterval() const
   return interval;
 }
 
+double Dmpr::getAlpha() const
+{
+  return alpha;
+}
+
+void Dmpr::setAlpha(double alpha)
+{
+  this->alpha = alpha;
+}
+
 void Dmpr::setInterval(double interval)
 {
   this->interval = interval;
@@ -172,6 +182,27 @@ void Dmpr::emitSignal(simsignal_t signal, double value)
 void Dmpr::handleMessage(cMessage *msg)
 {
     // TODO - Generated method body
+}
+
+void Dmpr::updateIntervalCong(ospf::NextHop& nextHop, DmprInterfaceData* dmprData)
+{
+
+    // if the packetCount for previous period is 0 then don't change the current value -> use the current value as smootEce in the exponential smooth equation
+    double smoothEce = nextHop.ackPacketCount == 0 ? nextHop.congLevel : (double) (nextHop.ackPacketSum) / (double) (nextHop.ackPacketCount);
+    nextHop.ackPacketCount = 0;
+    nextHop.ackPacketSum = 0;
+    nextHop.congLevel = (1 - alpha) * nextHop.congLevel + smoothEce * getAlpha();
+    emitSignal(nextHop.signalCongLevel, nextHop.congLevel);
+    smoothEce = nextHop.fwdPacketCount == 0 ? nextHop.fwdCongLevel : (double) (nextHop.fwdPacketSum) / (double) (nextHop.fwdPacketCount);
+    nextHop.fwdPacketCount = 0;
+    nextHop.fwdPacketSum = 0;
+    nextHop.fwdCongLevel = (1 - alpha) * nextHop.fwdCongLevel + smoothEce * getAlpha();
+    dmprData->dmpr->emitSignal(nextHop.signalfwdCongLevel, nextHop.fwdCongLevel);
+    nextHop.inUseCongLevel = (nextHop.congLevel - nextHop.fwdCongLevel) < 0 ? 0 : nextHop.congLevel - nextHop.fwdCongLevel; //dmprData->setInUseCongLevel(dmprData->getCongestionLevel());
+    dmprData->dmpr->emitSignal(nextHop.signalInUseCongLevel, nextHop.inUseCongLevel);
+    nextHop.lastChange = simTime();
+    nextHop.packetCount = 0;
+
 }
 
 void Dmpr::updateCongestionLevel(int ece, DmprInterfaceData* dmprData, Ipv4Address srcIp, int interfaceId)
@@ -195,6 +226,7 @@ void Dmpr::updateCongestionLevel(int ece, DmprInterfaceData* dmprData, Ipv4Addre
         nextHop.signalCongLevel = registerSignal(std::stringstream("DMPR Load"), std::stringstream("congLevel"), std::stringstream(ie->getFullName()), route->getDestination());
         nextHop.signalfwdCongLevel = registerSignal(std::stringstream("DMPR Fwd Load"), std::stringstream("fwdCongLevel"), std::stringstream(ie->getFullName()), route->getDestination());
         nextHop.signalInUseCongLevel = registerSignal(std::stringstream("DMPR InUseLoad"), std::stringstream("inUseCongLevel"), std::stringstream(ie->getFullName()), route->getDestination());
+        nextHop.lastChange = simTime();
         route->setNextHop(i, nextHop);
       }
     }
@@ -207,26 +239,18 @@ void Dmpr::updateCongestionLevel(int ece, DmprInterfaceData* dmprData, Ipv4Addre
     ospf::NextHop nextHop = ospfEntry->getNextHop(i);
     if(nextHop.ifIndex == interfaceId) // && (nextHop.hopAddress == srcIp || nextHop.hopAddress == Ipv4Address::UNSPECIFIED_ADDRESS)
     {
-//          p = nextHop.congLevel;
-          double p = nextHop.congLevel;
-          //      double alpha = 0.1
-          p = (1 - alpha) * p + ece * alpha;
-          nextHop.congLevel = p;
+      if (nextHop.lastChange + getInterval() < simTime())
+      {
+        updateIntervalCong(nextHop, dmprData);
+      }
+      nextHop.ackPacketCount++;
+      nextHop.ackPacketSum += ece;
 
-          emitSignal(nextHop.signalCongLevel, nextHop.congLevel);
-//          dmprData->setCongestionLevel(p);
-
-          ospfEntry->setNextHop(i, nextHop);
-
+      ospfEntry->setNextHop(i, nextHop);
 
     }
 
   }
-
-
-
-
-
 
 }
 
@@ -315,6 +339,49 @@ INetfilter::IHook::Result Dmpr::datagramPreRoutingHook(Packet* datagram)
   return ACCEPT;
 }
 
+void Dmpr::updateFwdCongLevel(int ece, DmprInterfaceData* dmprData, const Ipv4Address& destAddr, int interfaceId, Ipv4Route* route)
+{
+  ospf::RoutingTableEntry* dmprRoute = dmprData->table->findBestMatchingRoute(destAddr);
+  if (!dmprRoute)
+  {
+
+    dmprRoute = new ospf::RoutingTableEntry(*(const_cast<ospf::RoutingTableEntry*>((ospf::RoutingTableEntry*) (route))));
+    dmprData->table->insertEntry(destAddr, dmprRoute);
+    int count = dmprRoute->getNextHopCount();
+    for (int i = 0; i < count; i++)
+    {
+      ospf::NextHop nextHop = dmprRoute->getNextHop(i);
+      InterfaceEntry* ie = interfaceTable->getInterfaceById(nextHop.ifIndex);
+      ie->dmprData()->table->insertEntry(destAddr, dmprRoute);
+      nextHop.signalCongLevel = registerSignal(std::stringstream("DMPR Load"), std::stringstream("congLevel"), std::stringstream(ie->getFullName()), route->getDestination());
+      nextHop.signalfwdCongLevel = registerSignal(std::stringstream("DMPR Fwd Load"), std::stringstream("fwdCongLevel"), std::stringstream(ie->getFullName()), route->getDestination());
+      nextHop.signalInUseCongLevel = registerSignal(std::stringstream("DMPR InUseLoad"), std::stringstream("inUseCongLevel"), std::stringstream(ie->getFullName()), route->getDestination());
+      nextHop.lastChange = simTime();
+      dmprRoute->setNextHop(i, nextHop);
+    }
+  }
+  ospf::RoutingTableEntry* ospfEntry = dynamic_cast<ospf::RoutingTableEntry*>(dmprRoute);
+  for (int i = 0; i < ospfEntry->getNextHopCount(); i++)
+  {
+    ospf::NextHop nextHop = ospfEntry->getNextHop(i);
+    if (nextHop.ifIndex == interfaceId) // && (nextHop.hopAddress == srcIp || nextHop.hopAddress == Ipv4Address::UNSPECIFIED_ADDRESS)
+    {
+      if(nextHop.lastChange + getInterval() < simTime())
+      {
+        updateIntervalCong(nextHop, dmprData);
+      }
+
+
+      nextHop.fwdPacketCount++;
+      nextHop.fwdPacketSum;
+
+      nextHop.packetCount++;
+      ospfEntry->setNextHop(i, nextHop);
+
+    }
+  }
+}
+
 INetfilter::IHook::Result Dmpr::datagramForwardHook(Packet* datagram)
 {
 
@@ -324,7 +391,6 @@ INetfilter::IHook::Result Dmpr::datagramForwardHook(Packet* datagram)
 //  {
 //
 //  }
-
 
 
   const auto& ipv4Header = datagram->peekAtFront<Ipv4Header>();
@@ -377,54 +443,7 @@ INetfilter::IHook::Result Dmpr::datagramForwardHook(Packet* datagram)
     {
       int ece = (ect == IP_ECN_CE) ? 1 : 0;
 
-      ospf::RoutingTableEntry* dmprRoute = dmprData->table->findBestMatchingRoute(destAddr);
-      if (!dmprRoute)
-      {
-//        dmprRoute = (ospf::RoutingTableEntry*) route;
-        dmprRoute = new ospf::RoutingTableEntry(*(const_cast<ospf::RoutingTableEntry*>((ospf::RoutingTableEntry*)route)));
-
-        dmprData->table->insertEntry(destAddr, dmprRoute);
-
-
-
-        int count = dmprRoute->getNextHopCount();
-        for (int i = 0; i< count; i++)
-        {
-          ospf::NextHop nextHop = dmprRoute->getNextHop(i);
-//          if(nextHop.ifIndex == interfaceId)
-//          {
-            InterfaceEntry *ie = interfaceTable->getInterfaceById(nextHop.ifIndex);
-            ie->dmprData()->table->insertEntry(destAddr, dmprRoute);
-            nextHop.signalCongLevel = registerSignal(std::stringstream("DMPR Load"), std::stringstream("congLevel"), std::stringstream(ie->getFullName()), route->getDestination());
-            nextHop.signalfwdCongLevel = registerSignal(std::stringstream("DMPR Fwd Load"), std::stringstream("fwdCongLevel"), std::stringstream(ie->getFullName()), route->getDestination());
-            nextHop.signalInUseCongLevel = registerSignal(std::stringstream("DMPR InUseLoad"), std::stringstream("inUseCongLevel"), std::stringstream(ie->getFullName()), route->getDestination());
-            dmprRoute->setNextHop(i, nextHop);
-//          }
-        }
-      }
-
-      ospf::RoutingTableEntry *ospfEntry = dynamic_cast<ospf::RoutingTableEntry*>(dmprRoute);
-
-      for (int i = 0; i < ospfEntry->getNextHopCount(); i++)
-      {
-        ospf::NextHop nextHop = ospfEntry->getNextHop(i);
-        if (nextHop.ifIndex == interfaceId) // && (nextHop.hopAddress == srcIp || nextHop.hopAddress == Ipv4Address::UNSPECIFIED_ADDRESS)
-        {
-          //          p = nextHop.congLevel;
-          double p = nextHop.fwdCongLevel;
-          //      double alpha = 0.1
-          p = (1 - alpha) * p + ece * alpha;
-          nextHop.fwdCongLevel = p;
-
-          emitSignal(nextHop.signalfwdCongLevel, nextHop.fwdCongLevel);
-
-          nextHop.packetCount++;
-          ospfEntry->setNextHop(i, nextHop);
-          //          dmprData->setCongestionLevel(p);
-        }
-
-      }
-
+      updateFwdCongLevel(ece, dmprData, destAddr, interfaceId, route);
     }
   }
 
