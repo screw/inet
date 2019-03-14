@@ -224,8 +224,8 @@ InterfaceEntry *RoutingTableEntry::getInterface() const
   }
   double congestLevel = INT_MAX;
   Ipv4Address nextHopAddr = Ipv4Address::UNSPECIFIED_ADDRESS;
-  NextHop nextHop, tmpNextHop;
-  nextHop.hopAddress = Ipv4Address::UNSPECIFIED_ADDRESS;
+  NextHop resNextHop, tmpNextHop;
+  resNextHop.hopAddress = Ipv4Address::UNSPECIFIED_ADDRESS;
 
   int count = nextHops.size();
 
@@ -255,21 +255,35 @@ InterfaceEntry *RoutingTableEntry::getInterface() const
         return Ipv4Route::getInterface();
       }
 
-      NextHop dmprNextHop = entry->getNextHop(i);
+      NextHop nextHop = entry->getNextHop(i);
 
-      if(dmprNextHop.lastChange + dmprData->dmpr->getInterval() < simTime())
+      if(nextHop.lastChange + dmprData->dmpr->getInterval() < simTime())
       {
-        dmprNextHop.inUseCongLevel = (dmprNextHop.congLevel - dmprNextHop.fwdCongLevel) < 0 ? 0 : dmprNextHop.congLevel - dmprNextHop.fwdCongLevel; //dmprData->setInUseCongLevel(dmprData->getCongestionLevel());
-        dmprData->dmpr->emitSignal(dmprNextHop.signalInUseCongLevel, dmprNextHop.inUseCongLevel);
-        dmprNextHop.lastChange = simTime(); //dmprData->setLastChange(simTime());
-        dmprNextHop.packetCount = 0; //dmprData->setPacketCount(0);
-        entry->setNextHop(i, dmprNextHop);
+        double smoothEce = nextHop.ackPacketCount == 0 ? nextHop.congLevel : (double) nextHop.ackPacketSum / (double) nextHop.ackPacketCount;
+        nextHop.congLevel = (1 - dmprData->dmpr->getAlpha()) * nextHop.congLevel + smoothEce * dmprData->dmpr->getAlpha();
+        dmprData->dmpr->emitSignal(nextHop.signalCongLevel, nextHop.congLevel);
+
+        smoothEce = nextHop.fwdPacketCount == 0 ? nextHop.fwdCongLevel : (double) nextHop.fwdPacketSum / (double) nextHop.fwdPacketCount;
+        nextHop.fwdCongLevel = (1 - dmprData->dmpr->getAlpha()) * nextHop.fwdCongLevel + smoothEce * dmprData->dmpr->getAlpha();
+        dmprData->dmpr->emitSignal(nextHop.signalfwdCongLevel, nextHop.fwdCongLevel);
+
+        nextHop.inUseCongLevel = (nextHop.congLevel - nextHop.fwdCongLevel) < 0 ? 0 : nextHop.congLevel - nextHop.fwdCongLevel; //dmprData->setInUseCongLevel(dmprData->getCongestionLevel());
+        dmprData->dmpr->emitSignal(nextHop.signalInUseCongLevel, nextHop.inUseCongLevel);
+
+        nextHop.lastChange = simTime(); //dmprData->setLastChange(simTime());
+        nextHop.packetCount = 0; //dmprData->setPacketCount(0);
+
+        nextHop.fwdPacketCount = 0;
+        nextHop.fwdPacketSum = 0;
+        nextHop.ackPacketCount = 0;
+        nextHop.ackPacketSum = 0;
+        entry->setNextHop(i, nextHop);
 
       }
 
-      packetCount[i] = dmprNextHop.packetCount; //dmprData->getPacketCount();
+      packetCount[i] = nextHop.packetCount; //dmprData->getPacketCount();
       //          availableLoad[i] = 1 - dmprData->getCongestionLevel();
-      availableLoad[i] = 1 - dmprNextHop.inUseCongLevel;// dmprData->getInUseCongLevel();
+      availableLoad[i] = 1 - nextHop.inUseCongLevel;// dmprData->getInUseCongLevel();
 
       availableLoadSum += availableLoad[i];
       packetSum += packetCount[i];
@@ -312,7 +326,7 @@ InterfaceEntry *RoutingTableEntry::getInterface() const
 
       if (ratioDiff[i] > ratio)
       {
-        nextHop = tmpNextHop;
+        resNextHop = tmpNextHop;
         ratio = ratioDiff[i];
     }
   }
@@ -332,10 +346,10 @@ InterfaceEntry *RoutingTableEntry::getInterface() const
 //    }
 //  }
 
-  if(nextHop.hopAddress != Ipv4Address::UNSPECIFIED_ADDRESS){
+  if(resNextHop.hopAddress != Ipv4Address::UNSPECIFIED_ADDRESS){
     //TODO FIX Dirty hack with const_cast
-    const_cast<RoutingTableEntry*> ( this )->setInterface(ift->getInterfaceById(nextHop.ifIndex));
-    const_cast<RoutingTableEntry*> ( this )->setGateway(nextHop.hopAddress);
+    const_cast<RoutingTableEntry*> ( this )->setInterface(ift->getInterfaceById(resNextHop.ifIndex));
+    const_cast<RoutingTableEntry*> ( this )->setGateway(resNextHop.hopAddress);
   }
 
 
