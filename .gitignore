@@ -69,6 +69,7 @@ out/
 .cmdenv-log
 netanim-trace.txt
 *.out
+*.pickle
 
 # ignore backup and temp files
 *.UPDATED
@@ -81,3 +82,4 @@ xxx
 /tmp/
 /.computed/
 *.DS_Store
+
