@@ -267,6 +267,8 @@ InterfaceEntry *RoutingTableEntry::getInterface() const
         nextHop.fwdCongLevel = (1 - dmprData->dmpr->getAlpha()) * nextHop.fwdCongLevel + smoothEce * dmprData->dmpr->getAlpha();
         dmprData->dmpr->emitSignal(nextHop.signalfwdCongLevel, nextHop.fwdCongLevel);
 
+        dmprData->dmpr->emitSignal(nextHop.signalFwdPacketCount, nextHop.fwdPacketCount);
+
         nextHop.inUseCongLevel = (nextHop.congLevel - nextHop.fwdCongLevel) < 0 ? 0 : nextHop.congLevel - nextHop.fwdCongLevel; //dmprData->setInUseCongLevel(dmprData->getCongestionLevel());
         dmprData->dmpr->emitSignal(nextHop.signalInUseCongLevel, nextHop.inUseCongLevel);
 
