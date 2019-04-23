@@ -32,6 +32,7 @@ simple Dmpr
         @signal[congLevel*](type=double);
         @signal[inUseCongLevel*](type=double);
         @signal[fwdCongLevel*](type=double);
+        @signal[fwdPacketCount*](type=double);
         
         //@statistics -> created dynamically 
         // vectors for congLevel and inUseCongLevel  
