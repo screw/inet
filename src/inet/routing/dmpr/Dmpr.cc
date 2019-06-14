@@ -345,7 +345,9 @@ INetfilter::IHook::Result Dmpr::datagramPreRoutingHook(Packet* datagram)
 
   return ACCEPT;
 }
-
+/*
+ * Updating statistics for the 'data-path'. It includes of packets forwarded within current interval and the sum of ECE marks
+ */
 void Dmpr::updateFwdCongLevel(int ece, DmprInterfaceData* dmprData, const Ipv4Address& destAddr, int interfaceId, Ipv4Route* route)
 {
   // get the best matching route from DMPR table
