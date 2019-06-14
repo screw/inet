@@ -259,11 +259,12 @@ InterfaceEntry *RoutingTableEntry::getInterface() const
 
       if(nextHop.lastChange + dmprData->dmpr->getInterval() < simTime())
       {
-        double smoothEce = nextHop.ackPacketCount == 0 ? nextHop.congLevel : (double) nextHop.ackPacketSum / (double) nextHop.ackPacketCount;
-        nextHop.congLevel = (1 - dmprData->dmpr->getAlpha()) * nextHop.congLevel + smoothEce * dmprData->dmpr->getAlpha();
+        //if there has been 0 ACKs in the previous period, use the current congLevel value
+        double smoothEcn = nextHop.ackPacketCount == 0 ? nextHop.congLevel : (double) nextHop.ackPacketSum / (double) nextHop.ackPacketCount;
+        nextHop.congLevel = (1 - dmprData->dmpr->getAlpha()) * nextHop.congLevel + smoothEcn * dmprData->dmpr->getAlpha();
         dmprData->dmpr->emitSignal(nextHop.signalCongLevel, nextHop.congLevel);
 
-        smoothEce = nextHop.fwdPacketCount == 0 ? nextHop.fwdCongLevel : (double) nextHop.fwdPacketSum / (double) nextHop.fwdPacketCount;
+        double smoothEce = nextHop.fwdPacketCount == 0 ? nextHop.fwdCongLevel : (double) nextHop.fwdPacketSum / (double) nextHop.fwdPacketCount;
         nextHop.fwdCongLevel = (1 - dmprData->dmpr->getAlpha()) * nextHop.fwdCongLevel + smoothEce * dmprData->dmpr->getAlpha();
         dmprData->dmpr->emitSignal(nextHop.signalfwdCongLevel, nextHop.fwdCongLevel);
 
@@ -304,7 +305,7 @@ InterfaceEntry *RoutingTableEntry::getInterface() const
     actualRatio[i] =  (packetSum == 0) ? 0 : (double) packetCount[i] / (double)packetSum;
 
 
-    //if the current portion of packets send over this hop exceeds the maxRatio, then skip this interface in the decision process
+    //if the current portion of packets sent over this hop exceeds the maxRatio, then skip this interface in the decision process
     if (actualRatio[i] > maxRatio[i])
     {
       maxRatio[i] = 0;
