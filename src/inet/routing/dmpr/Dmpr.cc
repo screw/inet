@@ -59,6 +59,7 @@ Define_Module(Dmpr);
 
 simsignal_t Dmpr::registerSignal(std::stringstream title, std::stringstream name, std::stringstream interfaceName, Ipv4Address destination)
 {
+    Enter_Method_Silent();
 
   std::stringstream signalName;
   signalName << name.str();
@@ -174,6 +175,7 @@ void Dmpr::setInterval(double interval)
 
 void Dmpr::emitSignal(simsignal_t signal, double value)
 {
+    Enter_Method_Silent();
   emit(signal, value);
 
 //  std::cout << "DMPR: " << getFullPath() << " signal: " << signal << " value: " << value << std::endl;
@@ -212,6 +214,20 @@ void Dmpr::updateIntervalCong(ospfv2::NextHop& nextHop, DmprInterfaceData* dmprD
 
 }
 
+void Dmpr::registerNextHop(int interfaceId, ospfv2::NextHop& nextHop, const ospfv2::Ospfv2RoutingTableEntry* route)
+{
+  InterfaceEntry* ie = interfaceTable->getInterfaceById(interfaceId);
+  nextHop.signalCongLevel = registerSignal(std::stringstream("DMPR Load"), std::stringstream("congLevel"),
+      std::stringstream(ie->getFullName()), route->getDestination());
+  nextHop.signalfwdCongLevel = registerSignal(std::stringstream("DMPR Fwd Load"), std::stringstream("fwdCongLevel"),
+      std::stringstream(ie->getFullName()), route->getDestination());
+  nextHop.signalInUseCongLevel = registerSignal(std::stringstream("DMPR InUseLoad"),
+      std::stringstream("inUseCongLevel"), std::stringstream(ie->getFullName()), route->getDestination());
+  nextHop.signalFwdPacketCount = registerSignal(std::stringstream("DMPR Fwd Packet Count"),
+      std::stringstream("fwdPacketCount"), std::stringstream(ie->getFullName()), route->getDestination());
+  nextHop.lastChange = simTime();
+}
+
 void Dmpr::updateCongestionLevel(int ece, DmprInterfaceData* dmprData, Ipv4Address srcIp, int interfaceId)
 {
 
@@ -229,12 +245,7 @@ void Dmpr::updateCongestionLevel(int ece, DmprInterfaceData* dmprData, Ipv4Addre
       ospfv2::NextHop nextHop = route->getNextHop(i);
       if(nextHop.ifIndex == interfaceId)
       {
-        InterfaceEntry *ie = interfaceTable->getInterfaceById(interfaceId);
-        nextHop.signalCongLevel = registerSignal(std::stringstream("DMPR Load"), std::stringstream("congLevel"), std::stringstream(ie->getFullName()), route->getDestination());
-        nextHop.signalfwdCongLevel = registerSignal(std::stringstream("DMPR Fwd Load"), std::stringstream("fwdCongLevel"), std::stringstream(ie->getFullName()), route->getDestination());
-        nextHop.signalInUseCongLevel = registerSignal(std::stringstream("DMPR InUseLoad"), std::stringstream("inUseCongLevel"), std::stringstream(ie->getFullName()), route->getDestination());
-        nextHop.signalFwdPacketCount = registerSignal(std::stringstream("DMPR Fwd Packet Count"), std::stringstream("fwdPacketCount"), std::stringstream(ie->getFullName()), route->getDestination());
-        nextHop.lastChange = simTime();
+        registerNextHop(interfaceId, nextHop, route);
         route->setNextHop(i, nextHop);
       }
     }
@@ -346,7 +357,9 @@ INetfilter::IHook::Result Dmpr::datagramPreRoutingHook(Packet* datagram)
 
   return ACCEPT;
 }
-
+/*
+ * Updating statistics for the 'data-path'. It includes of packets forwarded within current interval and the sum of ECE marks
+ */
 void Dmpr::updateFwdCongLevel(int ece, DmprInterfaceData* dmprData, const Ipv4Address& destAddr, int interfaceId, Ipv4Route* route)
 {
   // get the best matching route from DMPR table
