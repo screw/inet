@@ -222,14 +222,14 @@ InterfaceEntry *RoutingTableEntry::getInterface() const
   if(!ift || !hasDmpr){
     return Ipv4Route::getInterface();
   }
-  double congestLevel = INT_MAX;
+//  double congestLevel = INT_MAX;
   Ipv4Address nextHopAddr = Ipv4Address::UNSPECIFIED_ADDRESS;
   NextHop resNextHop, tmpNextHop;
   resNextHop.hopAddress = Ipv4Address::UNSPECIFIED_ADDRESS;
 
   int count = nextHops.size();
 
-  double loadIndicator[count];
+//  double loadIndicator[count];
   double availableLoad[count];
   double maxRatio[count];
   double actualRatio[count];
@@ -256,6 +256,10 @@ InterfaceEntry *RoutingTableEntry::getInterface() const
       }
 
       NextHop nextHop = entry->getNextHop(i);
+      if(nextHop.signalInUseCongLevel == 0)
+      {
+        dmprData->dmpr->registerNextHop(nextHop.ifIndex, nextHop, this);
+      }
 
       if(nextHop.lastChange + dmprData->dmpr->getInterval() < simTime())
       {
