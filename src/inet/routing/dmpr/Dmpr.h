@@ -66,8 +66,10 @@ class Dmpr : public cSimpleModule, public NetfilterBase::HookBase
         Ipv4Route* route);
     void updateIntervalCong(ospfv2::NextHop& nextHop, DmprInterfaceData* dmprData);
 
+
   public:
     void emitSignal(simsignal_t signal, double value);
+    void registerNextHop(int interfaceId, ospf::NextHop& nextHop, const ospf::RoutingTableEntry* route);
 
 //    // Lifecycle
 //    virtual bool handleOperationStage(LifecycleOperation *operation, int stage, IDoneCallback *doneCallback) override;
