@@ -56,10 +56,10 @@ struct NextHop
 
     simtime_t lastChange = 0;
 
-    simsignal_t signalCongLevel;
-    simsignal_t signalfwdCongLevel;
-    simsignal_t signalInUseCongLevel;
-    simsignal_t signalFwdPacketCount;
+    simsignal_t signalCongLevel = 0;
+    simsignal_t signalfwdCongLevel = 0;
+    simsignal_t signalInUseCongLevel = 0;
+    simsignal_t signalFwdPacketCount = 0;
 
 };
 
