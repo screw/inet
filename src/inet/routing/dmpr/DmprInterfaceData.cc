@@ -65,6 +65,7 @@ dmpr(dmpr)
 DmprInterfaceData::~DmprInterfaceData()
 {
   // TODO Auto-generated destructor stub
+    delete table;
 }
 
 std::string DmprInterfaceData::str() const
