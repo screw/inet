@@ -213,6 +213,9 @@ void InterfaceEntry::resetInterface()
     if (trilldata && ((InterfaceProtocolData *)trilldata)->ownerp == this)
         delete (InterfaceProtocolData *)trilldata;
     trilldata = nullptr;
+    if (dmprdata && ((InterfaceProtocolData *)dmprdata)->ownerp == this)
+        delete (InterfaceProtocolData *)dmprdata;
+    trilldata = nullptr;
     if (ieee8021ddata && ((InterfaceProtocolData *)ieee8021ddata)->ownerp == this)
         delete (InterfaceProtocolData *)ieee8021ddata;
     ieee8021ddata = nullptr;
