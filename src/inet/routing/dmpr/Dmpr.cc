@@ -214,6 +214,20 @@ void Dmpr::updateIntervalCong(ospf::NextHop& nextHop, DmprInterfaceData* dmprDat
 
 }
 
+void Dmpr::registerNextHop(int interfaceId, ospf::NextHop& nextHop, const ospf::RoutingTableEntry* route)
+{
+  InterfaceEntry* ie = interfaceTable->getInterfaceById(interfaceId);
+  nextHop.signalCongLevel = registerSignal(std::stringstream("DMPR Load"), std::stringstream("congLevel"),
+      std::stringstream(ie->getFullName()), route->getDestination());
+  nextHop.signalfwdCongLevel = registerSignal(std::stringstream("DMPR Fwd Load"), std::stringstream("fwdCongLevel"),
+      std::stringstream(ie->getFullName()), route->getDestination());
+  nextHop.signalInUseCongLevel = registerSignal(std::stringstream("DMPR InUseLoad"),
+      std::stringstream("inUseCongLevel"), std::stringstream(ie->getFullName()), route->getDestination());
+  nextHop.signalFwdPacketCount = registerSignal(std::stringstream("DMPR Fwd Packet Count"),
+      std::stringstream("fwdPacketCount"), std::stringstream(ie->getFullName()), route->getDestination());
+  nextHop.lastChange = simTime();
+}
+
 void Dmpr::updateCongestionLevel(int ece, DmprInterfaceData* dmprData, Ipv4Address srcIp, int interfaceId)
 {
 
@@ -230,12 +244,7 @@ void Dmpr::updateCongestionLevel(int ece, DmprInterfaceData* dmprData, Ipv4Addre
       ospf::NextHop nextHop = route->getNextHop(i);
       if(nextHop.ifIndex == interfaceId)
       {
-        InterfaceEntry *ie = interfaceTable->getInterfaceById(interfaceId);
-        nextHop.signalCongLevel = registerSignal(std::stringstream("DMPR Load"), std::stringstream("congLevel"), std::stringstream(ie->getFullName()), route->getDestination());
-        nextHop.signalfwdCongLevel = registerSignal(std::stringstream("DMPR Fwd Load"), std::stringstream("fwdCongLevel"), std::stringstream(ie->getFullName()), route->getDestination());
-        nextHop.signalInUseCongLevel = registerSignal(std::stringstream("DMPR InUseLoad"), std::stringstream("inUseCongLevel"), std::stringstream(ie->getFullName()), route->getDestination());
-        nextHop.signalFwdPacketCount = registerSignal(std::stringstream("DMPR Fwd Packet Count"), std::stringstream("fwdPacketCount"), std::stringstream(ie->getFullName()), route->getDestination());
-        nextHop.lastChange = simTime();
+        registerNextHop(interfaceId, nextHop, route);
         route->setNextHop(i, nextHop);
       }
     }
