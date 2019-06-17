@@ -57,6 +57,7 @@ Define_Module(Dmpr);
 
 simsignal_t Dmpr::registerSignal(std::stringstream title, std::stringstream name, std::stringstream interfaceName, Ipv4Address destination)
 {
+    Enter_Method_Silent();
 
   std::stringstream signalName;
   signalName << name.str();
@@ -171,6 +172,7 @@ void Dmpr::setInterval(double interval)
 
 void Dmpr::emitSignal(simsignal_t signal, double value)
 {
+    Enter_Method_Silent();
   emit(signal, value);
 
 //  std::cout << "DMPR: " << getFullPath() << " signal: " << signal << " value: " << value << std::endl;
