@@ -28,7 +28,11 @@ Define_Module(UdpEcnSender);
 void UdpEcnSender::initialize(int stage)
 {
     UdpBasicBurst::initialize(stage);
+    if(stage == INITSTAGE_LOCAL){
     packetName = par("packetName");
+
+//    probeTime = par("probeTime").isSet() ? par("probeTime").intValue() : -1;
+    }
 }
 
 void UdpEcnSender::handleMessage(cMessage *msg)
