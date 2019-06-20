@@ -259,6 +259,7 @@ InterfaceEntry *RoutingTableEntry::getInterface() const
       if(nextHop.signalInUseCongLevel == 0)
       {
         dmprData->dmpr->registerNextHop(nextHop.ifIndex, nextHop, this);
+
       }
 
       if(nextHop.lastChange + dmprData->dmpr->getInterval() < simTime())
