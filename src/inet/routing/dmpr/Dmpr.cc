@@ -357,9 +357,9 @@ INetfilter::IHook::Result Dmpr::datagramPreRoutingHook(Packet* datagram)
   return ACCEPT;
 }
 /*
- * Updating statistics for the 'data-path'. It includes of packets forwarded within current interval and the sum of ECE marks
+ * Updating statistics for the 'data-path'. It includes packets forwarded within current interval and the sum of ECN marks
  */
-void Dmpr::updateFwdCongLevel(int ece, DmprInterfaceData* dmprData, const Ipv4Address& destAddr, int interfaceId, Ipv4Route* route)
+void Dmpr::updateFwdCongLevel(int ecn, DmprInterfaceData* dmprData, const Ipv4Address& destAddr, int interfaceId, Ipv4Route* route)
 {
   // get the best matching route from DMPR table
   //TODO what if route exists in DMPR table, but there is better route in the global Routing Table
@@ -397,7 +397,7 @@ void Dmpr::updateFwdCongLevel(int ece, DmprInterfaceData* dmprData, const Ipv4Ad
 
 
       nextHop.fwdPacketCount++;
-      nextHop.fwdPacketSum =+ ece;
+      nextHop.fwdPacketSum =+ ecn;
 
       nextHop.packetCount++;
       ospfEntry->setNextHop(i, nextHop);
@@ -460,9 +460,9 @@ INetfilter::IHook::Result Dmpr::datagramForwardHook(Packet* datagram)
 
     if (((ect & IP_ECN_ECT_0) == IP_ECN_ECT_0) || ((ect & IP_ECN_ECT_1) == IP_ECN_ECT_1))
     {
-      int ece = (ect == IP_ECN_CE) ? 1 : 0;
+      int ecn = (ect == IP_ECN_CE) ? 1 : 0;
 
-      updateFwdCongLevel(ece, dmprData, destAddr, interfaceId, route);
+      updateFwdCongLevel(ecn, dmprData, destAddr, interfaceId, route);
     }
   }
 
