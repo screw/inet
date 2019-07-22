@@ -219,7 +219,7 @@ void RoutingTableEntry::setHasDmpr(bool hasDmpr)
 InterfaceEntry *RoutingTableEntry::getInterface() const
 {
 //  initstate()
-  if(!ift || !hasDmpr){
+  if(!ift || !hasDmpr || !getDestination().isUnicast()){
     return Ipv4Route::getInterface();
   }
 //  double congestLevel = INT_MAX;
@@ -254,6 +254,8 @@ InterfaceEntry *RoutingTableEntry::getInterface() const
       {
         return Ipv4Route::getInterface();
       }
+      //TODO: this() and 'entry' have to match (how exactly?; num of hops? same dest?, ???)
+      // if not delete 'entry' from the forwarding table and replace it with this
 
       NextHop nextHop = entry->getNextHop(i);
       if(nextHop.signalInUseCongLevel == 0)
@@ -324,18 +326,23 @@ InterfaceEntry *RoutingTableEntry::getInterface() const
   /*
    * Chooses the one with the highest available ratio (except the ones that already exceeded maxRatio)
    */
-//  std::cout<< "DMPR: load balancing between: " << std::endl;
+  int lastIndex = lastNextHopIndex;
+  EV << "lastNextHopIndex = " << lastIndex <<"\n";
+  int index = 0;
   for (int i = 0; i < count; i++)
   {
 
+    index = (i + lastIndex + 1) % count;
+    tmpNextHop = nextHops.at(index);
+    //    std::cout << "DMPR: nextHop: "<< tmpNextHop.hopAddress << " availableLoad: "<< availableLoad[i] << " loadSum: " << availableLoadSum << " ratioDiff: " << ratioDiff[i] << " maxRatio: " << maxRatio[i] << " actualRatio: "<< actualRatio[i] << " packets: " << packetCount[i] << " packetSum: " << packetSum << std::endl;
 
-    tmpNextHop = nextHops.at(i);
-//    std::cout << "DMPR: nextHop: "<< tmpNextHop.hopAddress << " availableLoad: "<< availableLoad[i] << " loadSum: " << availableLoadSum << " ratioDiff: " << ratioDiff[i] << " maxRatio: " << maxRatio[i] << " actualRatio: "<< actualRatio[i] << " packets: " << packetCount[i] << " packetSum: " << packetSum << std::endl;
+    if (ratioDiff[index] > ratio)
+    {
+      resNextHop = tmpNextHop;
+      ratio = ratioDiff[index];
 
-      if (ratioDiff[i] > ratio)
-      {
-        resNextHop = tmpNextHop;
-        ratio = ratioDiff[i];
+//      const_cast<ospf::RoutingTableEntry*> ( this )->lastNextHopIndex = index;
+
     }
   }
 

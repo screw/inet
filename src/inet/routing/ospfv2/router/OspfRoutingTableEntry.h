@@ -59,6 +59,7 @@ class INET_API RoutingTableEntry : public Ipv4Route
     Metric type2Cost = 0;
     const OspfLsa *linkStateOrigin = nullptr;
     std::vector<NextHop> nextHops;
+    int lastNextHopIndex = 0;
     bool hasDmpr;
     // Ipv4Route::interfacePtr comes from nextHops[0].ifIndex
     // Ipv4Route::gateway is nextHops[0].hopAddress
@@ -99,6 +100,16 @@ class INET_API RoutingTableEntry : public Ipv4Route
        InterfaceEntry *getInterface() const;
     bool isHasDmpr() const;
     void setHasDmpr(bool hasDmpr);
+
+    int getLastNextHopIndex() const
+    {
+      return lastNextHopIndex;
+    }
+
+    void setLastNextHopIndex(int lastNextHopIndex = 0)
+    {
+      this->lastNextHopIndex = lastNextHopIndex;
+    }
 };
 
 std::ostream& operator<<(std::ostream& out, const RoutingTableEntry& entry);
