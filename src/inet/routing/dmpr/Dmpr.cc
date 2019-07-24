@@ -442,7 +442,9 @@ INetfilter::IHook::Result Dmpr::datagramPreRoutingHook(Packet* datagram)
         if (strictRoute.getRecordAddressArraySize() > 0)
         {
 
-          const Ipv4Address& nextHop = strictRoute.getRecordAddress(position);
+          const Ipv4Address nextHop = Ipv4Address(strictRoute.getRecordAddress(position));
+//          nextHop.Ipv4Address(obj)
+//          std::cout<<nextHop<<std::endl;
           const Ipv4Route *re = routingTable->findBestMatchingRoute(nextHop);
           const InterfaceEntry *destIE;
           if (re) {
@@ -476,7 +478,9 @@ INetfilter::IHook::Result Dmpr::datagramPreRoutingHook(Packet* datagram)
           TlvOptionBase& option = ipv4HeaderForUpdate->getOptionForUpdate(i - 1);
           Ipv4OptionRecordRoute& recordRoute = dynamic_cast<Ipv4OptionRecordRoute&>(option);
 
-          recordRoute.insertRecordAddress(destIE->ipv4Data()->getIPAddress());
+          Ipv4Address address = destIE->ipv4Data()->getIPAddress();
+//          std::cout<<address<<std::endl;
+          recordRoute.insertRecordAddress(address);
           recordRoute.setNextAddressIdx(recordRoute.getRecordAddressArraySize() - 1);
 
           insertNetworkProtocolHeader(datagram, Protocol::ipv4, ipv4HeaderForUpdate);
@@ -536,7 +540,7 @@ void Dmpr::updateFwdCongLevel(int ecn, DmprInterfaceData* dmprData, const Ipv4Ad
 
       nextHop.packetCount++;
       ospfEntry->setNextHop(i, nextHop);
-      ospfEntry->setLastNextHopIndex(i);
+//      ospfEntry->setLastNextHopIndex(i);
 
     }
   }
