@@ -219,7 +219,7 @@ void RoutingTableEntry::setHasDmpr(bool hasDmpr)
 InterfaceEntry *RoutingTableEntry::getInterface() const
 {
 //  initstate()
-  if(!ift || !hasDmpr || !getDestination().isUnicast()){
+  if(!ift || !hasDmpr || !getDestination().isUnicast() || nextHops.size() == 1){
     return Ipv4Route::getInterface();
   }
 //  double congestLevel = INT_MAX;
@@ -341,7 +341,7 @@ InterfaceEntry *RoutingTableEntry::getInterface() const
       resNextHop = tmpNextHop;
       ratio = ratioDiff[index];
 
-//      const_cast<ospf::RoutingTableEntry*> ( this )->lastNextHopIndex = index;
+      const_cast<ospf::RoutingTableEntry*> ( this )->lastNextHopIndex = index;
 
     }
   }
