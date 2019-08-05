@@ -226,6 +226,7 @@ InterfaceEntry *RoutingTableEntry::getInterface() const
   Ipv4Address nextHopAddr = Ipv4Address::UNSPECIFIED_ADDRESS;
   NextHop resNextHop, tmpNextHop;
   resNextHop.hopAddress = Ipv4Address::UNSPECIFIED_ADDRESS;
+  std::vector<NextHop> resNextHops;
 
   int count = nextHops.size();
 
@@ -240,14 +241,14 @@ InterfaceEntry *RoutingTableEntry::getInterface() const
 
 //  double interval = 0.020;
 
-
+  DmprInterfaceData *dmprData;
   for (int i = 0; i < count; i++)
   {
     tmpNextHop = nextHops.at(i);
     InterfaceEntry* ie = ift->getInterfaceById(tmpNextHop.ifIndex);
     if (ie)
     {
-      DmprInterfaceData *dmprData = ie->dmprData();
+      dmprData = ie->dmprData();
       RoutingTableEntry* entry = dmprData->table->findBestMatchingRoute(this->getDestination());
 
       if(!entry)
@@ -338,15 +339,35 @@ InterfaceEntry *RoutingTableEntry::getInterface() const
 
     if (ratioDiff[index] > ratio)
     {
-      resNextHop = tmpNextHop;
+
+      resNextHops.clear();
+      resNextHops.push_back(tmpNextHop);
       ratio = ratioDiff[index];
 
       const_cast<ospf::RoutingTableEntry*> ( this )->lastNextHopIndex = index;
 
+    }else if(ratioDiff[index] == ratio)
+    {
+      resNextHops.push_back(tmpNextHop);
+
     }
   }
 
+  bool randomNextHopEnabled = true;
 
+
+  if(randomNextHopEnabled && resNextHops.size() > 1)
+  {
+    cRNG* rand = dmprData->dmpr->getRNG(0);
+
+
+    int i = rand->intRand(resNextHops.size());
+//    std::cout<<resNextHops.size() << " int i: "<< i << std::endl;
+
+    resNextHop = resNextHops.at(i);
+  }else{
+    resNextHop = resNextHops.at(0);
+  }
 //  /*
 //   * Chooses the one with the highest available ratio (except the ones that already exceeded maxRatio)
 //   */
