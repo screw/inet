@@ -50,7 +50,7 @@ precompiled_*.h.*
 *.synctex.gz
 .buildlog*
 compile_commands.json
-
+*.ipnb
 # ignore binary files
 out/
 *.so
