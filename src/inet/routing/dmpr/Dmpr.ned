@@ -28,6 +28,7 @@ simple Dmpr
         
         double alpha = default(0.03);
         double interval = default(0.020);
+        bool randomNextHopEnabled = default(true);
         
         @signal[congLevel*](type=double);
         @signal[inUseCongLevel*](type=double);
