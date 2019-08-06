@@ -48,7 +48,7 @@ precompiled_*.h.*
 *.ind
 *.synctex.gz
 .buildlog*
-
+*.ipnb
 # ignore binary files
 out/
 *.so

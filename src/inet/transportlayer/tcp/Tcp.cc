@@ -26,6 +26,7 @@
 #include "inet/common/lifecycle/NodeStatus.h"
 #include "inet/common/packet/Message.h"
 #include "inet/common/checksum/TcpIpChecksum.h"
+#include "inet/networklayer/common/EcnTag_m.h"
 #include "inet/networklayer/common/IpProtocolId_m.h"
 #include "inet/networklayer/common/L3AddressTag_m.h"
 #include "inet/transportlayer/common/TransportPseudoHeader_m.h"
@@ -34,6 +35,7 @@
 #include "inet/transportlayer/tcp/TcpSendQueue.h"
 #include "inet/transportlayer/tcp_common/TcpHeader.h"
 #include "inet/transportlayer/tcp/TcpReceiveQueue.h"
+
 
 #ifdef WITH_IPv4
 #include "inet/networklayer/ipv4/IcmpHeader_m.h"
@@ -199,6 +201,9 @@ void Tcp::handleMessage(cMessage *msg)
 
             srcAddr = packet->getTag<L3AddressInd>()->getSrcAddress();
             destAddr = packet->getTag<L3AddressInd>()->getDestAddress();
+            auto ecnTag = packet->findTag<EcnInd>();
+
+
             //interfaceId = controlInfo->getInterfaceId();
 
             if (!checkCrc(tcpHeader, packet)) {
@@ -210,6 +215,9 @@ void Tcp::handleMessage(cMessage *msg)
             // process segment
             TcpConnection *conn = findConnForSegment(tcpHeader, srcAddr, destAddr);
             if (conn) {
+                if (ecnTag->getExplicitCongestionNotification() == IP_ECN_CE){
+                   conn->getState()->ecnCe = true;
+                }
                 bool ret = conn->processTCPSegment(packet, tcpHeader, srcAddr, destAddr);
                 if (!ret)
                     removeConnection(conn);

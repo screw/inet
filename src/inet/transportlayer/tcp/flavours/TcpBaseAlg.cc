@@ -148,6 +148,9 @@ void TcpBaseAlg::initialize()
         rttvarVector = new cOutVector("RTTVAR");
         rtoVector = new cOutVector("RTO");
         numRtosVector = new cOutVector("numRTOs");
+        loadVector = new cOutVector("load");
+        calcLoadVector = new cOutVector("calcLoad");
+        markingProb = new cOutVector("markingProb");
     }
 }
 
@@ -378,6 +381,9 @@ void TcpBaseAlg::rttMeasurementComplete(simtime_t tSent, simtime_t tAcked)
     // update smoothed RTT estimate (srtt) and variance (rttvar)
     const double g = 0.125;    // 1 / 8; (1 - alpha) where alpha == 7 / 8;
     simtime_t newRTT = tAcked - tSent;
+
+    if(newRTT < state->minrtt)
+            state->minrtt = newRTT;
 
     simtime_t& srtt = state->srtt;
     simtime_t& rttvar = state->rttvar;

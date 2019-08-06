@@ -218,6 +218,7 @@ void RoutingTableEntry::setHasDmpr(bool hasDmpr)
 /** Next hop interface */
 InterfaceEntry *RoutingTableEntry::getInterface() const
 {
+  return Ipv4Route::getInterface();
 //  initstate()
   if(!ift || !hasDmpr || !getDestination().isUnicast() || nextHops.size() == 1){
     return Ipv4Route::getInterface();
@@ -249,7 +250,7 @@ InterfaceEntry *RoutingTableEntry::getInterface() const
     if (ie)
     {
       dmprData = ie->dmprData();
-      RoutingTableEntry* entry = dmprData->table->findBestMatchingRoute(this->getDestination());
+      RoutingTableEntry* entry =(RoutingTableEntry*)dmprData->dmpr->getRoutingTable()->findBestMatchingRoute(this->getDestination());
 
       if(!entry)
       {
@@ -391,6 +392,17 @@ InterfaceEntry *RoutingTableEntry::getInterface() const
 
   return Ipv4Route::getInterface();
 }
+
+bool RoutingTableEntry::isDmprInit() const
+{
+  return dmprInit;
+}
+
+void RoutingTableEntry::setDmprInit(bool dmprInit)
+{
+  this->dmprInit = dmprInit;
+}
+
 
 } // namespace ospf
 
