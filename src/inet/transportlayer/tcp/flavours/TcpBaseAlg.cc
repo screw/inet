@@ -65,6 +65,7 @@ TcpBaseAlgStateVariables::TcpBaseAlgStateVariables()
     // will yield rto = 3s initially.
     srtt = 0;
     rttvar = 3.0 / 4.0;
+    minrtt = 100;
 
     numRtos = 0;
 
