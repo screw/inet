@@ -679,7 +679,7 @@ void TcpConnection::sendAck()
     if(state->ecnActive && state->ecnCe)
     {
       tcpseg->setEceBit(true);
-      state->ecnCe = false;
+      state->ecnCe = false; //TODO This behaviour depends on TcpAlgorithm -> move it somewhere else
     }
 
 

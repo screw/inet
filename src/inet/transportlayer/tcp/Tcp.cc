@@ -218,6 +218,7 @@ void Tcp::handleMessage(cMessage *msg)
                 if (ecnTag->getExplicitCongestionNotification() == IP_ECN_CE){
                    conn->getState()->ecnCe = true;
                 }
+                conn->getState()->eceBit = tcpHeader->getEceBit();
                 bool ret = conn->processTCPSegment(packet, tcpHeader, srcAddr, destAddr);
                 if (!ret)
                     removeConnection(conn);
