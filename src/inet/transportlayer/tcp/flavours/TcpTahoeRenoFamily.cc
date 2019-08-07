@@ -27,6 +27,19 @@ TcpTahoeRenoFamilyStateVariables::TcpTahoeRenoFamilyStateVariables()
     // to the size of the largest possible advertised window)
     // Without user interaction there is no limit...
     ssthresh = 0xFFFFFFFF;
+
+    //DCTCP
+
+    dctcp_alpha = 0;
+    dctcp_windEnd = snd_una;
+    dctcp_bytesAcked = 0;
+    dctcp_bytesMarked = 0;
+    dctcp_CWR = false;
+    dctcp_gamma = 0.16;
+    dctcp_lastCalcTime = 0;
+    dctcp_marked = 0;
+    dctcp_total = 0;
+    dctcp_totalSent = 0;
 }
 
 void TcpTahoeRenoFamilyStateVariables::setSendQueueLimit(uint32 newLimit){
