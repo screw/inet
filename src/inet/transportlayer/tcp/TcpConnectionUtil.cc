@@ -723,7 +723,7 @@ void TcpConnection::sendAck()
         Ipv4StrictSourceRoutingReq* ssrTag = fp->addTag<Ipv4StrictSourceRoutingReq>();
         ssrTag->setType(IPOPTION_STRICT_SOURCE_ROUTING);
         TlvOptionBase *option = (state->ipv4Options.getTlvOptionForUpdate(i));
-                Ipv4OptionRecordRoute* strictRouting = static_cast<Ipv4OptionRecordRoute*>(option);
+        Ipv4OptionRecordRoute* strictRouting = static_cast<Ipv4OptionRecordRoute*>(option);
         strictRouting->setType(IPOPTION_STRICT_SOURCE_ROUTING);
         ssrTag->setOption(*(const_cast<Ipv4OptionRecordRoute*>(strictRouting)));
 

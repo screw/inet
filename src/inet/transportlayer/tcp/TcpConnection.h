@@ -271,6 +271,7 @@ class INET_API TcpStateVariables : public cObject
     bool ecnActive; // ecn echoing is used on this connection (assumes ecnEnabled=true and successful handshake)
 
     bool ecnCe; // segment being processed has ECN field in IP set to IP_ECN_CE (congestion experienced)
+    bool eceBit; // segment being processed (Ack) has eceBit bit set - ECN-echo (RFC 3168)
     int DUPTHRESH;
 
 //    bool ecn;
