@@ -49,8 +49,10 @@ class Dmpr : public cSimpleModule, public NetfilterBase::HookBase
 
     double alpha;
     double interval;
+    double logPar;
 
     bool randomNextHopEnabled = true;
+    bool lastNextHopIndexEnabled = false;
 
   protected:
     virtual void initialize(int stage);
