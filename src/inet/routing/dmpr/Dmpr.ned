@@ -27,8 +27,10 @@ simple Dmpr
 //        string dmprForwardingTableModule = default("^.dmprForwardingTable");
         
         double alpha = default(0.03);
-        double interval = default(0.020);
-        bool randomNextHopEnabled = default(true);
+        double interval = default(0.02);
+        double logPar = default(1.2);
+        bool randomNextHopEnabled = default(true); //in case there are multiple nextHops with equal 'congestion ratio' - random one is chosen instead of the first one
+        bool lastNextHopIndexEnabled = default(false); //when enabled - starts iterating over nextHops with index+1 of the previous chosen nextHop
         
         @signal[congLevel*](type=double);
         @signal[inUseCongLevel*](type=double);
