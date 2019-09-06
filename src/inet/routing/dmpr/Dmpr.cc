@@ -208,8 +208,8 @@ void Dmpr::updateIntervalCong(ospfv2::NextHop& nextHop, DmprInterfaceData* dmprD
     }
     nextHop.ackPacketCount = 0;
     nextHop.ackPacketSum = 0;
-//    nextHop.congLevel = (1 - alpha) * nextHop.congLevel + smoothEce * getAlpha();
-    nextHop.congLevel = nextHop.congLevel + alpha * (smoothEce - 0.09);
+    nextHop.congLevel = (1 - alpha) * nextHop.congLevel + smoothEce * getAlpha();
+//    nextHop.congLevel = nextHop.congLevel + alpha * (smoothEce - 0.09);
     if(nextHop.congLevel < 0.0){
       nextHop.congLevel = 0.0;
     }else if (nextHop.congLevel > 1.0){
@@ -226,8 +226,8 @@ void Dmpr::updateIntervalCong(ospfv2::NextHop& nextHop, DmprInterfaceData* dmprD
       smoothEce = 1;
     }
 
-//    nextHop.fwdCongLevel = (1 - alpha) * nextHop.fwdCongLevel + smoothEce * getAlpha();
-    nextHop.fwdCongLevel = nextHop.fwdCongLevel + alpha * (smoothEce - 0.09);
+    nextHop.fwdCongLevel = (1 - alpha) * nextHop.fwdCongLevel + smoothEce * getAlpha();
+//    nextHop.fwdCongLevel = nextHop.fwdCongLevel + alpha * (smoothEce - 0.09);
 
     if(nextHop.fwdCongLevel < 0.0){
       nextHop.fwdCongLevel = 0.0;
@@ -369,28 +369,7 @@ void Dmpr::updateNextHop(ospfv2::Ospfv2RoutingTableEntry* route)
 
         if(nextHop.lastChange + getInterval() < simTime() || update)
         {
-          //if there has been 0 ACKs in the previous period, use the current congLevel value
-//          double smoothEcn = nextHop.ackPacketCount == 0 ? nextHop.congLevel : (double) nextHop.ackPacketSum / (double) nextHop.ackPacketCount;
-//          nextHop.congLevel = (1 - getAlpha()) * nextHop.congLevel + smoothEcn * getAlpha();
-//          emitSignal(nextHop.signalCongLevel, nextHop.congLevel);
-//
-//          double smoothEce = nextHop.fwdPacketCount == 0 ? nextHop.fwdCongLevel : (double) nextHop.fwdPacketSum / (double) nextHop.fwdPacketCount;
-//          nextHop.fwdCongLevel = (1 - getAlpha()) * nextHop.fwdCongLevel + smoothEce * getAlpha();
-//          emitSignal(nextHop.signalfwdCongLevel, nextHop.fwdCongLevel);
-//
-//          emitSignal(nextHop.signalFwdPacketCount, nextHop.fwdPacketCount);
-//
-//          nextHop.inUseCongLevel = (nextHop.congLevel - nextHop.fwdCongLevel) < 0.001 ? 0 : (nextHop.congLevel - nextHop.fwdCongLevel)*2; //dmprData->setInUseCongLevel(dmprData->getCongestionLevel());
-//          emitSignal(nextHop.signalInUseCongLevel, nextHop.inUseCongLevel);
-//
-//          nextHop.lastChange = simTime(); //dmprData->setLastChange(simTime());
-//          nextHop.packetCount = 0; //dmprData->setPacketCount(0);
-//
-//          nextHop.fwdPacketCount = 0;
-//          nextHop.fwdPacketSum = 0;
-//          nextHop.ackPacketCount = 0;
-//          nextHop.ackPacketSum = 0;
-//
+
           updateIntervalCong(nextHop, dmprData);
           route->setNextHop(i, nextHop);
 
