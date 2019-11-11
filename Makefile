@@ -5,7 +5,7 @@ FEATURES_H = src/inet/features.h
 
 all: checkmakefiles $(FEATURES_H)
 	cd src && $(MAKE)
-	cd tutorials/queueing && $(MAKE)
+#	cd tutorials/queueing && $(MAKE)
 
 clean: checkmakefiles
 	cd src && $(MAKE) clean
