@@ -27,12 +27,7 @@ namespace inet {
 namespace tcp {
 
 /**
- * State variables for TcpReno.
- */
-typedef TcpTahoeRenoFamilyStateVariables TcpRenoStateVariables;
-
-/**
- * Implements TCP Reno.
+ * Implements DCTCP.
  */
 class INET_API DcTcp : public TcpReno
 {
