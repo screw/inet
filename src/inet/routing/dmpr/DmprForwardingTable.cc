@@ -57,7 +57,7 @@ bool DmprForwardingTable::isInCache(Socket socket)
 //  }
 //}
 
-void DmprForwardingTable::insertEntry(Ipv4Address address, ospf::RoutingTableEntry* entry)
+void DmprForwardingTable::insertEntry(Ipv4Address address, ospfv2::Ospfv2RoutingTableEntry* entry)
 {
 //  forwardingCache.insert( std::pair<Socket, NextHopInterface>(socket, nextHopInterface));
 
@@ -68,7 +68,7 @@ void DmprForwardingTable::insertEntry(Ipv4Address address, ospf::RoutingTableEnt
 
 }
 
-ospf::RoutingTableEntry *DmprForwardingTable::findBestMatchingRoute(const Ipv4Address& dest) const
+ospfv2::Ospfv2RoutingTableEntry *DmprForwardingTable::findBestMatchingRoute(const Ipv4Address& dest) const
 {
 //    Enter_Method("findBestMatchingRoute(%u.%u.%u.%u)", dest.getDByte(0), dest.getDByte(1), dest.getDByte(2), dest.getDByte(3));    // note: str().c_str() too slow here
 
@@ -80,11 +80,11 @@ ospf::RoutingTableEntry *DmprForwardingTable::findBestMatchingRoute(const Ipv4Ad
 
     // find best match (one with longest prefix)
     // default route has zero prefix length, so (if exists) it'll be selected as last resort
-  ospf::RoutingTableEntry *bestRoute = nullptr;
+  ospfv2::Ospfv2RoutingTableEntry *bestRoute = nullptr;
     for (auto e : routes) {
         if (e->isValid()) {
             if (Ipv4Address::maskedAddrAreEqual(dest, e->getDestination(), e->getNetmask())) {    // match
-                bestRoute = const_cast<ospf::RoutingTableEntry *>(e);
+                bestRoute = const_cast<ospfv2::Ospfv2RoutingTableEntry *>(e);
                 break;
             }
         }
@@ -94,7 +94,7 @@ ospf::RoutingTableEntry *DmprForwardingTable::findBestMatchingRoute(const Ipv4Ad
     return bestRoute;
 }
 
-bool DmprForwardingTable::ospfRouteLessThan(const ospf::RoutingTableEntry *a, const ospf::RoutingTableEntry *b) const
+bool DmprForwardingTable::ospfRouteLessThan(const ospfv2::Ospfv2RoutingTableEntry *a, const ospfv2::Ospfv2RoutingTableEntry *b) const
 {
     // longer prefixes are better, because they are more specific
     if (a->getNetmask() != b->getNetmask())
