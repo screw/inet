@@ -16,11 +16,12 @@ import ned.DatarateChannel;
 
 //import inet.linklayer.queue.REDDropper;
 
-import inet.common.queue.IOutputQueue;
+//import inet.common.queue.IOutputQueue;
 //import inet.linklayer.queue.DropTailQueue;
-import inet.common.queue.FifoQueue;
+//import inet.common.queue.FifoQueue;
 //import inet.common.queue.RedDropper;
-import inet.common.queue.RedMarker;
+//import inet.queueing.marker.RedMarker;
+//import inet.queu
 //import inet.linklayer.queue.REDDropperNUMDual;
 //import inet.linklayer.queue.REDDropperNUMDual2;
 
