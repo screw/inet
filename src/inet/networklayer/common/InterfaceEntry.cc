@@ -233,16 +233,6 @@ bool InterfaceEntry::hasNetworkAddress(const L3Address& address) const
     return false;
 }
 
-void InterfaceEntry::setDmprInterfaceData(DmprInterfaceData *p)
-{
-    if (dmprdata && ((InterfaceProtocolData *)dmprdata)->ownerp == this) // Khmm...
-        delete (InterfaceProtocolData *)dmprdata; // Khmm...
-    dmprdata = p;
-    ((InterfaceProtocolData *)p)->ownerp = this;    // Khmm...
-    configChanged(F_DMPR_DATA);
-}
-
-
 bool InterfaceEntry::setEstimateCostProcess(int position, MacEstimateCostProcess *p)
 {
     ASSERT(position >= 0);
