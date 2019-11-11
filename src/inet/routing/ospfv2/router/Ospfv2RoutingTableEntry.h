@@ -98,7 +98,7 @@ class INET_API Ospfv2RoutingTableEntry : public Ipv4Route
     
     
     /** Next hop address */
-       Ipv4Address getGateway() const;
+//       Ipv4Address getGateway() const;
 
        /** Next hop interface */
        InterfaceEntry *getInterface() const;
