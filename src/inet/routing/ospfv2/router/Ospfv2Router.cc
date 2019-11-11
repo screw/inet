@@ -741,7 +741,7 @@ void Router::rebuildRoutingTable()
       {
         std::cout<< "Neighbor: "  << (*it)->getNeighborID() << std::endl;
         //generate table for the neighbour router
-        std::vector<RoutingTableEntry *> nHTable;
+        std::vector<Ospfv2RoutingTableEntry *> nHTable;
         for (i = 0; i < areaCount; i++) {
           areas[i]->calculateShortestPathTree(nHTable, (*it)->getNeighborID());
           //        std::cout << (*it)->getNeighborID() << std::endl;
