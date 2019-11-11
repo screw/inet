@@ -46,7 +46,7 @@
 #include "inet/transportlayer/tcp/TcpReceiveQueue.h"
 #include "inet/networklayer/ipv4/Ipv4InterfaceData.h"
 
-#include "inet/routing/ospfv2/router/OspfRoutingTableEntry.h"
+#include "inet/routing/ospfv2/router/Ospfv2RoutingTableEntry.h"
 #include "inet/networklayer/common/EcnTag_m.h"
 
 #include "inet/routing/dmpr/DmprInterfaceData.h"
@@ -161,7 +161,7 @@ void Dmpr::handleMessage(cMessage *msg)
     // TODO - Generated method body
 }
 
-void Dmpr::updateIntervalCong(ospf::NextHop& nextHop, DmprInterfaceData* dmprData)
+void Dmpr::updateIntervalCong(ospfv2::NextHop& nextHop, DmprInterfaceData* dmprData)
 {
 
     // if the packetCount for previous period is 0 then don't change the current value -> use the current value as smootEce in the exponential smooth equation
@@ -218,7 +218,7 @@ void Dmpr::updateIntervalCong(ospf::NextHop& nextHop, DmprInterfaceData* dmprDat
 
 }
 
-void Dmpr::registerNextHop(int interfaceId, ospf::NextHop& nextHop, const ospf::RoutingTableEntry* route)
+void Dmpr::registerNextHop(int interfaceId, ospfv2::NextHop& nextHop, const ospfv2::Ospfv2RoutingTableEntry* route)
 {
   InterfaceEntry* ie = ift->getInterfaceById(interfaceId);
   nextHop.signalCongLevel = registerSignal(std::stringstream("DMPR Load"), std::stringstream("congLevel"),
@@ -237,7 +237,7 @@ void Dmpr::registerNextHop(int interfaceId, ospf::NextHop& nextHop, const ospf::
 void Dmpr::updateCongestionLevel(int ece, DmprInterfaceData* dmprData, Ipv4Address srcIp, int interfaceId)
 {
 
-  ospf::RoutingTableEntry* route = (ospf::RoutingTableEntry*)routingTable->findBestMatchingRoute(srcIp);//dmprData->table->findBestMatchingRoute(srcIp);
+  ospfv2::Ospfv2RoutingTableEntry* route = (ospfv2::Ospfv2RoutingTableEntry*)routingTable->findBestMatchingRoute(srcIp);//dmprData->table->findBestMatchingRoute(srcIp);
 
   if(route->getAdminDist() == Ipv4Route::dDirectlyConnected || route->getSourceType() == Ipv4Route::MANUAL){
     return;
@@ -248,13 +248,13 @@ void Dmpr::updateCongestionLevel(int ece, DmprInterfaceData* dmprData, Ipv4Addre
   if(!route->isDmprInit())
   {
     //This should never happen as the entry should have been created when the data was forwarded
-//    route = (ospf::RoutingTableEntry*)routingTable->findBestMatchingRoute(srcIp);
-//    dmprData->table->insertEntry(srcIp, (ospf::RoutingTableEntry*) route);
+//    route = (ospfv2::Ospfv2RoutingTableEntry*)routingTable->findBestMatchingRoute(srcIp);
+//    dmprData->table->insertEntry(srcIp, (ospfv2::Ospfv2RoutingTableEntry*) route);
 
     int count = route->getNextHopCount();
     for (int i = 0; i< count; i++)
     {
-      ospf::NextHop nextHop = route->getNextHop(i);
+      ospfv2::NextHop nextHop = route->getNextHop(i);
 //      if(nextHop.ifIndex == interfaceId)
 //      {
         registerNextHop(nextHop.ifIndex, nextHop, route);
@@ -264,11 +264,11 @@ void Dmpr::updateCongestionLevel(int ece, DmprInterfaceData* dmprData, Ipv4Addre
     route->setDmprInit(true);
   }
 
-  ospf::RoutingTableEntry *ospfEntry = dynamic_cast<ospf::RoutingTableEntry*>(route);
+  ospfv2::Ospfv2RoutingTableEntry *ospfEntry = dynamic_cast<ospfv2::Ospfv2RoutingTableEntry*>(route);
 
   for(int i = 0; i < ospfEntry->getNextHopCount(); i++)
   {
-    ospf::NextHop nextHop = ospfEntry->getNextHop(i);
+    ospfv2::NextHop nextHop = ospfEntry->getNextHop(i);
     if(nextHop.ifIndex == interfaceId) // && (nextHop.hopAddress == srcIp || nextHop.hopAddress == Ipv4Address::UNSPECIFIED_ADDRESS)
     {
       if (nextHop.lastChange + getInterval() < simTime())
@@ -286,7 +286,7 @@ void Dmpr::updateCongestionLevel(int ece, DmprInterfaceData* dmprData, Ipv4Addre
 
 }
 
-void Dmpr::updateNextHop(ospf::RoutingTableEntry* route)
+void Dmpr::updateNextHop(ospfv2::Ospfv2RoutingTableEntry* route)
 {
 
   if(!route->isHasDmpr() || !route->getDestination().isUnicast() || route->getNextHopCount() == 1){
@@ -295,9 +295,9 @@ void Dmpr::updateNextHop(ospf::RoutingTableEntry* route)
 
   //  double congestLevel = INT_MAX;
     Ipv4Address nextHopAddr = Ipv4Address::UNSPECIFIED_ADDRESS;
-    ospf::NextHop resNextHop, tmpNextHop;
+    ospfv2::NextHop resNextHop, tmpNextHop;
     resNextHop.hopAddress = Ipv4Address::UNSPECIFIED_ADDRESS;
-    std::vector<ospf::NextHop> resNextHops;
+    std::vector<ospfv2::NextHop> resNextHops;
 
     int count = route->getNextHopCount();
 
@@ -315,7 +315,7 @@ void Dmpr::updateNextHop(ospf::RoutingTableEntry* route)
 
     for (int i = 0; i < count; i++)
     {
-      ospf::NextHop nextHop = route->getNextHop(i);
+      ospfv2::NextHop nextHop = route->getNextHop(i);
       if (nextHop.lastChange + getInterval() < simTime())
       {
         update = true;
@@ -325,7 +325,7 @@ void Dmpr::updateNextHop(ospf::RoutingTableEntry* route)
     DmprInterfaceData *dmprData = nullptr;
     for (int i = 0; i < count; i++)
     {
-      ospf::NextHop nextHop = route->getNextHop(i);
+      ospfv2::NextHop nextHop = route->getNextHop(i);
 //      InterfaceEntry* ie = ift->getInterfaceById(nextHop.ifIndex);
 
 
@@ -574,8 +574,8 @@ INetfilter::IHook::Result Dmpr::datagramPreRoutingHook(Packet* datagram)
     //STRICT SOURCE ROUTING OPTION NOT FOUND
 
     Ipv4Route *route1 = routingTable->findBestMatchingRoute(destAddr);
-    ospf::RoutingTableEntry *route = nullptr;
-      if ((route = dynamic_cast<ospf::RoutingTableEntry*>(route1)))
+    ospfv2::Ospfv2RoutingTableEntry *route = nullptr;
+      if ((route = dynamic_cast<ospfv2::Ospfv2RoutingTableEntry*>(route1)))
       {
         updateNextHop(route);
         InterfaceEntry* ie = route->getInterface();
@@ -680,16 +680,16 @@ void Dmpr::updateFwdCongLevel(int ecn, DmprInterfaceData* dmprData, const Ipv4Ad
 {
   // get the best matching route from DMPR table
   //TODO what if route exists in DMPR table, but there is better route in the global Routing Table
-  ospf::RoutingTableEntry* dmprRoute = (ospf::RoutingTableEntry*)route; ;//dmprData->table->findBestMatchingRoute(destAddr);
+  ospfv2::Ospfv2RoutingTableEntry* dmprRoute = (ospfv2::Ospfv2RoutingTableEntry*)route; ;//dmprData->table->findBestMatchingRoute(destAddr);
   if (!dmprRoute->isDmprInit())
   {
     //if it isn't initialised
-//    dmprRoute = new ospf::RoutingTableEntry(*(const_cast<ospf::RoutingTableEntry*>((ospf::RoutingTableEntry*) (route))));
+//    dmprRoute = new ospfv2::Ospfv2RoutingTableEntry(*(const_cast<ospfv2::Ospfv2RoutingTableEntry*>((ospfv2::Ospfv2RoutingTableEntry*) (route))));
 //    dmprData->table->insertEntry(destAddr, dmprRoute);
     int count = dmprRoute->getNextHopCount();
     for (int i = 0; i < count; i++)
     {
-      ospf::NextHop nextHop = dmprRoute->getNextHop(i);
+      ospfv2::NextHop nextHop = dmprRoute->getNextHop(i);
       InterfaceEntry* ie = ift->getInterfaceById(nextHop.ifIndex);
 //      ie->dmprData()->table->insertEntry(destAddr, dmprRoute);
       registerNextHop(nextHop.ifIndex, nextHop, dmprRoute);
@@ -703,10 +703,10 @@ void Dmpr::updateFwdCongLevel(int ecn, DmprInterfaceData* dmprData, const Ipv4Ad
     dmprRoute->setDmprInit(true);
   }
 
-  ospf::RoutingTableEntry* ospfEntry = dynamic_cast<ospf::RoutingTableEntry*>(dmprRoute);
+  ospfv2::Ospfv2RoutingTableEntry* ospfEntry = dynamic_cast<ospfv2::Ospfv2RoutingTableEntry*>(dmprRoute);
   for (int i = 0; i < ospfEntry->getNextHopCount(); i++)
   {
-    ospf::NextHop nextHop = ospfEntry->getNextHop(i);
+    ospfv2::NextHop nextHop = ospfEntry->getNextHop(i);
     if (nextHop.ifIndex == interfaceId) // && (nextHop.hopAddress == srcIp || nextHop.hopAddress == Ipv4Address::UNSPECIFIED_ADDRESS)
     {
       if(nextHop.lastChange + getInterval() < simTime())
