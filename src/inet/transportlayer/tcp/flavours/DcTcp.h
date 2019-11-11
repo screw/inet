@@ -20,7 +20,7 @@
 
 #include "inet/common/INETDefs.h"
 
-#include "inet/transportlayer/tcp/flavours/TcpTahoeRenoFamily.h"
+#include "inet/transportlayer/tcp/flavours/TcpReno.h"
 
 namespace inet {
 
@@ -34,22 +34,8 @@ typedef TcpTahoeRenoFamilyStateVariables TcpRenoStateVariables;
 /**
  * Implements TCP Reno.
  */
-class INET_API DcTcp : public TcpTahoeRenoFamily
+class INET_API DcTcp : public TcpReno
 {
-  protected:
-    TcpRenoStateVariables *& state;    // alias to TCLAlgorithm's 'state'
-
-    /** Create and return a TcpRenoStateVariables object. */
-    virtual TcpStateVariables *createStateVariables() override
-    {
-        return new TcpRenoStateVariables();
-    }
-
-    /** Utility function to recalculate ssthresh */
-    virtual void recalculateSlowStartThreshold();
-
-    /** Redefine what should happen on retransmission */
-    virtual void processRexmitTimer(TcpEventCode& event) override;
 
   public:
     /** Ctor */
@@ -58,8 +44,7 @@ class INET_API DcTcp : public TcpTahoeRenoFamily
     /** Redefine what should happen when data got acked, to add congestion window management */
     virtual void receivedDataAck(uint32 firstSeqAcked) override;
 
-    /** Redefine what should happen when dupAck was received, to add congestion window management */
-    virtual void receivedDuplicateAck() override;
+
 };
 
 } // namespace tcp
