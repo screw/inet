@@ -367,8 +367,8 @@ network StabilityAsym
         routerCore3.ethg++ <--> NormalP <--> routerCore5.ethg++;
         routerCore4.ethg++ <--> NormalP <--> routerCore6.ethg++;
         // 3 - 3
-        routerCore1.ethg++ <--> NormalP <--> routerCore5.ethg++;
-        routerCore6.ethg++ <--> NormalP <--> routerCore2.ethg++;
+        routerCore1.ethg++ <--> FastP <--> routerCore5.ethg++;
+        routerCore6.ethg++ <--> FastP <--> routerCore2.ethg++;
         routerCore3.ethg++ <--> NormalP <--> routerCore4.ethg++;
 
         routerCore5.ethg++ <--> NormalP <--> routerCore7.ethg++;
