@@ -596,7 +596,8 @@ INetfilter::IHook::Result Dmpr::datagramPreRoutingHook(Packet* datagram)
 
         int ect = ipv4Header->getExplicitCongestionNotification();
 
-        if (((ect & IP_ECN_ECT_0) == IP_ECN_ECT_0) || ((ect & IP_ECN_ECT_1) == IP_ECN_ECT_1))
+//        if (((ect & IP_ECN_ECT_0) == IP_ECN_ECT_0) || ((ect & IP_ECN_ECT_1) == IP_ECN_ECT_1))
+        if(ect != IP_ECN_NOT_ECT)
         {
           int ecn = (ect == IP_ECN_CE) ? 1 : 0;
 
