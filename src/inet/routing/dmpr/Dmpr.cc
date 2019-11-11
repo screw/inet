@@ -216,7 +216,7 @@ void Dmpr::updateIntervalCong(ospfv2::NextHop& nextHop, DmprInterfaceData* dmprD
     emitSignal(nextHop.signalDownstreamCongLevel, nextHop.downstreamCongLevel);
 
     nextHop.lastChange = simTime();
-    nextHop.packetCount = 0;
+//    nextHop.packetCount = 0;
 
 }
 
@@ -346,7 +346,8 @@ void Dmpr::updateNextHop(ospfv2::Ospfv2RoutingTableEntry* route)
 
         }
 
-        packetCount[i] = nextHop.packetCount; //dmprData->getPacketCount();
+//        packetCount[i] = nextHop.packetCount; //dmprData->getPacketCount();
+        packetCount[i] = nextHop.fwdPacketCount;
         //          availableLoad[i] = 1 - dmprData->getCongestionLevel();
 //        availableLoad[i] = 1 - nextHop.downstreamCongLevel;// dmprData->getInUseCongLevel();
         availableLoad[i] = nextHop.downstreamCongLevel;// dmprData->getInUseCongLevel();
@@ -720,7 +721,7 @@ void Dmpr::updateFwdCongLevel(int ecn, DmprInterfaceData* dmprData, const Ipv4Ad
       nextHop.fwdPacketCount++;
       nextHop.fwdPacketSum += ecn;
 
-      nextHop.packetCount++;
+//      nextHop.packetCount++;
       ospfEntry->setNextHop(i, nextHop);
 //      ospfEntry->setLastNextHopIndex(i);
 
