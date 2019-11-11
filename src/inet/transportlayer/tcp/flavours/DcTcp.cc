@@ -36,7 +36,15 @@ void DcTcp::receivedDataAck(uint32 firstSeqAcked)
 {
       TcpTahoeRenoFamily::receivedDataAck(firstSeqAcked);
 
-
+      //how to calculate marks?
+      bool markingCalc = true; // true -> based on bytes; false based on number of acks
+      /*
+       * Bytes - works better with unequal segment size but not with packet reordering and 'delayed' Acks.
+       *         The 'delayed' Ack (presumably because the DATA packet was stuck in queue and marked)
+       *         acknowledges all outstanding data as "marked".
+       * Number - assumes equal segment size - counts the number of acks as each should represent the same
+       *          number of bytes.
+       */
       state->dctcp_bytesAcked += state->snd_una - firstSeqAcked;
 
       if(state->eceBit) {
@@ -69,8 +77,13 @@ void DcTcp::receivedDataAck(uint32 firstSeqAcked)
 
       if(now - state->dctcp_lastCalcTime >= state->minrtt) {
 
+        double ratio;
+        if(markingCalc){
         // state->dctcp_marked / state->dctcp_total;
-        double ratio = (state->dctcp_bytesMarked / state->dctcp_bytesAcked);
+         ratio = (state->dctcp_bytesMarked / state->dctcp_bytesAcked);
+        }else{
+          ratio = state->dctcp_marked / state->dctcp_total;
+        }
 
 
         conn->emit(loadSignal, ratio);
