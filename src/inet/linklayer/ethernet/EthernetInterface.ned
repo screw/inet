@@ -18,6 +18,7 @@
 
 package inet.linklayer.ethernet;
 
+import inet.common.IHook;
 import inet.queueing.contract.IPacketQueue;
 import inet.linklayer.contract.IEtherMac;
 import inet.linklayer.contract.IEthernetInterface;
@@ -40,6 +41,8 @@ module EthernetInterface extends InterfaceEntry like IEthernetInterface
                                             // a generated MAC address in init stage 0.
         bool csmacdSupport = default(false);  // by default CSMA/CD is turned off, so only point-to-point duplex links are supported.
         string fcsMode @enum("declared","computed") = default("declared");
+        int numOutputHooks = default(0);
+        int numInputHooks = default(0);
         @display("i=block/ifcard;bgl=2");
         *.interfaceTableModule = default(absPath(interfaceTableModule));
         *.fcsMode = fcsMode;
@@ -48,6 +51,12 @@ module EthernetInterface extends InterfaceEntry like IEthernetInterface
         output upperLayerOut;
         inout phys @labels(EtherFrame);
     submodules:
+        outputHook[numOutputHooks]: <default("Nop")> like IHook if numOutputHooks>0 {
+            @display("p=100,100;is=s");
+        }
+        inputHook[numInputHooks]: <default("Nop")> like IHook if numInputHooks>0 {
+            @display("p=400,100;is=s");
+        }
         ingressTC: <default("")> like ITrafficConditioner if typename != "" {
             @display("p=400,100");
         }
@@ -79,22 +88,84 @@ module EthernetInterface extends InterfaceEntry like IEthernetInterface
 
         mac.phys <--> { @display("m=s"); } <--> phys;
 
-        // no ingressTC
-        encap.upperLayerOut --> { @display("m=n"); } --> upperLayerOut if !exists(ingressTC);
+//        // no ingressTC
+//        encap.upperLayerOut --> { @display("m=n"); } --> upperLayerOut if !exists(ingressTC);
+//
+//        // there is ingressTC
+//        if exists(ingressTC) {
+//            encap.upperLayerOut --> ingressTC.in;
+//            ingressTC.out --> { @display("m=n"); } --> upperLayerOut;
+//        }
 
-        // there is ingressTC
-        if exists(ingressTC) {
+        // no input hooks, no ingressTC
+        encap.upperLayerOut --> { @display("m=n"); } --> upperLayerOut if numInputHooks == 0 && !exists(ingressTC);
+
+        // no input hooks, there is ingressTC
+        if numInputHooks == 0 && exists(ingressTC) {
             encap.upperLayerOut --> ingressTC.in;
             ingressTC.out --> { @display("m=n"); } --> upperLayerOut;
         }
+        
+        // there are input hooks
+        if numInputHooks > 0 {
+            inputHook[numInputHooks-1].out --> { @display("m=n"); } --> upperLayerOut;
+        }
+        for i=0..numInputHooks-2 {
+            inputHook[i].out --> inputHook[i+1].in;
+        }
 
-        // no egressTC
-        upperLayerIn --> { @display("m=n"); } --> encap.upperLayerIn if !exists(egressTC);
+        // there are input hooks, no ingressTC
+        if numInputHooks > 0 && !exists(ingressTC) {
+            encap.upperLayerOut --> inputHook[0].in;
+        }
+
+        // there are input hooks, there is ingressTC
+        if numInputHooks > 0 && exists(ingressTC) {
+            encap.upperLayerOut --> ingressTC.in;
+            ingressTC.out --> inputHook[0].in;
+        }
+
+//        // no egressTC
+//        upperLayerIn --> { @display("m=n"); } --> encap.upperLayerIn if !exists(egressTC);
+//
+//        // there is egressTC
+//        if exists(egressTC) {
+//            upperLayerIn --> { @display("m=n"); } --> egressTC.in;
+//            egressTC.out --> encap.upperLayerIn;
+//        }
+
+
+          // chain output hooks
+        for i=0..numOutputHooks-2 {
+            outputHook[i].out --> outputHook[i+1].in;
+        }
+
+        // no output hooks, no egressTC
+        upperLayerIn --> { @display("m=n"); } --> encap.upperLayerIn if numOutputHooks == 0 && !exists(egressTC);
+
+        // there are output hooks
+        if numOutputHooks > 0 {
+            upperLayerIn --> { @display("m=n"); } --> outputHook[0].in;
+        }
+
+        // no output hooks, there is egressTC
+        if numOutputHooks == 0 && exists(egressTC) {
+            upperLayerIn --> { @display("m=n"); } --> egressTC.in;
+        }
 
         // there is egressTC
         if exists(egressTC) {
-            upperLayerIn --> { @display("m=n"); } --> egressTC.in;
             egressTC.out --> encap.upperLayerIn;
+        }
+
+        // there are output hooks, no egressTC
+        if numOutputHooks > 0 && exists(egressTC) {
+            outputHook[numOutputHooks-1].out --> encap.upperLayerIn;
+        }
+
+        // there are output hooks, there is egressTC
+        if numOutputHooks > 0 && exists(egressTC) {
+            outputHook[numOutputHooks-1].out --> egressTC.in;
         }
 }
 
