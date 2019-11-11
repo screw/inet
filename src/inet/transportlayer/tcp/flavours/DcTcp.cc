@@ -1,6 +1,7 @@
 //
 // Copyright (C) 2004-2005 Andras Varga
 // Copyright (C) 2009 Thomas Reschka
+// Copyright (C) 2019 Marcel Marek
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public License
@@ -49,8 +50,7 @@ void DcTcp::recalculateSlowStartThreshold()
     // uint32 flight_size = state->snd_max - state->snd_una;
     state->ssthresh = std::max(flight_size / 2, 2 * state->snd_mss);
 
-    if (ssthreshVector)
-        ssthreshVector->record(state->ssthresh);
+    conn->emit(ssthreshSignal, state->ssthresh);
 }
 
 void DcTcp::processRexmitTimer(TcpEventCode& event)
@@ -77,8 +77,7 @@ void DcTcp::processRexmitTimer(TcpEventCode& event)
     recalculateSlowStartThreshold();
     state->snd_cwnd = state->snd_mss;
 
-    if (cwndVector)
-        cwndVector->record(state->snd_cwnd);
+    conn->emit(cwndSignal, state->snd_cwnd);
 
     EV_INFO << "Begin Slow Start: resetting cwnd to " << state->snd_cwnd
             << ", ssthresh=" << state->ssthresh << "\n";
@@ -107,8 +106,7 @@ void DcTcp::receivedDataAck(uint32 firstSeqAcked)
         EV_INFO << "Fast Recovery: setting cwnd to ssthresh=" << state->ssthresh << "\n";
         state->snd_cwnd = state->ssthresh;
 
-        if (cwndVector)
-            cwndVector->record(state->snd_cwnd);
+        conn->emit(cwndSignal, state->snd_cwnd);
     }
     else {
 
@@ -117,10 +115,12 @@ void DcTcp::receivedDataAck(uint32 firstSeqAcked)
       if (state->eceBit) {
         state->dctcp_marked++;
 //        if (simTime() >= conn->tcpMain->par("param3"))
-          markingProb->record(1);
+//          markingProbSignal->record(1);
+          conn->emit(markingProbSignal, 1);
       } else {
 //        if (simTime() >= conn->tcpMain->par("param3"))
-          markingProb->record(0);
+//          markingProbSignal->record(0);
+          conn->emit(markingProbSignal, 0);
       }
 
       simtime_t now = simTime();
@@ -133,7 +133,8 @@ void DcTcp::receivedDataAck(uint32 firstSeqAcked)
         double ratio = (state->dctcp_bytesMarked / state->dctcp_bytesAcked);
 
 //        if (loadVector && simTime() >= conn->tcpMain->par("param3"))
-          loadVector->record(ratio);
+//          loadSignal->record(ratio);
+          conn->emit(loadSignal, ratio);
 
 //        double d = conn->tcpMain->par("param2");
 //        if (d > 0) {
@@ -146,7 +147,8 @@ void DcTcp::receivedDataAck(uint32 firstSeqAcked)
         state->dctcp_alpha = (1 - state->dctcp_gamma) * state->dctcp_alpha + state->dctcp_gamma * ratio;
 
 //        if (calcLoadVector && simTime() >= conn->tcpMain->par("param3"))
-          calcLoadVector->record(state->dctcp_alpha);
+//          calcLoadSignal->record(state->dctcp_alpha);
+          conn->emit(calcLoadSignal, state->dctcp_alpha);
 
         if (state->dctcp_marked && state->dctcp_CWR == false)
           cut = true;
@@ -174,7 +176,8 @@ void DcTcp::receivedDataAck(uint32 firstSeqAcked)
         state->ssthresh = std::max(3 * flight_size / 4, 2 * state->snd_mss);
 
 //        if (cwndVector && simTime() >= conn->tcpMain->par("param3"))
-          cwndVector->record(state->snd_cwnd);
+//          cwndVector->record(state->snd_cwnd);
+          conn->emit(cwndSignal, state->snd_cwnd);
       } else {
 
         //
@@ -198,8 +201,7 @@ void DcTcp::receivedDataAck(uint32 firstSeqAcked)
             // int bytesAcked = state->snd_una - firstSeqAcked;
             // state->snd_cwnd += bytesAcked * state->snd_mss;
 
-            if (cwndVector)
-                cwndVector->record(state->snd_cwnd);
+            conn->emit(cwndSignal, state->snd_cwnd);
 
             EV_INFO << "cwnd=" << state->snd_cwnd << "\n";
         }
@@ -212,8 +214,7 @@ void DcTcp::receivedDataAck(uint32 firstSeqAcked)
 
             state->snd_cwnd += incr;
 
-            if (cwndVector)
-                cwndVector->record(state->snd_cwnd);
+            conn->emit(cwndSignal, state->snd_cwnd);
 
             //
             // Note: some implementations use extra additive constant mss / 8 here
@@ -321,8 +322,7 @@ void DcTcp::receivedDuplicateAck()
         // "set cwnd to ssthresh plus 3 * SMSS." (RFC 2581)
         state->snd_cwnd = state->ssthresh + 3 * state->snd_mss;    // 20051129 (1)
 
-        if (cwndVector)
-            cwndVector->record(state->snd_cwnd);
+        conn->emit(cwndSignal, state->snd_cwnd);
 
         EV_DETAIL << " set cwnd=" << state->snd_cwnd << ", ssthresh=" << state->ssthresh << "\n";
 
@@ -378,8 +378,7 @@ void DcTcp::receivedDuplicateAck()
         state->snd_cwnd += state->snd_mss;
         EV_DETAIL << "Reno on dupAcks > DUPTHRESH(=3): Fast Recovery: inflating cwnd by SMSS, new cwnd=" << state->snd_cwnd << "\n";
 
-        if (cwndVector)
-            cwndVector->record(state->snd_cwnd);
+        conn->emit(cwndSignal, state->snd_cwnd);
 
         // Note: Steps (A) - (C) of RFC 3517, page 7 ("Once a TCP is in the loss recovery phase the following procedure MUST be used for each arriving ACK")
         // should not be used here!
