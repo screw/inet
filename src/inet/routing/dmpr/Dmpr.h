@@ -51,13 +51,14 @@ class Dmpr : public cSimpleModule, public NetfilterBase::HookBase
     double alpha;
     double interval;
     double logPar;
+    double min_threshold;
 
     bool randomNextHopEnabled = true;
     bool lastNextHopIndexEnabled = false;
 
   protected:
-    virtual void initialize(int stage);
-    virtual void handleMessage(cMessage *msg);
+    virtual void initialize(int stage) override;
+    virtual void handleMessage(cMessage *msg) override;
     virtual int numInitStages() const override { return NUM_INIT_STAGES; }
 
     /* Netfilter hooks */
