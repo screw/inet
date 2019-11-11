@@ -493,7 +493,7 @@ INetfilter::IHook::Result Dmpr::datagramPreRoutingHook(Packet* datagram)
 
     int64_t payload = (ipv4Header->getTotalLengthField() - ipv4Header->getHeaderLength() - tcpHeader->getHeaderLength()).get();
 
-    if (tcpHeader->getAckBit() && !(payload > 0))
+    if (tcpHeader->getAckBit() && !(payload > 0) && !tcpHeader->getSynBit())
     {
       //ACKnowledgement
       int interfaceId = datagram->getTag<InterfaceInd>()->getInterfaceId();
