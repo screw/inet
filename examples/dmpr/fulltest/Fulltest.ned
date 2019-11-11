@@ -16,11 +16,11 @@ import ned.DatarateChannel;
 
 //import inet.linklayer.queue.REDDropper;
 
-import inet.common.queue.IOutputQueue;
+//import inet.common.queue.IOutputQueue;
 //import inet.linklayer.queue.DropTailQueue;
-import inet.common.queue.FifoQueue;
+//import inet.common.queue.FifoQueue;
 //import inet.common.queue.RedDropper;
-import inet.common.queue.RedMarker;
+//import inet.common.queue.RedMarker;
 //import inet.linklayer.queue.REDDropperNUMDual;
 //import inet.linklayer.queue.REDDropperNUMDual2;
 
@@ -29,20 +29,20 @@ import inet.visualizer.integrated.IntegratedCanvasVisualizer;
 
 
 
-module RedMarkerQueue like IOutputQueue
-{
-    gates:
-        input in;
-        output out;
-
-    submodules:
-        red: RedMarker;
-        fifo: FifoQueue;
-    connections:
-        in --> red.in[0];
-        red.out[0] --> fifo.in++;
-        fifo.out --> out;
-}
+//module RedMarkerQueue like IOutputQueue
+//{
+//    gates:
+//        input in;
+//        output out;
+//
+//    submodules:
+//        red: RedMarker;
+//        fifo: FifoQueue;
+//    connections:
+//        in --> red.in[0];
+//        red.out[0] --> fifo.in++;
+//        fifo.out --> out;
+//}
 
 
 channel NormalP extends DatarateChannel
