@@ -94,6 +94,7 @@ void Dmpr::initialize(int stage)
     alpha = par("alpha").doubleValue();
     interval = par("interval").doubleValue();
     logPar = par("logPar").doubleValue();
+    min_threshold = par("min_threshold").doubleValue();
 
     randomNextHopEnabled = par("randomNextHopEnabled").boolValue();
     lastNextHopIndexEnabled = par("lastNextHopIndexEnabled").boolValue();
@@ -163,7 +164,7 @@ void Dmpr::handleMessage(cMessage *msg)
 
 void Dmpr::updateIntervalCong(ospfv2::NextHop& nextHop, DmprInterfaceData* dmprData)
 {
-
+//    double min_threshold = 0.000001; // 0.01;
     // if the packetCount for previous period is 0 then don't change the current value -> use the current value as smootEce in the exponential smooth equation
     double smoothEce = nextHop.ackPacketCount == 0 ? nextHop.congLevel : (double) (nextHop.ackPacketSum) / (double) (nextHop.ackPacketCount);
 //    smoothEce = (-std::log(1 - smoothEce) / std::log(logPar));
@@ -177,8 +178,8 @@ void Dmpr::updateIntervalCong(ospfv2::NextHop& nextHop, DmprInterfaceData* dmprD
     nextHop.ackPacketSum = 0;
     nextHop.congLevel = (1 - alpha) * nextHop.congLevel + smoothEce * getAlpha();
 //    nextHop.congLevel = nextHop.congLevel + alpha * (smoothEce - 0.09);
-    if(nextHop.congLevel < 0.0){
-      nextHop.congLevel = 0.0;
+    if(nextHop.congLevel < min_threshold){
+      nextHop.congLevel = min_threshold;
     }else if (nextHop.congLevel > 1.0){
       nextHop.congLevel = 1.0;
     }
@@ -211,6 +212,9 @@ void Dmpr::updateIntervalCong(ospfv2::NextHop& nextHop, DmprInterfaceData* dmprD
 
 //    nextHop.downstreamCongLevel = (nextHop.congLevel - nextHop.fwdCongLevel) < 0.001 ? 0 : (nextHop.congLevel - nextHop.fwdCongLevel); //dmprData->setInUseCongLevel(dmprData->getCongestionLevel());
     nextHop.downstreamCongLevel = (nextHop.congLevel - nextHop.fwdCongLevel);
+    if(nextHop.downstreamCongLevel < min_threshold){
+      nextHop.downstreamCongLevel = min_threshold;
+    }
     emitSignal(nextHop.signalDownstreamCongLevel, nextHop.downstreamCongLevel);
 
     nextHop.lastChange = simTime();
