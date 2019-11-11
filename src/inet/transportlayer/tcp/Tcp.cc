@@ -26,7 +26,7 @@
 #include "inet/common/packet/Message.h"
 #include "inet/networklayer/common/IpProtocolId_m.h"
 #include "inet/networklayer/common/L3AddressTag_m.h"
-//#include "inet/networklayer/common/EcnTag_m.h"
+#include "inet/networklayer/common/EcnTag_m.h"
 
 #ifdef WITH_IPv4
 #include "inet/networklayer/ipv4/IcmpHeader_m.h"
@@ -158,10 +158,15 @@ void Tcp::handleLowerPacket(Packet *packet)
         L3Address srcAddr, destAddr;
         srcAddr = packet->getTag<L3AddressInd>()->getSrcAddress();
         destAddr = packet->getTag<L3AddressInd>()->getDestAddress();
+        auto ecnTag = packet->findTag<EcnInd>();
 
         // process segment
         TcpConnection *conn = findConnForSegment(tcpHeader, srcAddr, destAddr);
         if (conn) {
+            if (ecnTag != nullptr && ecnTag->getExplicitCongestionNotification() == IP_ECN_CE){
+              conn->getState()->ecnCe = true;
+            }
+            conn->getState()->eceBit = tcpHeader->getEceBit();
             bool ret = conn->processTCPSegment(packet, tcpHeader, srcAddr, destAddr);
             if (!ret)
                 removeConnection(conn);
