@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2005 Andras Varga
+// Copyright (C) 2019 Marcel Marek
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public License
@@ -107,16 +107,18 @@ void TcpReorder::handleMessage(cMessage *msg)
               auto i = tcpConnMap.find(key);
               if (i != tcpConnMap.end()){
                 ConnInfo &connInfo = i->second;
-
+//                std::cout<<"connInfo.nextSeqNo: " << connInfo.nextSeqNo;
                 if(seqNo == connInfo.nextSeqNo){
                   //in-order
                   connInfo.nextSeqNo = seqNo + payloadLen;
                   send(msg, "out");
 
                   while(!connInfo.seqnoPacketmap.empty()){
+//                    std::cout<<"First seqNum: " << connInfo.seqnoPacketmap.begin()->first << std::endl;
                     if(connInfo.seqnoPacketmap.begin()->first == connInfo.nextSeqNo){
                       connInfo.nextSeqNo = connInfo.seqnoPacketmap.begin()->first + connInfo.seqnoPacketmap.begin()->second.first;
-//
+
+//                      std::cout<<"Sending out seqNum: " << connInfo.seqnoPacketmap.begin()->first << std::endl;
                       send(connInfo.seqnoPacketmap.begin()->second.second, "out");
                       connInfo.seqnoPacketmap.erase(connInfo.seqnoPacketmap.begin());
                     }else{
@@ -126,7 +128,18 @@ void TcpReorder::handleMessage(cMessage *msg)
 
                   return;
                 }else{
+                  if(seqNo < connInfo.nextSeqNo){
+//                    std::cout<<"Adding packet with seqNo smaller than expected: " << seqNo << std::endl;
+                    delete packet;
+                    return;
+                  }
+                  if(connInfo.seqnoPacketmap.find(seqNo) != connInfo.seqnoPacketmap.end()){
+//                    std::cout<<"This SeqNo already exists: " << seqNo << std::endl;
+                    delete packet;
+                    return;
+                  }
                   connInfo.seqnoPacketmap[seqNo] = std::make_pair(payloadLen, packet);
+//                  std::cout<<"Adding packet with seqNo: " << seqNo << std::endl;
                   return;
 
                 }
