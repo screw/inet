@@ -42,7 +42,8 @@ Ospfv2RoutingTableEntry::Ospfv2RoutingTableEntry(const Ospfv2RoutingTableEntry& 
     cost(entry.cost),
     type2Cost(entry.type2Cost),
     linkStateOrigin(entry.linkStateOrigin),
-    nextHops(entry.nextHops)
+    nextHops(entry.nextHops),
+    hasDmpr(entry.hasDmpr)
 {
     setDestination(entry.getDestination());
     setNetmask(entry.getNetmask());
@@ -212,6 +213,16 @@ bool Ospfv2RoutingTableEntry::isHasDmpr() const
 void Ospfv2RoutingTableEntry::setHasDmpr(bool hasDmpr)
 {
   this->hasDmpr = hasDmpr;
+}
+
+bool Ospfv2RoutingTableEntry::isDmprInit() const
+{
+  return dmprInit;
+}
+
+void Ospfv2RoutingTableEntry::setDmprInit(bool dmprInit)
+{
+  this->dmprInit = dmprInit;
 }
 
 } // namespace ospfv2
