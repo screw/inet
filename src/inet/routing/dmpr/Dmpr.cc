@@ -49,6 +49,8 @@
 #include "inet/routing/ospfv2/router/Ospfv2RoutingTableEntry.h"
 #include "inet/networklayer/common/EcnTag_m.h"
 
+#include "inet/routing/dmpr/DmprInterfaceData.h"
+
 
 
 namespace inet {
@@ -106,9 +108,10 @@ void Dmpr::initialize(int stage)
       ie = ift->getInterface(i);
 
 
-      DmprInterfaceData *d = new DmprInterfaceData(this);
+//       = new DmprInterfaceData(this);
 
-      ie->setDmprInterfaceData(d);
+       DmprInterfaceData *d = ie->addProtocolData<DmprInterfaceData>();
+
 
 
 
@@ -495,7 +498,7 @@ INetfilter::IHook::Result Dmpr::datagramPreRoutingHook(Packet* datagram)
     {
       //ACKnowledgement
       int interfaceId = datagram->getTag<InterfaceInd>()->getInterfaceId();
-      DmprInterfaceData *dmprData =  ift->getInterfaceById(interfaceId)->dmprData();
+      DmprInterfaceData *dmprData =  ift->getInterfaceById(interfaceId)->getProtocolData<DmprInterfaceData>();
 
       int ece = tcpHeader->getEceBit();
 
@@ -530,7 +533,7 @@ INetfilter::IHook::Result Dmpr::datagramPreRoutingHook(Packet* datagram)
       {
         //ACKnowledgement
         int interfaceId = datagram->getTag<InterfaceInd>()->getInterfaceId();
-        DmprInterfaceData *dmprData =  ift->getInterfaceById(interfaceId)->dmprData();
+        DmprInterfaceData *dmprData =  ift->getInterfaceById(interfaceId)->getProtocolData<DmprInterfaceData>();
 
         int ece = udpEcnAppHeader->getEceBit();
 
@@ -583,7 +586,7 @@ INetfilter::IHook::Result Dmpr::datagramPreRoutingHook(Packet* datagram)
 
         int interfaceId = ie->getInterfaceId();
 
-        DmprInterfaceData* dmprData = ie->dmprData();
+        DmprInterfaceData* dmprData = ie->getProtocolData<DmprInterfaceData>();
     //    dmprData->incPacketCount();
 
         datagram->addTagIfAbsent<InterfaceReq>()->setInterfaceId(interfaceId);
@@ -655,7 +658,7 @@ INetfilter::IHook::Result Dmpr::datagramPreRoutingHook(Packet* datagram)
           TlvOptionBase& option = ipv4HeaderForUpdate->getOptionForUpdate(i - 1);
           Ipv4OptionRecordRoute& recordRoute = dynamic_cast<Ipv4OptionRecordRoute&>(option);
 
-          Ipv4Address address = destIE->ipv4Data()->getIPAddress();
+          Ipv4Address address = destIE->getProtocolData<Ipv4InterfaceData>()->getIPAddress();
 //          std::cout<<address<<std::endl;
           recordRoute.insertRecordAddress(address);
           recordRoute.setNextAddressIdx(recordRoute.getRecordAddressArraySize() - 1);
@@ -767,7 +770,7 @@ INetfilter::IHook::Result Dmpr::datagramForwardHook(Packet* datagram)
 
     int interfaceId = ie->getInterfaceId();
 
-    DmprInterfaceData* dmprData = ie->dmprData();
+    DmprInterfaceData* dmprData = ie->getProtocolData<DmprInterfaceData>();
 //    dmprData->incPacketCount();
 
     datagram->addTagIfAbsent<InterfaceReq>()->setInterfaceId(interfaceId);
@@ -924,7 +927,7 @@ INetfilter::IHook::Result Dmpr::datagramPostRoutingHook(Packet* datagram)
         TlvOptionBase& option = ipv4HeaderForUpdate->getOptionForUpdate(i - 1);
         Ipv4OptionRecordRoute& recordRoute = dynamic_cast<Ipv4OptionRecordRoute&>(option);
 
-        recordRoute.insertRecordAddress(destIE->ipv4Data()->getIPAddress());
+        recordRoute.insertRecordAddress(destIE->getProtocolData<Ipv4InterfaceData>()->getIPAddress());
         recordRoute.setNextAddressIdx(recordRoute.getRecordAddressArraySize() - 1);
 
         insertNetworkProtocolHeader(datagram, Protocol::ipv4, ipv4HeaderForUpdate);

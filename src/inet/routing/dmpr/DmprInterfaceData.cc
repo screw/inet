@@ -16,7 +16,13 @@
 #include "inet/routing/dmpr/DmprInterfaceData.h"
 #include "inet/networklayer/ipv4/Ipv4RoutingTable.h"
 
+
 namespace inet {
+DmprInterfaceData::DmprInterfaceData()
+{
+
+}
+
 
 DmprInterfaceData::DmprInterfaceData(Dmpr* dmpr):
 dmpr(dmpr)

@@ -46,10 +46,11 @@ class INET_API DmprInterfaceData : public InterfaceProtocolData
 
 
   public:
+    DmprInterfaceData();
     DmprInterfaceData(Dmpr* dmpr);
     virtual ~DmprInterfaceData();
     virtual std::string str() const override;
-    virtual std::string detailedInfo() const;
+    virtual std::string detailedInfo() const OMNETPP5_CODE(override);
 //    double getCongestionLevel() const;
 //    void setCongestionLevel(double congestionLevel);
 //    int getPacketCount() const;
@@ -65,6 +66,8 @@ class INET_API DmprInterfaceData : public InterfaceProtocolData
 //    void setSignalInUseCongLevel(simsignal_t signalInUseCongLevel);
 //    double getFwdCongLevel() const;
 //    void setFwdCongLevel(double fwdCongLevel);
+  protected:
+    void changed1(int fieldId) { changed(interfaceDmprConfigChangedSignal, fieldId); }
 };
 
 } /* namespace inet */
