@@ -34,7 +34,7 @@ DcTcp::DcTcp() : TcpReno()
 
 void DcTcp::receivedDataAck(uint32 firstSeqAcked)
 {
-    TcpTahoeRenoFamily::receivedDataAck(firstSeqAcked);
+      TcpTahoeRenoFamily::receivedDataAck(firstSeqAcked);
 
 
       state->dctcp_bytesAcked += state->snd_una - firstSeqAcked;
@@ -59,12 +59,8 @@ void DcTcp::receivedDataAck(uint32 firstSeqAcked)
 
       if (state->eceBit) {
         state->dctcp_marked++;
-//        if (simTime() >= conn->tcpMain->par("param3"))
-//          markingProbSignal->record(1);
           conn->emit(markingProbSignal, 1);
       } else {
-//        if (simTime() >= conn->tcpMain->par("param3"))
-//          markingProbSignal->record(0);
           conn->emit(markingProbSignal, 0);
       }
 
@@ -72,28 +68,18 @@ void DcTcp::receivedDataAck(uint32 firstSeqAcked)
       bool cut = false;
 
       if(now - state->dctcp_lastCalcTime >= state->minrtt) {
-//      if (firstSeqAcked >= state->dctcp_windEnd) {
-        //            if(now - state->dctcp_lastCalcTime >= state->srtt) {
-        //            state->dctcp_alpha = (1 - state->dctcp_gamma) * state->dctcp_alpha + state->dctcp_gamma * (state->dctcp_marked / state->dctcp_total);
+
+        // state->dctcp_marked / state->dctcp_total;
         double ratio = (state->dctcp_bytesMarked / state->dctcp_bytesAcked);
 
-//        if (loadVector && simTime() >= conn->tcpMain->par("param3"))
-//          loadSignal->record(ratio);
-          conn->emit(loadSignal, ratio);
 
-//        double d = conn->tcpMain->par("param2");
-//        if (d > 0) {
-//          ratio = (-std::log(1 - ratio) / std::log(d));
-//
-//          if (ratio > 1)
-//            ratio = 1;
-//        }
+        conn->emit(loadSignal, ratio);
+
+
 
         state->dctcp_alpha = (1 - state->dctcp_gamma) * state->dctcp_alpha + state->dctcp_gamma * ratio;
 
-//        if (calcLoadVector && simTime() >= conn->tcpMain->par("param3"))
-//          calcLoadSignal->record(state->dctcp_alpha);
-          conn->emit(calcLoadSignal, state->dctcp_alpha);
+        conn->emit(calcLoadSignal, state->dctcp_alpha);
 
         if (state->dctcp_marked && state->dctcp_CWR == false)
           cut = true;
@@ -113,15 +99,11 @@ void DcTcp::receivedDataAck(uint32 firstSeqAcked)
         state->dctcp_CWR = true;
 
         state->snd_cwnd = state->snd_cwnd * (1 - state->dctcp_alpha / 2);
-        //            uint32 rCwnd = state->snd_cwnd / state->snd_mss;
-        //            if(rCwnd * state->snd_mss < state->snd_cwnd)
-        //                state->snd_cwnd = (rCwnd + 1) * state->snd_mss;
 
         uint32 flight_size = std::min(state->snd_cwnd, state->snd_wnd); // FIXME TODO - Does this formula computes the amount of outstanding data?
         state->ssthresh = std::max(3 * flight_size / 4, 2 * state->snd_mss);
 
-//        if (cwndVector && simTime() >= conn->tcpMain->par("param3"))
-//          cwndVector->record(state->snd_cwnd);
+
           conn->emit(cwndSignal, state->snd_cwnd);
       } else {
 
