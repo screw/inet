@@ -39,10 +39,12 @@
 #include "inet/transportlayer/common/TransportPseudoHeader_m.h"
 #include "inet/transportlayer/contract/tcp/TcpCommand_m.h"
 #include "inet/transportlayer/tcp/Tcp.h"
+
 #include "inet/transportlayer/tcp/TcpConnection.h"
 #include "inet/transportlayer/tcp/TcpReceiveQueue.h"
 #include "inet/transportlayer/tcp/TcpSendQueue.h"
 #include "inet/transportlayer/tcp_common/TcpHeader.h"
+#include "inet/transportlayer/tcp/flavours/TcpBaseAlg.h"
 
 namespace inet {
 namespace tcp {
@@ -68,6 +70,7 @@ void Tcp::initialize(int stage)
 
         msl = par("msl");
         useDataNotification = par("useDataNotification");
+        coupledIncrease = par("coupledIncrease");
 
         WATCH(lastEphemeralPort);
         WATCH_PTRMAP(tcpConnMap);
@@ -113,11 +116,15 @@ void Tcp::handleUpperCommand(cMessage *msg)
         // the OPEN command in TcpConnection's processAppCommand().
         tcpAppConnMap[socketId] = conn;
 
+
         EV_INFO << "Tcp connection created for " << msg << "\n";
     }
 
-    if (!conn->processAppCommand(msg))
+    if (!conn->processAppCommand(msg)){
         removeConnection(conn);
+    }else{
+//      addCoupledConnection(conn->remoteAddr, conn);
+    }
 }
 
 void Tcp::sendFromConn(cMessage *msg, const char *gatename, int gateindex)
@@ -136,6 +143,48 @@ TcpConnection *Tcp::findConnForApp(int socketId)
 {
     auto i = tcpAppConnMap.find(socketId);
     return i == tcpAppConnMap.end() ? nullptr : i->second;
+}
+
+void Tcp::updateCoupledCwnd(const L3Address& srcAddr)
+{
+  //update all coupled connections
+  // srcAddress on incomming packet is 'dest' from our point of view
+  auto it = tcpCoupledMap.find(srcAddr);
+  if (it != tcpCoupledMap.end())
+  {
+    uint64 cwnd_total = 0;
+    double max_cwnd_rtt = 0;
+    double sum_max_cwnd_rtt = 0;
+    for (auto itVec = (*it).second.begin(); itVec != (*it).second.end(); itVec++)
+    {
+      TcpBaseAlgStateVariables* state;
+      if ((state = dynamic_cast<TcpBaseAlgStateVariables*>((*itVec)->getState())))
+      {
+        int64_t srtt = state->srtt.inUnit(SIMTIME_MS);
+        cwnd_total += state->snd_cwnd;
+        if (srtt <= 0)
+        {
+          continue;
+        }
+        if (max_cwnd_rtt < (state->snd_cwnd / (srtt * srtt)))
+        {
+          max_cwnd_rtt = state->snd_cwnd / (srtt * srtt);
+        }
+        sum_max_cwnd_rtt += (state->snd_cwnd / srtt) * (state->snd_cwnd / srtt);
+      }
+    }
+    for (auto itVec = (*it).second.begin(); itVec != (*it).second.end(); itVec++)
+    {
+      TcpBaseAlgStateVariables* state;
+      if ((state = dynamic_cast<TcpBaseAlgStateVariables*>((*itVec)->getState())))
+      {
+//        TcpBaseAlg* conn = dynamic_cast<TcpBaseAlg*>((*itVec)->getTcpAlgorithm());
+        state->snd_cwnd_total = cwnd_total;
+//        (*itVec)->emit(conn->, cwnd_total);
+        state->alpha = cwnd_total * (max_cwnd_rtt / sum_max_cwnd_rtt);
+      }
+    }
+  }
 }
 
 void Tcp::handleLowerPacket(Packet *packet)
@@ -168,8 +217,13 @@ void Tcp::handleLowerPacket(Packet *packet)
             }
             conn->getState()->eceBit = tcpHeader->getEceBit();
             bool ret = conn->processTCPSegment(packet, tcpHeader, srcAddr, destAddr);
-            if (!ret)
+            if (!ret){
                 removeConnection(conn);
+            }else{
+              //update all coupled connections
+              // srcAddress on incomming packet is 'dest' from our point of view
+//        updateCoupledCwnd(srcAddr);
+            }
         }
         else {
             segmentArrivalWhileClosed(packet, tcpHeader, srcAddr, destAddr);
@@ -290,6 +344,22 @@ ushort Tcp::getEphemeralPort()
     return lastEphemeralPort;
 }
 
+void Tcp::addCoupledConnection(L3Address remoteAddr, TcpConnection* newConn)
+{
+  // add newConn to coupled map
+  auto it = tcpCoupledMap.find(remoteAddr);
+  if (it != tcpCoupledMap.end())
+  {
+    (*it).second.push_back(newConn);
+  }
+  else
+  {
+    std::vector<TcpConnection*> connVec;
+    connVec.push_back(newConn);
+    tcpCoupledMap[remoteAddr] = connVec;
+  }
+}
+
 void Tcp::addForkedConnection(TcpConnection *conn, TcpConnection *newConn, L3Address localAddr, L3Address remoteAddr, int localPort, int remotePort)
 {
     // update conn's socket pair, and register newConn
@@ -297,6 +367,11 @@ void Tcp::addForkedConnection(TcpConnection *conn, TcpConnection *newConn, L3Add
 
     // newConn will live on with the new socketId
     tcpAppConnMap[newConn->socketId] = newConn;
+
+    if(coupledIncrease){
+      // add newConn to coupled map
+      addCoupledConnection(remoteAddr, newConn);
+    }
 }
 
 void Tcp::addSockPair(TcpConnection *conn, L3Address localAddr, L3Address remoteAddr, int localPort, int remotePort)

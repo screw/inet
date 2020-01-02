@@ -61,7 +61,9 @@ void TcpConnection::process_OPEN_ACTIVE(TcpEventCode& event, TcpCommand *tcpComm
             EV_DETAIL << "OPEN: " << localAddr << ":" << localPort << " --> " << remoteAddr << ":" << remotePort << "\n";
 
             tcpMain->addSockPair(this, localAddr, remoteAddr, localPort, remotePort);
-
+            if(tcpMain->coupledIncrease){
+                tcpMain->addCoupledConnection(remoteAddr, this);
+            }
             // send initial SYN
             selectInitialSeqNum();
             sendSyn();
