@@ -52,6 +52,19 @@ class INET_API TcpBaseAlgStateVariables : public TcpStateVariables
     uint32 snd_cwnd;    ///< congestion window
     //@}
 
+    /// total congestion window for coupled connections RFC 6536
+    //@{
+    uint32 snd_cwnd_total;    ///< congestion window
+    //@}
+
+    /// alpha RFC 6536
+    ///                        MAX (cwnd_i/rtt_i^2)
+    /// alpha = cwnd_total * -------------------------           (2)
+    ///                       (SUM (cwnd_i/rtt_i))^2
+    //@{
+    double alpha;    ///< alpha of the coupled congestion increase
+    //@}
+
     /// round-trip time measurements
     //@{
     uint32 rtseq;    ///< starting sequence number of timed data
@@ -112,6 +125,7 @@ class INET_API TcpBaseAlg : public TcpAlgorithm
     cMessage *keepAliveTimer;
 
     static simsignal_t cwndSignal;    // will record changes to snd_cwnd
+    static simsignal_t cwndTotalSignal;    // will record changes to snd_cwnd_total
     static simsignal_t ssthreshSignal;    // will record changes to ssthresh
     static simsignal_t rttSignal;    // will record measured RTT
     static simsignal_t srttSignal;    // will record smoothed RTT

@@ -1257,6 +1257,10 @@ bool TcpConnection::processAckInEstabEtc(Packet *packet, const Ptr<const TcpHead
 
         return false;    // means "drop"
     }
+    if(tcpMain->coupledIncrease){
+      //update all coupled connections
+      tcpMain->updateCoupledCwnd(remoteAddr);
+    }
 
     return true;
 }
