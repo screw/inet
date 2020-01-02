@@ -211,6 +211,7 @@ simple Tcp like ITcp
         bool ecnEnabled = default(false);
         int dupthresh = default(3); //nobody ever needs to change this, except this one time
         int ssthresh = default(0xFFFFFFFF);
+        bool coupledIncrease = default(false); // RFC 6356 Coupled Congestion Control for Multipath Transport Protocols (Intended for MPTCP) - If activated, TCP connections to the same destination (IP address) will use coupled increase during Congestion Avoidance phase
         double stopOperationExtraTime @unit(s) = default(0s);    // extra time after lifecycle stop operation finished
         double stopOperationTimeout @unit(s) = default(2s);    // timeout value for lifecycle stop operation
         @display("i=block/wheelbarrow");
