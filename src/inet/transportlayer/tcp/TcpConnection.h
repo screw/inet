@@ -273,6 +273,7 @@ class INET_API TcpStateVariables : public cObject
     bool ecnCe; // segment being processed has ECN field in IP set to IP_ECN_CE (congestion experienced)
     bool eceBit; // segment being processed (Ack) has eceBit bit set - ECN-echo (RFC 3168)
     int DUPTHRESH;
+    bool coupledIncrease; // RFC6356 -like increase. The RFC is intended for MPTCP.
 
 //    bool ecn;
 //    bool ece;
