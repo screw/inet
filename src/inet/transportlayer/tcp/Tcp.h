@@ -127,10 +127,12 @@ class INET_API Tcp : public TransportProtocolBase
   protected:
     typedef std::map<int /*socketId*/, TcpConnection *> TcpAppConnMap;
     typedef std::map<SockPair, TcpConnection *> TcpConnMap;
+    typedef std::map<L3Address, std::vector<TcpConnection *>> TcpCoupledMap;
     TcpCrcInsertion crcInsertion;
 
     TcpAppConnMap tcpAppConnMap;
     TcpConnMap tcpConnMap;
+    TcpCoupledMap tcpCoupledMap; //Could/Should only exist if MPTCP-like coupled increase is active
 
     ushort lastEphemeralPort = static_cast<ushort>(-1);
     std::multiset<ushort> usedEphemeralPorts;
@@ -149,6 +151,7 @@ class INET_API Tcp : public TransportProtocolBase
     bool useDataNotification = false;
     CrcMode crcMode = CRC_MODE_UNDEFINED;
     int msl;
+    bool coupledIncrease; //RFC 6356
 
   public:
     Tcp() {}
@@ -211,6 +214,13 @@ class INET_API Tcp : public TransportProtocolBase
 
     bool checkCrc(Packet *pk);
     int getMsl() { return msl; }
+
+    /**
+     * When Coupled congestion control (RFC 6356) is used, connections are grouped
+     * by remoteAddress.
+     */
+    void addCoupledConnection(L3Address remoteAddr, TcpConnection* newConn);
+    void updateCoupledCwnd(const L3Address& srcAddr);
 };
 
 } // namespace tcp
