@@ -43,6 +43,7 @@ simple TcpConnection {
 
         //TcpAlgorithm signals:
         @signal[cwnd];    // will record changes to snd_cwnd
+        @signal[cwndTotal]; //will record changes to total of snd_cwnd_total
         @signal[ssthresh];    // will record changes to ssthresh
         @signal[rtt];    // will record measured RTT
         @signal[srtt];    // will record smoothed RTT
@@ -74,6 +75,7 @@ simple TcpConnection {
         @statistic[tcpRcvQueueDrops](record=vector; interpolationmode=sample-hold);    // number of drops in tcp receive queue
 
         @statistic[cwnd](record=vector; interpolationmode=sample-hold);    // will record changes to snd_cwnd
+        @statistic[cwndTotal](record=vector; interpolationmode=sample-hold);    // will record changes to snd_cwnd_total
         @statistic[ssthresh](record=vector; interpolationmode=sample-hold);    // will record changes to ssthresh
         @statistic[rtt](record=vector; interpolationmode=sample-hold);    // will record measured RTT
         @statistic[srtt](record=vector; interpolationmode=sample-hold);    // will record smoothed RTT
