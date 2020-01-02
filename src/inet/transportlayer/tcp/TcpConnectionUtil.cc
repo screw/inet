@@ -437,6 +437,7 @@ void TcpConnection::initConnection(TcpOpenCommand *openCmd)
 void TcpConnection::configureStateVariables()
 {
     state->DUPTHRESH = tcpMain->par("dupthresh");
+    state->coupledIncrease = tcpMain->coupledIncrease;
     long advertisedWindowPar = tcpMain->par("advertisedWindow");
     state->ws_support = tcpMain->par("windowScalingSupport");    // if set, this means that current host supports WS (RFC 1323)
     state->ws_manual_scale = tcpMain->par("windowScalingFactor"); // scaling factor (set manually) to help for Tcp validation
