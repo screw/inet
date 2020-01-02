@@ -56,6 +56,7 @@ TcpBaseAlgStateVariables::TcpBaseAlgStateVariables()
     persist_timeout = 5.0;
 
     snd_cwnd = 0;    // will be set to SMSS when connection is established
+    snd_cwnd_total = 0; //
 
     rtseq = 0;
     rtseq_sendtime = 0;
@@ -97,6 +98,7 @@ std::string TcpBaseAlgStateVariables::detailedInfo() const
 
 
 simsignal_t TcpBaseAlg::cwndSignal = cComponent::registerSignal("cwnd");    // will record changes to snd_cwnd
+simsignal_t TcpBaseAlg::cwndTotalSignal = cComponent::registerSignal("cwndTotal");    // will record changes to snd_cwnd_total
 simsignal_t TcpBaseAlg::ssthreshSignal = cComponent::registerSignal("ssthresh");    // will record changes to ssthresh
 simsignal_t TcpBaseAlg::rttSignal = cComponent::registerSignal("rtt");    // will record measured RTT
 simsignal_t TcpBaseAlg::srttSignal = cComponent::registerSignal("srtt");    // will record smoothed RTT

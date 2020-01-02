@@ -45,6 +45,8 @@ void DcTcp::receivedDataAck(uint32 firstSeqAcked)
        * Number - assumes equal segment size - counts the number of acks as each should represent the same
        *          number of bytes.
        */
+
+      uint32 bytes_acked = state->snd_una - firstSeqAcked;;
       state->dctcp_bytesAcked += state->snd_una - firstSeqAcked;
 
       if(state->eceBit) {
@@ -113,11 +115,15 @@ void DcTcp::receivedDataAck(uint32 firstSeqAcked)
 
         state->snd_cwnd = state->snd_cwnd * (1 - state->dctcp_alpha / 2);
 
+        conn->emit(cwndSignal, state->snd_cwnd);
+
         uint32 flight_size = std::min(state->snd_cwnd, state->snd_wnd); // FIXME TODO - Does this formula computes the amount of outstanding data?
         state->ssthresh = std::max(3 * flight_size / 4, 2 * state->snd_mss);
 
+        conn->emit(ssthreshSignal, state->ssthresh);
 
-          conn->emit(cwndSignal, state->snd_cwnd);
+
+
       } else {
 
         //
@@ -146,8 +152,21 @@ void DcTcp::receivedDataAck(uint32 firstSeqAcked)
             EV_INFO << "cwnd=" << state->snd_cwnd << "\n";
         }
         else {
-            // perform Congestion Avoidance (RFC 2581)
-            uint32 incr = state->snd_mss * state->snd_mss / state->snd_cwnd;
+//            // perform Congestion Avoidance (RFC 2581)
+//            uint32 incr = state->snd_mss * state->snd_mss / state->snd_cwnd;
+          uint32 incr = bytes_acked * state->snd_mss / state->snd_cwnd;
+
+          // perhaps move it somewhere in TcpTahoeRenoFamily so it doesn't have to be copied to every flavour?
+          if(state->coupledIncrease){
+            //coupled increase (RFC 6356 equation 1)
+            if(state->snd_cwnd_total == 0){
+              state->snd_cwnd_total = state->snd_cwnd;
+            }
+            uint32 incr2 = state->alpha * bytes_acked * state->snd_mss / state->snd_cwnd_total;
+            if(incr2 < incr){
+              incr = incr2;
+            }
+          }
 
             if (incr == 0)
                 incr = 1;
@@ -155,6 +174,12 @@ void DcTcp::receivedDataAck(uint32 firstSeqAcked)
             state->snd_cwnd += incr;
 
             conn->emit(cwndSignal, state->snd_cwnd);
+
+            if(state->coupledIncrease){
+              state->snd_cwnd_total += incr;
+
+              conn->emit(cwndTotalSignal, state->snd_cwnd_total);
+            }
 
             //
             // Note: some implementations use extra additive constant mss / 8 here
