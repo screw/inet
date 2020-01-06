@@ -42,7 +42,6 @@ Ospfv2RoutingTableEntry::Ospfv2RoutingTableEntry(const Ospfv2RoutingTableEntry& 
     cost(entry.cost),
     type2Cost(entry.type2Cost),
     linkStateOrigin(entry.linkStateOrigin),
-    nextHops(entry.nextHops),
     hasDmpr(entry.hasDmpr)
 {
     setDestination(entry.getDestination());
@@ -52,9 +51,13 @@ Ospfv2RoutingTableEntry::Ospfv2RoutingTableEntry(const Ospfv2RoutingTableEntry& 
     setSourceType(entry.getSourceType());
     setMetric(entry.getMetric());
     setAdminDist(entry.getAdminDist());
+
+    for(auto i = 0; i < entry.getNextHopCount(); i++ ){
+      addNextHop(*(entry.getNextHop(i)));
+    }
 }
 
-void Ospfv2RoutingTableEntry::addNextHop(NextHop hop)
+void Ospfv2RoutingTableEntry::addNextHop(O2NextHop hop)
 {
     if (nextHops.size() == 0) {
         InterfaceEntry *routingInterface = ift->getInterfaceById(hop.ifIndex);
@@ -65,12 +68,13 @@ void Ospfv2RoutingTableEntry::addNextHop(NextHop hop)
         setGateway(hop.hopAddress);
     }else{
       for(int i= 0; i < nextHops.size(); i++){
-        if(hop.ifIndex == nextHops.at(i).ifIndex && hop.hopAddress == nextHops.at(i).hopAddress){
+        if(hop.ifIndex == getNextHop(i)->ifIndex && hop.hopAddress == getNextHop(i)->hopAddress){
           return;
         }
       }
     }
-    nextHops.push_back(hop);
+//    NextHop* nextHop = Nex
+    nextHops.push_back(new O2NextHop(hop));
 }
 
 bool Ospfv2RoutingTableEntry::operator==(const Ospfv2RoutingTableEntry& entry) const
@@ -82,7 +86,7 @@ bool Ospfv2RoutingTableEntry::operator==(const Ospfv2RoutingTableEntry& entry) c
         return false;
     }
     for (i = 0; i < hopCount; i++) {
-        if ((nextHops[i] != entry.nextHops[i])) {
+        if ((*(getNextHop(i)) != *(entry.getNextHop(i)))) {
             return false;
         }
     }
@@ -111,7 +115,7 @@ std::ostream& operator<<(std::ostream& out, const Ospfv2RoutingTableEntry& entry
         out << entry.getNetmask().getNetmaskLength();
     out << " nextHops: ";
     for (unsigned int i = 0; i < entry.getNextHopCount(); i++) {
-        Ipv4Address gateway = entry.getNextHop(i).hopAddress;
+        Ipv4Address gateway = entry.getNextHop(i)->hopAddress;
         if (gateway.isUnspecified())
             out << "*  ";
         else
@@ -143,19 +147,38 @@ std::string Ospfv2RoutingTableEntry::str() const
         out << "0";
     else
         out << getNetmask().getNetmaskLength();
-    out << " gw:";
-    if (getGateway().isUnspecified())
-        out << "*  ";
-    else
-        out << getGateway() << "  ";
     if(getRoutingTable() && getRoutingTable()->isAdminDistEnabled())
         out << "AD:" << getAdminDist() << "  ";
-    out << "metric:" << getMetric() << "  ";
-    out << "if:";
-    if (!getInterface())
-        out << "*";
-    else
-        out << getInterfaceName();
+    out << " metric:" << getMetric() << "";
+
+    //TODO if multiNexthop enabled?
+    if(!nextHops.empty()){
+      out << " nextHops:";
+      for(auto i = 0; i < nextHops.size(); i++){
+        if (getNextHop(i)->hopAddress.isUnspecified())
+            out << "* ";
+        else
+            out << getNextHop(i)->hopAddress << " ";
+
+        out << "if:";
+        if (getNextHop(i)->ifIndex < 0)
+            out << "*  ";
+        else
+            out << ift->getInterfaceById(getNextHop(i)->ifIndex)->getInterfaceName() << " ";
+      }
+    }else{
+      out << " gw:";
+          if (getGateway().isUnspecified())
+              out << "*  ";
+          else
+              out << getGateway() << "  ";
+
+          out << "if:";
+          if (!getInterface())
+              out << "*";
+          else
+              out << getInterfaceName();
+    }
 
     out << " destType:" << Ospfv2RoutingTableEntry::getDestinationTypeString(destinationType)
     << " pathType:" << Ospfv2RoutingTableEntry::getPathTypeString(pathType)
