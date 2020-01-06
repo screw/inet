@@ -57,7 +57,7 @@ class INET_API Ospfv2RoutingTableEntry : public Ipv4Route
     Metric cost = 0;
     Metric type2Cost = 0;
     const Ospfv2Lsa *linkStateOrigin = nullptr;
-    std::vector<NextHop> nextHops;
+//    std::vector<ospfv2::O2NextHop*> nextHops;
     int lastNextHopIndex = 0;
     bool hasDmpr;
     bool dmprInit = false;
@@ -88,14 +88,17 @@ class INET_API Ospfv2RoutingTableEntry : public Ipv4Route
     Metric getType2Cost() const { return type2Cost; }
     void setLinkStateOrigin(const Ospfv2Lsa *lsa) { linkStateOrigin = lsa; }
     const Ospfv2Lsa *getLinkStateOrigin() const { return linkStateOrigin; }
-    void addNextHop(NextHop hop);
-    void clearNextHops() { nextHops.clear(); }
-    void removeNextHop(unsigned int index) {nextHops.erase(nextHops.begin() + index); }
-    unsigned int getNextHopCount() const { return nextHops.size(); }
-    NextHop getNextHop(unsigned int index) const { return nextHops[index]; }
-    void setNextHop(unsigned int index, NextHop nextHop) { nextHops[index] = nextHop; }
-    virtual std::string str() const;
+    void addNextHop(O2NextHop hop);
+    void clearNextHops() override { nextHops.clear(); }
+    void removeNextHop(unsigned int index) override {nextHops.erase(nextHops.begin() + index); }
+    unsigned int getNextHopCount() const override { return nextHops.size(); }
+    virtual ospfv2::O2NextHop* getNextHop(unsigned int index) const  { return dynamic_cast<ospfv2::O2NextHop*>(nextHops[index]); }
+    virtual ospfv2::O2NextHop* getNextHop1(unsigned int index) const override { return new  ospfv2::O2NextHop();} //nextHops[index]; }
+    void setNextHop(unsigned int index, ospfv2::O2NextHop*  nextHop) { nextHops[index] = nextHop; }
+    virtual std::string str() const override;
     
+//    virtual Ipv4Route::Ipv4RouteNextHop getNextHop(unsigned int index) const override { return nextHops[index]; }
+
     
     bool isHasDmpr() const;
     void setHasDmpr(bool hasDmpr);
