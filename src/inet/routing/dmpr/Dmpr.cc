@@ -68,14 +68,14 @@ simsignal_t Dmpr::registerSignal(std::stringstream title, std::stringstream name
 
   if(!hasListeners(signal)){
 
-  cResultRecorder *vectorRecorder = cResultRecorderType::get("vector")->create();
+    cResultRecorder *vectorRecorder = cResultRecorderType::get("vector")->create();
 
-  opp_string_map *attrs = new opp_string_map;
-  (*attrs)["title"] = title.str() + " " + destination.str() + " " + interfaceName.str();
-//  (*attrs)["title"] += ie->getFullName();
+    opp_string_map *attrs = new opp_string_map;
+    (*attrs)["title"] = title.str() + " " + destination.str() + " " + interfaceName.str();
+  //  (*attrs)["title"] += ie->getFullName();
 
-  vectorRecorder->init(this, signalName.str().c_str() , "vector", nullptr, attrs);
-  subscribe(signal,vectorRecorder);
+    vectorRecorder->init(this, signalName.str().c_str() , "vector", nullptr, attrs);
+    subscribe(signal,vectorRecorder);
   }
   return signal;
 
@@ -162,11 +162,11 @@ void Dmpr::handleMessage(cMessage *msg)
     // TODO - Generated method body
 }
 
-void Dmpr::updateIntervalCong(ospfv2::NextHop& nextHop, DmprInterfaceData* dmprData)
+void Dmpr::updateIntervalCong(ospfv2::O2NextHop* nextHop, DmprInterfaceData* dmprData)
 {
 //    double min_threshold = 0.000001; // 0.01;
     // if the packetCount for previous period is 0 then don't change the current value -> use the current value as smootEce in the exponential smooth equation
-    double smoothEce = nextHop.ackPacketCount == 0 ? nextHop.congLevel : (double) (nextHop.ackPacketSum) / (double) (nextHop.ackPacketCount);
+    double smoothEce = nextHop->ackPacketCount == 0 ? nextHop->congLevel : (double) (nextHop->ackPacketSum) / (double) (nextHop->ackPacketCount);
 //    smoothEce = (-std::log(1 - smoothEce) / std::log(logPar));
 //    smoothEce = std::sqrt(smoothEce);
 //    smoothEce = std::pow(smoothEce, 1.0/5.0);
@@ -174,19 +174,19 @@ void Dmpr::updateIntervalCong(ospfv2::NextHop& nextHop, DmprInterfaceData* dmprD
     if(smoothEce > 1){
       smoothEce = 1;
     }
-    nextHop.ackPacketCount = 0;
-    nextHop.ackPacketSum = 0;
-    nextHop.congLevel = (1 - alpha) * nextHop.congLevel + smoothEce * getAlpha();
-//    nextHop.congLevel = nextHop.congLevel + alpha * (smoothEce - 0.09);
-    if(nextHop.congLevel < min_threshold){
-      nextHop.congLevel = min_threshold;
-    }else if (nextHop.congLevel > 1.0){
-      nextHop.congLevel = 1.0;
+    nextHop->ackPacketCount = 0;
+    nextHop->ackPacketSum = 0;
+    nextHop->congLevel = (1 - alpha) * nextHop->congLevel + smoothEce * getAlpha();
+//    nextHop->congLevel = nextHop->congLevel + alpha * (smoothEce - 0.09);
+    if(nextHop->congLevel < min_threshold){
+      nextHop->congLevel = min_threshold;
+    }else if (nextHop->congLevel > 1.0){
+      nextHop->congLevel = 1.0;
     }
 
-    emitSignal(nextHop.signalCongLevel, nextHop.congLevel);
+    emitSignal(nextHop->signalCongLevel, nextHop->congLevel);
 
-    smoothEce = nextHop.fwdPacketCount == 0 ? nextHop.fwdCongLevel : (double) (nextHop.fwdPacketSum) / (double) (nextHop.fwdPacketCount);
+    smoothEce = nextHop->fwdPacketCount == 0 ? nextHop->fwdCongLevel : (double) (nextHop->fwdPacketSum) / (double) (nextHop->fwdPacketCount);
 //    smoothEce = (-std::log(1 - smoothEce) / std::log(logPar));
 //    smoothEce = std::sqrt(smoothEce);
 //    smoothEce = std::pow(smoothEce, 1.0/5.0);
@@ -194,48 +194,48 @@ void Dmpr::updateIntervalCong(ospfv2::NextHop& nextHop, DmprInterfaceData* dmprD
       smoothEce = 1;
     }
 
-    nextHop.fwdCongLevel = (1 - alpha) * nextHop.fwdCongLevel + smoothEce * getAlpha();
-//    nextHop.fwdCongLevel = nextHop.fwdCongLevel + alpha * (smoothEce - 0.09);
+    nextHop->fwdCongLevel = (1 - alpha) * nextHop->fwdCongLevel + smoothEce * getAlpha();
+//    nextHop->fwdCongLevel = nextHop->fwdCongLevel + alpha * (smoothEce - 0.09);
 
-    if(nextHop.fwdCongLevel < 0.0){
-      nextHop.fwdCongLevel = 0.0;
-    }else if (nextHop.fwdCongLevel > 1.0){
-      nextHop.fwdCongLevel = 1.0;
+    if(nextHop->fwdCongLevel < 0.0){
+      nextHop->fwdCongLevel = 0.0;
+    }else if (nextHop->fwdCongLevel > 1.0){
+      nextHop->fwdCongLevel = 1.0;
     }
 
-    emitSignal(nextHop.signalfwdCongLevel, nextHop.fwdCongLevel);
+    emitSignal(nextHop->signalfwdCongLevel, nextHop->fwdCongLevel);
 
-    emitSignal(nextHop.signalFwdPacketCount, nextHop.fwdPacketCount);
+    emitSignal(nextHop->signalFwdPacketCount, nextHop->fwdPacketCount);
 
-    nextHop.fwdPacketCount = 0;
-    nextHop.fwdPacketSum = 0;
+    nextHop->fwdPacketCount = 0;
+    nextHop->fwdPacketSum = 0;
 
-//    nextHop.downstreamCongLevel = (nextHop.congLevel - nextHop.fwdCongLevel) < 0.001 ? 0 : (nextHop.congLevel - nextHop.fwdCongLevel); //dmprData->setInUseCongLevel(dmprData->getCongestionLevel());
-    nextHop.downstreamCongLevel = (nextHop.congLevel - nextHop.fwdCongLevel);
-    if(nextHop.downstreamCongLevel < min_threshold){
-      nextHop.downstreamCongLevel = min_threshold;
+//    nextHop->downstreamCongLevel = (nextHop->congLevel - nextHop->fwdCongLevel) < 0.001 ? 0 : (nextHop->congLevel - nextHop->fwdCongLevel); //dmprData->setInUseCongLevel(dmprData->getCongestionLevel());
+    nextHop->downstreamCongLevel = (nextHop->congLevel - nextHop->fwdCongLevel);
+    if(nextHop->downstreamCongLevel < min_threshold){
+      nextHop->downstreamCongLevel = min_threshold;
     }
-    emitSignal(nextHop.signalDownstreamCongLevel, nextHop.downstreamCongLevel);
+    emitSignal(nextHop->signalDownstreamCongLevel, nextHop->downstreamCongLevel);
 
-    nextHop.lastChange = simTime();
-//    nextHop.packetCount = 0;
+    nextHop->lastChange = simTime();
+//    nextHop->packetCount = 0;
 
 }
 
-void Dmpr::registerNextHop(int interfaceId, ospfv2::NextHop& nextHop, const ospfv2::Ospfv2RoutingTableEntry* route)
+void Dmpr::registerNextHop(int interfaceId, ospfv2::O2NextHop* nextHop, const ospfv2::Ospfv2RoutingTableEntry* route)
 {
   InterfaceEntry* ie = ift->getInterfaceById(interfaceId);
-  nextHop.signalCongLevel = registerSignal(std::stringstream("DMPR Load"), std::stringstream("congLevel"),
+  nextHop->signalCongLevel = registerSignal(std::stringstream("DMPR Load"), std::stringstream("congLevel"),
       std::stringstream(ie->getFullName()), route->getDestination());
-  nextHop.signalfwdCongLevel = registerSignal(std::stringstream("DMPR Fwd Load"), std::stringstream("fwdCongLevel"),
+  nextHop->signalfwdCongLevel = registerSignal(std::stringstream("DMPR Fwd Load"), std::stringstream("fwdCongLevel"),
       std::stringstream(ie->getFullName()), route->getDestination());
-  nextHop.signalDownstreamCongLevel = registerSignal(std::stringstream("DMPR DownstreamCongLev"),
+  nextHop->signalDownstreamCongLevel = registerSignal(std::stringstream("DMPR DownstreamCongLev"),
       std::stringstream("downstreamCongLevel"), std::stringstream(ie->getFullName()), route->getDestination());
-  nextHop.signalFwdPacketCount = registerSignal(std::stringstream("DMPR Fwd Packet Count"),
+  nextHop->signalFwdPacketCount = registerSignal(std::stringstream("DMPR Fwd Packet Count"),
       std::stringstream("fwdPacketCount"), std::stringstream(ie->getFullName()), route->getDestination());
-  nextHop.signalMaxRatio = registerSignal(std::stringstream("DMPR Max Ratio"),
+  nextHop->signalMaxRatio = registerSignal(std::stringstream("DMPR Max Ratio"),
       std::stringstream("maxRatio"), std::stringstream(ie->getFullName()), route->getDestination());
-  nextHop.lastChange = simTime();
+  nextHop->lastChange = simTime();
 }
 
 void Dmpr::updateCongestionLevel(int ece, DmprInterfaceData* dmprData, Ipv4Address srcIp, int interfaceId)
@@ -259,10 +259,10 @@ void Dmpr::updateCongestionLevel(int ece, DmprInterfaceData* dmprData, Ipv4Addre
     int count = route->getNextHopCount();
     for (int i = 0; i< count; i++)
     {
-      ospfv2::NextHop nextHop = route->getNextHop(i);
+      ospfv2::O2NextHop* nextHop = route->getNextHop(i);
 //      if(nextHop.ifIndex == interfaceId)
 //      {
-        registerNextHop(nextHop.ifIndex, nextHop, route);
+        registerNextHop(nextHop->ifIndex, nextHop, route);
         route->setNextHop(i, nextHop);
 //      }
     }
@@ -273,15 +273,15 @@ void Dmpr::updateCongestionLevel(int ece, DmprInterfaceData* dmprData, Ipv4Addre
 
   for(int i = 0; i < ospfEntry->getNextHopCount(); i++)
   {
-    ospfv2::NextHop nextHop = ospfEntry->getNextHop(i);
-    if(nextHop.ifIndex == interfaceId) // && (nextHop.hopAddress == srcIp || nextHop.hopAddress == Ipv4Address::UNSPECIFIED_ADDRESS)
+    ospfv2::O2NextHop* nextHop = ospfEntry->getNextHop(i);
+    if(nextHop->ifIndex == interfaceId) // && (nextHop.hopAddress == srcIp || nextHop.hopAddress == Ipv4Address::UNSPECIFIED_ADDRESS)
     {
-      if (nextHop.lastChange + getInterval() < simTime())
+      if (nextHop->lastChange + getInterval() < simTime())
       {
         updateIntervalCong(nextHop, dmprData);
       }
-      nextHop.ackPacketCount++;
-      nextHop.ackPacketSum += ece;
+      nextHop->ackPacketCount++;
+      nextHop->ackPacketSum += ece;
 
       ospfEntry->setNextHop(i, nextHop);
 
@@ -300,9 +300,9 @@ void Dmpr::updateNextHop(ospfv2::Ospfv2RoutingTableEntry* route)
 
   //  double congestLevel = INT_MAX;
     Ipv4Address nextHopAddr = Ipv4Address::UNSPECIFIED_ADDRESS;
-    ospfv2::NextHop resNextHop, tmpNextHop;
-    resNextHop.hopAddress = Ipv4Address::UNSPECIFIED_ADDRESS;
-    std::vector<ospfv2::NextHop> resNextHops;
+    ospfv2::O2NextHop* resNextHop, *tmpNextHop;
+//    resNextHop->hopAddress = Ipv4Address::UNSPECIFIED_ADDRESS;
+    std::vector<ospfv2::O2NextHop*> resNextHops;
 
     int count = route->getNextHopCount();
 
@@ -320,8 +320,8 @@ void Dmpr::updateNextHop(ospfv2::Ospfv2RoutingTableEntry* route)
 
     for (int i = 0; i < count; i++)
     {
-      ospfv2::NextHop nextHop = route->getNextHop(i);
-      if (nextHop.lastChange + getInterval() < simTime())
+      ospfv2::O2NextHop* nextHop = route->getNextHop(i);
+      if (nextHop->lastChange + getInterval() < simTime())
       {
         update = true;
       }
@@ -330,18 +330,18 @@ void Dmpr::updateNextHop(ospfv2::Ospfv2RoutingTableEntry* route)
     DmprInterfaceData *dmprData = nullptr;
     for (int i = 0; i < count; i++)
     {
-      ospfv2::NextHop nextHop = route->getNextHop(i);
-//      InterfaceEntry* ie = ift->getInterfaceById(nextHop.ifIndex);
+      ospfv2::O2NextHop* nextHop = route->getNextHop(i);
+//      InterfaceEntry* ie = ift->getInterfaceById(nextHop->ifIndex);
 
 
 //        NextHop nextHop = entry->getNextHop(i);
-        if(nextHop.signalDownstreamCongLevel == 0)
+        if(nextHop->signalDownstreamCongLevel == 0)
         {
-          registerNextHop(nextHop.ifIndex, nextHop, route);
+          registerNextHop(nextHop->ifIndex, nextHop, route);
 
         }
 
-        if(nextHop.lastChange + getInterval() < simTime() || update)
+        if(nextHop->lastChange + getInterval() < simTime() || update)
         {
 
           updateIntervalCong(nextHop, dmprData);
@@ -349,11 +349,11 @@ void Dmpr::updateNextHop(ospfv2::Ospfv2RoutingTableEntry* route)
 
         }
 
-//        packetCount[i] = nextHop.packetCount; //dmprData->getPacketCount();
-        packetCount[i] = nextHop.fwdPacketCount;
+//        packetCount[i] = nextHop->packetCount; //dmprData->getPacketCount();
+        packetCount[i] = nextHop->fwdPacketCount;
         //          availableLoad[i] = 1 - dmprData->getCongestionLevel();
-//        availableLoad[i] = 1 - nextHop.downstreamCongLevel;// dmprData->getInUseCongLevel();
-        availableLoad[i] = nextHop.downstreamCongLevel;// dmprData->getInUseCongLevel();
+//        availableLoad[i] = 1 - nextHop->downstreamCongLevel;// dmprData->getInUseCongLevel();
+        availableLoad[i] = nextHop->downstreamCongLevel;// dmprData->getInUseCongLevel();
 
         availableLoadSum += availableLoad[i];
         packetSum += packetCount[i];
@@ -366,7 +366,7 @@ void Dmpr::updateNextHop(ospfv2::Ospfv2RoutingTableEntry* route)
 //      maxRatio[i] = availableLoadSum == 0 ? 0 : availableLoad[i] / availableLoadSum; // This can be pre-computed;
       maxRatio[i] = availableLoadSum == 0 ? 1/count : 1 - (availableLoad[i] / availableLoadSum); // This can be pre-computed;
       if(update){
-        emitSignal(route->getNextHop(i).signalMaxRatio, maxRatio[i]);
+        emitSignal(route->getNextHop(i)->signalMaxRatio, maxRatio[i]);
       }
 
       actualRatio[i] =  (packetSum == 0) ? 0 : (double) packetCount[i] / (double)packetSum;
@@ -444,10 +444,10 @@ void Dmpr::updateNextHop(ospfv2::Ospfv2RoutingTableEntry* route)
   //    }
   //  }
 
-    if(resNextHop.hopAddress != Ipv4Address::UNSPECIFIED_ADDRESS){
+    if(resNextHop->hopAddress != Ipv4Address::UNSPECIFIED_ADDRESS){
       //TODO FIX Dirty hack with const_cast
-      route->setInterface(ift->getInterfaceById(resNextHop.ifIndex));
-      route->setGateway(resNextHop.hopAddress);
+      route->setInterface(ift->getInterfaceById(resNextHop->ifIndex));
+      route->setGateway(resNextHop->hopAddress);
     }
 
 
@@ -696,15 +696,15 @@ void Dmpr::updateFwdCongLevel(int ecn, DmprInterfaceData* dmprData, const Ipv4Ad
     int count = dmprRoute->getNextHopCount();
     for (int i = 0; i < count; i++)
     {
-      ospfv2::NextHop nextHop = dmprRoute->getNextHop(i);
-      InterfaceEntry* ie = ift->getInterfaceById(nextHop.ifIndex);
+      ospfv2::O2NextHop* nextHop = dmprRoute->getNextHop(i);
+      InterfaceEntry* ie = ift->getInterfaceById(nextHop->ifIndex);
 //      ie->dmprData()->table->insertEntry(destAddr, dmprRoute);
-      registerNextHop(nextHop.ifIndex, nextHop, dmprRoute);
-//      nextHop.signalCongLevel = registerSignal(std::stringstream("DMPR Load"), std::stringstream("congLevel"), std::stringstream(ie->getFullName()), route->getDestination());
-//      nextHop.signalfwdCongLevel = registerSignal(std::stringstream("DMPR Fwd Load"), std::stringstream("fwdCongLevel"), std::stringstream(ie->getFullName()), route->getDestination());
-//      nextHop.signalDownstreamCongLevel = registerSignal(std::stringstream("DMPR InUseLoad"), std::stringstream("downstreamCongLevel"), std::stringstream(ie->getFullName()), route->getDestination());
-//      nextHop.signalFwdPacketCount = registerSignal(std::stringstream("DMPR Fwd Packet Count"), std::stringstream("fwdPacketCount"), std::stringstream(ie->getFullName()), route->getDestination());
-//      nextHop.lastChange = simTime();
+      registerNextHop(nextHop->ifIndex, nextHop, dmprRoute);
+//      nextHop->signalCongLevel = registerSignal(std::stringstream("DMPR Load"), std::stringstream("congLevel"), std::stringstream(ie->getFullName()), route->getDestination());
+//      nextHop->signalfwdCongLevel = registerSignal(std::stringstream("DMPR Fwd Load"), std::stringstream("fwdCongLevel"), std::stringstream(ie->getFullName()), route->getDestination());
+//      nextHop->signalDownstreamCongLevel = registerSignal(std::stringstream("DMPR InUseLoad"), std::stringstream("downstreamCongLevel"), std::stringstream(ie->getFullName()), route->getDestination());
+//      nextHop->signalFwdPacketCount = registerSignal(std::stringstream("DMPR Fwd Packet Count"), std::stringstream("fwdPacketCount"), std::stringstream(ie->getFullName()), route->getDestination());
+//      nextHop->lastChange = simTime();
       dmprRoute->setNextHop(i, nextHop);
     }
     dmprRoute->setDmprInit(true);
@@ -714,19 +714,19 @@ void Dmpr::updateFwdCongLevel(int ecn, DmprInterfaceData* dmprData, const Ipv4Ad
   ospfv2::Ospfv2RoutingTableEntry* ospfEntry = dynamic_cast<ospfv2::Ospfv2RoutingTableEntry*>(dmprRoute);
   for (int i = 0; i < ospfEntry->getNextHopCount(); i++)
   {
-    ospfv2::NextHop nextHop = ospfEntry->getNextHop(i);
-    if (nextHop.ifIndex == interfaceId) // && (nextHop.hopAddress == srcIp || nextHop.hopAddress == Ipv4Address::UNSPECIFIED_ADDRESS)
+    ospfv2::O2NextHop* nextHop = ospfEntry->getNextHop(i);
+    if (nextHop->ifIndex == interfaceId) // && (nextHop->hopAddress == srcIp || nextHop->hopAddress == Ipv4Address::UNSPECIFIED_ADDRESS)
     {
-      if(nextHop.lastChange + getInterval() < simTime())
+      if(nextHop->lastChange + getInterval() < simTime())
       {
         updateIntervalCong(nextHop, dmprData);
       }
 
 
-      nextHop.fwdPacketCount++;
-      nextHop.fwdPacketSum += ecn;
+      nextHop->fwdPacketCount++;
+      nextHop->fwdPacketSum += ecn;
 
-//      nextHop.packetCount++;
+//      nextHop->packetCount++;
       ospfEntry->setNextHop(i, nextHop);
 //      ospfEntry->setLastNextHopIndex(i);
 
