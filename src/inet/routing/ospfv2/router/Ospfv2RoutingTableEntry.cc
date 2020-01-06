@@ -65,12 +65,13 @@ void Ospfv2RoutingTableEntry::addNextHop(NextHop hop)
         setGateway(hop.hopAddress);
     }else{
       for(int i= 0; i < nextHops.size(); i++){
-        if(hop.ifIndex == nextHops.at(i).ifIndex && hop.hopAddress == nextHops.at(i).hopAddress){
+        if(hop.ifIndex == nextHops.at(i)->ifIndex && hop.hopAddress == nextHops.at(i)->hopAddress){
           return;
         }
       }
     }
-    nextHops.push_back(hop);
+//    NextHop* nextHop = Nex
+    nextHops.push_back(new NextHop(hop));
 }
 
 bool Ospfv2RoutingTableEntry::operator==(const Ospfv2RoutingTableEntry& entry) const
@@ -111,7 +112,7 @@ std::ostream& operator<<(std::ostream& out, const Ospfv2RoutingTableEntry& entry
         out << entry.getNetmask().getNetmaskLength();
     out << " nextHops: ";
     for (unsigned int i = 0; i < entry.getNextHopCount(); i++) {
-        Ipv4Address gateway = entry.getNextHop(i).hopAddress;
+        Ipv4Address gateway = entry.getNextHop(i)->hopAddress;
         if (gateway.isUnspecified())
             out << "*  ";
         else
