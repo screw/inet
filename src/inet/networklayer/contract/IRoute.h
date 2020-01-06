@@ -88,6 +88,65 @@ class INET_API IRoute
         dUnknown = 255
     };
 
+    class RouteNextHop {
+      private:
+//        L3Address hopAddress;
+//        IRoute *owner; //owner route
+//        int metric = -1;
+
+      public:
+//         RouteNextHop(): owner(nullptr){ hopAddress.reset(); };
+//         RouteNextHop(L3Address hopAddress, IRoute *owner = nullptr, int metric = -1): hopAddress(hopAddress), owner(owner), metric(metric){}
+        virtual ~RouteNextHop(){}
+
+        virtual L3Address getHopAddressAsGeneric() const = 0;
+
+
+//        {
+//                  return hopAddress;
+//        }
+//
+//        virtual const L3Address& getHopAddressForUpdate() const = 0;
+////        {
+////                  return hopAddress;
+////        }
+        virtual void setHopAddress(const L3Address& hopAddress) = 0;
+////        {
+////          this->hopAddress = hopAddress;
+////        }
+//
+//        virtual int getMetric() const = 0;
+////        {
+////          return metric;
+////        }
+//
+//        virtual void setMetric(int metric = -1) = 0;
+////        {
+////          this->metric = metric;
+////        }
+//
+//        virtual IRoute* getOwner() const = 0;
+////        {
+////          return owner;
+////        }
+//
+//        virtual void setOwner(IRoute* owner) = 0;
+////        {
+////          this->owner = owner;
+////        }
+
+        ;
+
+
+
+
+    };
+
+//    typedef std::vector<RouteNextHop *> RouteNextHopVector;
+
+
+
+
 //TODO maybe:
 //    virtual std::string info() const;
 //    virtual std::string detailedInfo() const;
@@ -104,6 +163,7 @@ class INET_API IRoute
     virtual void setDestination(const L3Address& dest) = 0;
     virtual void setPrefixLength(int l) = 0;
     virtual void setNextHop(const L3Address& nextHop) = 0;
+    virtual void addNextHop(const L3Address& nextHop) { setNextHop(nextHop);} //TODO make it pure virtual to force every subclass to implement it
     virtual void setInterface(InterfaceEntry *ie) = 0;
     virtual void setSource(cObject *source) = 0;
     virtual void setSourceType(SourceType type) = 0;
