@@ -1110,7 +1110,7 @@ SummaryLsa *Ospfv2Area::originateSummaryLSA(const Ospfv2RoutingTableEntry *entry
 
     bool allNextHopsInThisArea = true;
     for (unsigned int i = 0; i < entry->getNextHopCount(); i++) {
-        Ospfv2Interface *nextHopInterface = parentRouter->getNonVirtualInterface(entry->getNextHop(i).ifIndex);
+        Ospfv2Interface *nextHopInterface = parentRouter->getNonVirtualInterface(entry->getNextHop(i)->ifIndex);
         if ((nextHopInterface != nullptr) && (nextHopInterface->getAreaId() != areaID)) {
             allNextHopsInThisArea = false;
             break;
@@ -1550,7 +1550,7 @@ void Ospfv2Area::calculateShortestPathTree(std::vector<Ospfv2RoutingTableEntry *
                         routingInfo->setDistance(linkStateCost);
                         routingInfo->clearNextHops();
                     }
-                    std::vector<NextHop> *newNextHops = calculateNextHops(joiningVertex, justAddedVertex);    // (destination, parent)
+                    std::vector<O2NextHop> *newNextHops = calculateNextHops(joiningVertex, justAddedVertex);    // (destination, parent)
                     for (auto it = newNextHops->begin(); it != newNextHops->end(); ++it)
                         routingInfo->addNextHop(*it);
                     delete newNextHops;
@@ -1559,7 +1559,7 @@ void Ospfv2Area::calculateShortestPathTree(std::vector<Ospfv2RoutingTableEntry *
                     if (joiningVertexType == ROUTERLSA_TYPE) {
                         RouterLsa *joiningRouterVertex = check_and_cast<RouterLsa *>(joiningVertex);
                         joiningRouterVertex->setDistance(linkStateCost);
-                        std::vector<NextHop> *newNextHops = calculateNextHops(joiningVertex, justAddedVertex);    // (destination, parent)
+                        std::vector<O2NextHop> *newNextHops = calculateNextHops(joiningVertex, justAddedVertex);    // (destination, parent)
                         for (auto it = newNextHops->begin(); it != newNextHops->end(); ++it)
                             joiningRouterVertex->addNextHop(*it);
                         delete newNextHops;
@@ -1571,7 +1571,7 @@ void Ospfv2Area::calculateShortestPathTree(std::vector<Ospfv2RoutingTableEntry *
                     else {
                         NetworkLsa *joiningNetworkVertex = check_and_cast<NetworkLsa *>(joiningVertex);
                         joiningNetworkVertex->setDistance(linkStateCost);
-                        std::vector<NextHop> *newNextHops = calculateNextHops(joiningVertex, justAddedVertex);    // (destination, parent)
+                        std::vector<O2NextHop> *newNextHops = calculateNextHops(joiningVertex, justAddedVertex);    // (destination, parent)
                         for (auto it = newNextHops->begin(); it != newNextHops->end(); ++it)
                             joiningNetworkVertex->addNextHop(*it);
                         delete newNextHops;
@@ -1630,14 +1630,14 @@ void Ospfv2Area::calculateShortestPathTree(std::vector<Ospfv2RoutingTableEntry *
                         routingInfo->setDistance(linkStateCost);
                         routingInfo->clearNextHops();
                     }
-                    std::vector<NextHop> *newNextHops = calculateNextHops(joiningVertex, justAddedVertex);    // (destination, parent)
+                    std::vector<O2NextHop> *newNextHops = calculateNextHops(joiningVertex, justAddedVertex);    // (destination, parent)
                     for (auto it = newNextHops->begin(); it != newNextHops->end(); ++it)
                         routingInfo->addNextHop(*it);
                     delete newNextHops;
                 }
                 else {
                     joiningVertex->setDistance(linkStateCost);
-                    std::vector<NextHop> *newNextHops = calculateNextHops(joiningVertex, justAddedVertex);    // (destination, parent)
+                    std::vector<O2NextHop> *newNextHops = calculateNextHops(joiningVertex, justAddedVertex);    // (destination, parent)
                     for (auto it = newNextHops->begin(); it != newNextHops->end(); ++it)
                         joiningVertex->addNextHop(*it);
                     delete newNextHops;
@@ -1912,7 +1912,7 @@ void Ospfv2Area::calculateShortestPathTree(std::vector<Ospfv2RoutingTableEntry *
                         throw cRuntimeError("Can not cast class '%s' to RouterLsa or NetworkLsa", lsOrigin->getClassName());
                 }
 
-                std::vector<NextHop> *newNextHops = calculateNextHops(link, routerVertex);    // (destination, parent)
+                std::vector<O2NextHop> *newNextHops = calculateNextHops(link, routerVertex);    // (destination, parent)
                 for (auto it = newNextHops->begin(); it != newNextHops->end(); ++it)
                     entry->addNextHop(*it);
                 delete newNextHops;
@@ -1928,7 +1928,7 @@ void Ospfv2Area::calculateShortestPathTree(std::vector<Ospfv2RoutingTableEntry *
                 entry->setCost(distance);
                 entry->setDestinationType(Ospfv2RoutingTableEntry::NETWORK_DESTINATION);
                 entry->setOptionalCapabilities(routerVertex->getHeader().getLsOptions());
-                std::vector<NextHop> *newNextHops = calculateNextHops(link, routerVertex);    // (destination, parent)
+                std::vector<O2NextHop> *newNextHops = calculateNextHops(link, routerVertex);    // (destination, parent)
                 for (auto it = newNextHops->begin(); it != newNextHops->end(); ++it)
                     entry->addNextHop(*it);
                 delete newNextHops;
@@ -1940,9 +1940,9 @@ void Ospfv2Area::calculateShortestPathTree(std::vector<Ospfv2RoutingTableEntry *
     }
 }
 
-std::vector<NextHop> *Ospfv2Area::calculateNextHops(Ospfv2Lsa *destination, Ospfv2Lsa *parent) const
+std::vector<O2NextHop> *Ospfv2Area::calculateNextHops(Ospfv2Lsa *destination, Ospfv2Lsa *parent) const
 {
-    std::vector<NextHop> *hops = new std::vector<NextHop>;
+    std::vector<O2NextHop> *hops = new std::vector<O2NextHop>;
 
     RouterLsa *routerLSA = dynamic_cast<RouterLsa *>(parent);
     if (routerLSA != nullptr) {
@@ -1963,7 +1963,7 @@ std::vector<NextHop> *Ospfv2Area::calculateNextHops(Ospfv2Lsa *destination, Ospf
                         Neighbor *ptpNeighbor = interface->getNeighborCount() > 0 ? interface->getNeighbor(0) : nullptr;
                         if (ptpNeighbor != nullptr) {
                             if (ptpNeighbor->getNeighborID() == destinationRouterLSA->getHeader().getLinkStateID()) {
-                                NextHop nextHop;
+                                O2NextHop nextHop;
                                 nextHop.ifIndex = interface->getIfIndex();
                                 nextHop.hopAddress = ptpNeighbor->getAddress();
                                 nextHop.advertisingRouter = destinationRouterLSA->getHeader().getAdvertisingRouter();
@@ -1980,7 +1980,7 @@ std::vector<NextHop> *Ospfv2Area::calculateNextHops(Ospfv2Lsa *destination, Ospf
                             for (uint32_t j = 0; j < linkCount; j++) {
                                 const auto& link = destinationRouterLSA->getLinks(j);
                                 if (link.getLinkID() == rootID) {
-                                    NextHop nextHop;
+                                    O2NextHop nextHop;
                                     nextHop.ifIndex = interface->getIfIndex();
                                     nextHop.hopAddress = Ipv4Address(link.getLinkData());
                                     nextHop.advertisingRouter = destinationRouterLSA->getHeader().getAdvertisingRouter();
@@ -2003,7 +2003,7 @@ std::vector<NextHop> *Ospfv2Area::calculateNextHops(Ospfv2Lsa *destination, Ospf
                             (interface->getDesignatedRouter().ipInterfaceAddress == networkDesignatedRouter))
                         {
                             Ipv4AddressRange range = interface->getAddressRange();
-                            NextHop nextHop;
+                            O2NextHop nextHop;
                             nextHop.ifIndex = interface->getIfIndex();
                             if(interface->getNeighborCount() == 1) {
                                 Neighbor *neighbor = interface->getNeighbor(0);
@@ -2035,7 +2035,7 @@ std::vector<NextHop> *Ospfv2Area::calculateNextHops(Ospfv2Lsa *destination, Ospf
                     RouterId destinationRouterID = destinationRouterLSA->getHeader().getLinkStateID();
                     for (uint32_t i = 0; i < destinationRouterLSA->getLinksArraySize(); i++) {
                         const auto& link = destinationRouterLSA->getLinks(i);
-                        NextHop nextHop;
+                        O2NextHop nextHop;
 
                         if (((link.getType() == TRANSIT_LINK) &&
                              (link.getLinkID() == parentLinkStateID)) ||
@@ -2067,9 +2067,9 @@ std::vector<NextHop> *Ospfv2Area::calculateNextHops(Ospfv2Lsa *destination, Ospf
     return hops;
 }
 
-std::vector<NextHop> *Ospfv2Area::calculateNextHops(const Ospfv2Link& destination, Ospfv2Lsa *parent) const
+std::vector<O2NextHop> *Ospfv2Area::calculateNextHops(const Ospfv2Link& destination, Ospfv2Lsa *parent) const
 {
-    std::vector<NextHop> *hops = new std::vector<NextHop>;
+    std::vector<O2NextHop> *hops = new std::vector<O2NextHop>;
 
     RouterLsa *routerLSA = check_and_cast<RouterLsa *>(parent);
     if (routerLSA != spfTreeRoot) {
@@ -2094,7 +2094,7 @@ std::vector<NextHop> *Ospfv2Area::calculateNextHops(const Ospfv2Link& destinatio
                          (interface->getAddressRange().address == destination.getLinkID()) &&
                          (interface->getAddressRange().mask.getInt() == destination.getLinkData())))
                     {
-                        NextHop nextHop;
+                        O2NextHop nextHop;
                         nextHop.ifIndex = interface->getIfIndex();
                         nextHop.hopAddress = neighborAddress;
                         nextHop.advertisingRouter = parentRouter->getRouterID();
@@ -2107,7 +2107,7 @@ std::vector<NextHop> *Ospfv2Area::calculateNextHops(const Ospfv2Link& destinatio
                 (intfType == Ospfv2Interface::NBMA))
             {
                 if (isSameNetwork(destination.getLinkID(), Ipv4Address(destination.getLinkData()), interface->getAddressRange().address, interface->getAddressRange().mask)) {
-                    NextHop nextHop;
+                    O2NextHop nextHop;
                     nextHop.ifIndex = interface->getIfIndex();
                     if(interface->getNeighborCount() == 1) {
                         Neighbor *neighbor = interface->getNeighbor(0);
@@ -2127,7 +2127,7 @@ std::vector<NextHop> *Ospfv2Area::calculateNextHops(const Ospfv2Link& destinatio
                         // so we insert a next hop pointing to the interface itself. Kind of pointless, but
                         // not much else we could do...
                         // TODO: check what other OSPF implementations do in this situation
-                        NextHop nextHop;
+                        O2NextHop nextHop;
                         nextHop.ifIndex = interface->getIfIndex();
                         nextHop.hopAddress = interface->getAddressRange().address;
                         nextHop.advertisingRouter = parentRouter->getRouterID();
@@ -2138,7 +2138,7 @@ std::vector<NextHop> *Ospfv2Area::calculateNextHops(const Ospfv2Link& destinatio
                 if (destination.getType() == POINTTOPOINT_LINK) {
                     Neighbor *neighbor = interface->getNeighborById(destination.getLinkID());
                     if (neighbor != nullptr) {
-                        NextHop nextHop;
+                        O2NextHop nextHop;
                         nextHop.ifIndex = interface->getIfIndex();
                         nextHop.hopAddress = neighbor->getAddress();
                         nextHop.advertisingRouter = parentRouter->getRouterID();
@@ -2155,7 +2155,7 @@ std::vector<NextHop> *Ospfv2Area::calculateNextHops(const Ospfv2Link& destinatio
                 if ((destination.getLinkID() == hostRoutes[i].address) &&
                     (destination.getLinkData() == 0xFFFFFFFF))
                 {
-                    NextHop nextHop;
+                    O2NextHop nextHop;
                     nextHop.ifIndex = hostRoutes[i].ifIndex;
                     nextHop.hopAddress = hostRoutes[i].address;
                     nextHop.advertisingRouter = parentRouter->getRouterID();
@@ -2329,7 +2329,7 @@ Ospfv2RoutingTableEntry *Ospfv2Area::createRoutingTableEntryFromSummaryLSA(const
 
     unsigned int nextHopCount = borderRouterEntry.getNextHopCount();
     for (unsigned int j = 0; j < nextHopCount; j++) {
-        newEntry->addNextHop(borderRouterEntry.getNextHop(j));
+        newEntry->addNextHop(*(borderRouterEntry.getNextHop(j)));
     }
     newEntry->setHasDmpr(parentRouter->isHasDmpr());
 
@@ -2446,7 +2446,7 @@ void Ospfv2Area::calculateInterAreaRoutes(std::vector<Ospfv2RoutingTableEntry *>
                  * to the equal entry.
                  */
                 for (unsigned long j = 0; j < nextHopCount; j++) {
-                    equalEntry->addNextHop(borderRouterEntry->getNextHop(j));
+                    equalEntry->addNextHop(*(borderRouterEntry->getNextHop(j)));
                 }
             }
             else {
@@ -2553,7 +2553,7 @@ void Ospfv2Area::recheckSummaryLSAs(std::vector<Ospfv2RoutingTableEntry *>& newR
                 unsigned long nextHopCount = borderRouterEntry->getNextHopCount();
 
                 for (uint32_t j = 0; j < nextHopCount; j++) {
-                    destinationEntry->addNextHop(borderRouterEntry->getNextHop(j));
+                    destinationEntry->addNextHop(*(borderRouterEntry->getNextHop(j)));
                 }
             }
         }
