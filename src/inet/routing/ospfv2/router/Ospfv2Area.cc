@@ -1110,7 +1110,7 @@ SummaryLsa *Ospfv2Area::originateSummaryLSA(const Ospfv2RoutingTableEntry *entry
 
     bool allNextHopsInThisArea = true;
     for (unsigned int i = 0; i < entry->getNextHopCount(); i++) {
-        Ospfv2Interface *nextHopInterface = parentRouter->getNonVirtualInterface(entry->getNextHop(i).ifIndex);
+        Ospfv2Interface *nextHopInterface = parentRouter->getNonVirtualInterface(entry->getNextHop(i)->ifIndex);
         if ((nextHopInterface != nullptr) && (nextHopInterface->getAreaId() != areaID)) {
             allNextHopsInThisArea = false;
             break;
@@ -2329,7 +2329,7 @@ Ospfv2RoutingTableEntry *Ospfv2Area::createRoutingTableEntryFromSummaryLSA(const
 
     unsigned int nextHopCount = borderRouterEntry.getNextHopCount();
     for (unsigned int j = 0; j < nextHopCount; j++) {
-        newEntry->addNextHop(borderRouterEntry.getNextHop(j));
+        newEntry->addNextHop(*(borderRouterEntry.getNextHop(j)));
     }
     newEntry->setHasDmpr(parentRouter->isHasDmpr());
 
@@ -2446,7 +2446,7 @@ void Ospfv2Area::calculateInterAreaRoutes(std::vector<Ospfv2RoutingTableEntry *>
                  * to the equal entry.
                  */
                 for (unsigned long j = 0; j < nextHopCount; j++) {
-                    equalEntry->addNextHop(borderRouterEntry->getNextHop(j));
+                    equalEntry->addNextHop(*(borderRouterEntry->getNextHop(j)));
                 }
             }
             else {
@@ -2553,7 +2553,7 @@ void Ospfv2Area::recheckSummaryLSAs(std::vector<Ospfv2RoutingTableEntry *>& newR
                 unsigned long nextHopCount = borderRouterEntry->getNextHopCount();
 
                 for (uint32_t j = 0; j < nextHopCount; j++) {
-                    destinationEntry->addNextHop(borderRouterEntry->getNextHop(j));
+                    destinationEntry->addNextHop(*(borderRouterEntry->getNextHop(j)));
                 }
             }
         }

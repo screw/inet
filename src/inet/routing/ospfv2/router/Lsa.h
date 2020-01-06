@@ -24,23 +24,54 @@
 #include "inet/common/INETDefs.h"
 #include "inet/routing/ospfv2/Ospfv2Packet_m.h"
 #include "inet/routing/ospfv2/router/Ospfv2Common.h"
+#include "inet/networklayer/ipv4/Ipv4Route.h"
+
+//class Ipv4Route;
 
 namespace inet {
 
 namespace ospfv2 {
 
-struct NextHop
+class NextHop : public Ipv4Route::Ipv4RouteNextHop
 {
+  public:
     NextHop(int ifIndex, Ipv4Address hopAddress, RouterId advertisingRouter):
+
     ifIndex(ifIndex),
     hopAddress(hopAddress),
     advertisingRouter(advertisingRouter)
     {
+//      IRoute::NextHop(hopAddress);
 
     };
     NextHop(){};
+    NextHop(const NextHop &other): Ipv4Route::Ipv4RouteNextHop(other){
+      copy(other);
+    };
+
+    void copy(const NextHop &other){
+      ifIndex = other.ifIndex;
+      hopAddress = other.hopAddress;
+       advertisingRouter = other.advertisingRouter;
+       cost = other.cost;
+
+       congLevel = other.congLevel;
+       fwdCongLevel = other.fwdCongLevel;
+       downstreamCongLevel = other.downstreamCongLevel;
+       fwdPacketCount = other.fwdPacketCount;
+       ackPacketCount = other.ackPacketCount;
+       ackPacketSum = other.ackPacketSum;
+
+       lastChange = other.lastChange;
+
+       signalCongLevel = other.signalCongLevel;
+       signalfwdCongLevel = other.signalfwdCongLevel;
+       signalDownstreamCongLevel = other.signalDownstreamCongLevel;
+       signalFwdPacketCount = other.signalFwdPacketCount;
+       signalMaxRatio = other.signalMaxRatio;
+    }
     int ifIndex;
-    Ipv4Address hopAddress;
+    Ipv4Address hopAddress = Ipv4Address::UNSPECIFIED_ADDRESS;
     RouterId advertisingRouter;
     Metric cost = -1;
 
