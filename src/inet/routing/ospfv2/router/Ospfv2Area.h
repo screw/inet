@@ -138,8 +138,8 @@ class INET_API Ospfv2Area : public cObject
   private:
     SummaryLsa *originateSummaryLSA(const SummaryLsa *summaryLSA);
     bool hasLink(Ospfv2Lsa *fromLSA, Ospfv2Lsa *toLSA) const;
-    std::vector<NextHop> *calculateNextHops(Ospfv2Lsa *destination, Ospfv2Lsa *parent) const;
-    std::vector<NextHop> *calculateNextHops(const Ospfv2Link& destination, Ospfv2Lsa *parent) const;
+    std::vector<O2NextHop> *calculateNextHops(Ospfv2Lsa *destination, Ospfv2Lsa *parent) const;
+    std::vector<O2NextHop> *calculateNextHops(const Ospfv2Link& destination, Ospfv2Lsa *parent) const;
 
     LinkStateId getUniqueLinkStateID(Ipv4AddressRange destination,
             Metric destinationCost,

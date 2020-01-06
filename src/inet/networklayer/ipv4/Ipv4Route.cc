@@ -75,19 +75,40 @@ std::string Ipv4Route::str() const
         out << "0";
     else
         out << getNetmask().getNetmaskLength();
-    out << " gw:";
-    if (gateway.isUnspecified())
-        out << "*";
-    else
-        out << getGateway();
     if(rt && rt->isAdminDistEnabled())
         out << " AD:" << adminDist;
     out << " metric:" << metric;
-    out << " if:";
-    if (!interfacePtr)
-        out << "*";
-    else
-        out << getInterfaceName();
+
+    //TODO if Multi-next hop enabled
+    if(!nextHops.empty()){
+      for(auto it = nextHops.begin(); it != nextHops.end(); it++){
+        out << " nextHops:";
+        if ((*it)->hopAddress.isUnspecified())
+            out << "*";
+        else
+            out << (*it)->hopAddress;
+        out << " if:";
+        if (!interfacePtr)
+            out << "*";
+        else
+            out << getInterfaceName();
+
+      }
+
+    }else{
+      out << " gw:";
+      if (gateway.isUnspecified())
+          out << "*";
+      else
+          out << getGateway();
+
+      out << " if:";
+      if (!interfacePtr)
+          out << "*";
+      else
+          out << getInterfaceName();
+
+    }
 
     if (protocolData)
         out << " " << protocolData->str();

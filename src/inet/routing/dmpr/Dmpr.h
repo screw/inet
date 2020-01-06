@@ -71,12 +71,12 @@ class Dmpr : public cSimpleModule, public NetfilterBase::HookBase
     simsignal_t registerSignal(std::stringstream title, std::stringstream name, std::stringstream interfaceName, Ipv4Address destination);
     void updateFwdCongLevel(int ece, DmprInterfaceData* dmprData, const Ipv4Address& destAddr, int interfaceId,
         Ipv4Route* route);
-    void updateIntervalCong(ospfv2::NextHop& nextHop, DmprInterfaceData* dmprData);
+    void updateIntervalCong(ospfv2::O2NextHop* nextHop, DmprInterfaceData* dmprData);
     void updateNextHop(ospfv2::Ospfv2RoutingTableEntry* route);
 
   public:
     void emitSignal(simsignal_t signal, double value);
-    void registerNextHop(int interfaceId, ospfv2::NextHop& nextHop, const ospfv2::Ospfv2RoutingTableEntry* route);
+    void registerNextHop(int interfaceId, ospfv2::O2NextHop* nextHop, const ospfv2::Ospfv2RoutingTableEntry* route);
 
 //    // Lifecycle
 //    virtual bool handleOperationStage(LifecycleOperation *operation, int stage, IDoneCallback *doneCallback) override;
