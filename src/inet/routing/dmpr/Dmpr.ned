@@ -41,5 +41,10 @@ simple Dmpr
         
         //@statistics -> created dynamically 
         // vectors for congLevel and inUseCongLevel  
-        
+//        @statisticTemplate[congLevel*](record=vector);
+//        @statistic[downstreamCongLevel*](record=vector);
+//        @statistic[fwdCongLevel*](record=vector);
+//        @statistic[fwdPacketCount*](record=vector);
+//        @statistic[maxRatio*](record=vector);
+//        
 }

@@ -24,23 +24,101 @@
 #include "inet/common/INETDefs.h"
 #include "inet/routing/ospfv2/Ospfv2Packet_m.h"
 #include "inet/routing/ospfv2/router/Ospfv2Common.h"
+#include "inet/networklayer/ipv4/Ipv4Route.h"
+
+//class Ipv4Route;
 
 namespace inet {
 
 namespace ospfv2 {
 
-struct NextHop
+class O2NextHop : public Ipv4Route::Ipv4RouteNextHop
 {
-    NextHop(int ifIndex, Ipv4Address hopAddress, RouterId advertisingRouter):
+  public:
+    O2NextHop(int ifIndex, Ipv4Address hopAddress, RouterId advertisingRouter):
+    Ipv4RouteNextHop(hopAddress),
     ifIndex(ifIndex),
-    hopAddress(hopAddress),
     advertisingRouter(advertisingRouter)
     {
+//      IRoute::NextHop(hopAddress);
+
+
+
+      cost = -1;
+
+      congLevel = 0.000001; //0.001; //0.000001
+      fwdCongLevel = 0; //forwarded Congestion level
+      downstreamCongLevel = 0.000001; //0.001;  //0.000001
+  //    int packetCount = 0;
+
+      fwdPacketCount = 0; //total number of ECN capable packet forwarded within current interval
+      fwdPacketSum = 0; //sum of ECE marks for forwarded packets within current interval (effectively the number of marked packet)
+      ackPacketCount = 0; //total number of ECN capable Ack packets within current interval
+      ackPacketSum = 0; //sum of ECE marks for ECN capable Acks packets within current interval (effectively the number of marked packet)
+
+      lastChange = 0;
+
+      signalCongLevel = 0;
+      signalfwdCongLevel = 0;
+      signalDownstreamCongLevel = 0;
+      signalFwdPacketCount = 0;
+      signalMaxRatio = 0;
 
     };
-    NextHop(){};
+    O2NextHop(){
+      //      IRoute::NextHop(hopAddress);
+            ifIndex = -1;
+      //      Ipv4Address hopAddress = Ipv4Address::UNSPECIFIED_ADDRESS;
+//            advertisingRouter  = Ipv4Address::UNSPECIFIED_ADDRESS;
+            cost = -1;
+
+            congLevel = 0.000001; //0.001; //0.000001
+            fwdCongLevel = 0; //forwarded Congestion level
+            downstreamCongLevel = 0.000001; //0.001;  //0.000001
+        //    int packetCount = 0;
+
+            fwdPacketCount = 0; //total number of ECN capable packet forwarded within current interval
+            fwdPacketSum = 0; //sum of ECE marks for forwarded packets within current interval (effectively the number of marked packet)
+            ackPacketCount = 0; //total number of ECN capable Ack packets within current interval
+            ackPacketSum = 0; //sum of ECE marks for ECN capable Acks packets within current interval (effectively the number of marked packet)
+
+            lastChange = 0;
+
+            signalCongLevel = 0;
+            signalfwdCongLevel = 0;
+            signalDownstreamCongLevel = 0;
+            signalFwdPacketCount = 0;
+            signalMaxRatio = 0;
+
+    };
+    O2NextHop(const O2NextHop &other): Ipv4Route::Ipv4RouteNextHop(other){
+      copy(other);
+    };
+
+    void copy(const O2NextHop &other){
+      ifIndex = other.ifIndex;
+//      hopAddress = other.hopAddress;
+       advertisingRouter = other.advertisingRouter;
+       cost = other.cost;
+
+       congLevel = other.congLevel;
+       fwdCongLevel = other.fwdCongLevel;
+       downstreamCongLevel = other.downstreamCongLevel;
+       fwdPacketCount = other.fwdPacketCount;
+       ackPacketCount = other.ackPacketCount;
+       ackPacketSum = other.ackPacketSum;
+
+       lastChange = other.lastChange;
+
+       signalCongLevel = other.signalCongLevel;
+       signalfwdCongLevel = other.signalfwdCongLevel;
+       signalDownstreamCongLevel = other.signalDownstreamCongLevel;
+       signalFwdPacketCount = other.signalFwdPacketCount;
+       signalMaxRatio = other.signalMaxRatio;
+    }
+
     int ifIndex;
-    Ipv4Address hopAddress;
+//    Ipv4Address hopAddress = Ipv4Address::UNSPECIFIED_ADDRESS;
     RouterId advertisingRouter;
     Metric cost = -1;
 
@@ -67,7 +145,7 @@ struct NextHop
 class INET_API RoutingInfo
 {
   private:
-    std::vector<NextHop> nextHops;
+    std::vector<O2NextHop> nextHops;
     unsigned long distance;
     Ospfv2Lsa *parent;
 
@@ -76,10 +154,10 @@ class INET_API RoutingInfo
     RoutingInfo(const RoutingInfo& routingInfo) : nextHops(routingInfo.nextHops), distance(routingInfo.distance), parent(routingInfo.parent) {}
     virtual ~RoutingInfo() {}
 
-    void addNextHop(NextHop nextHop) { nextHops.push_back(nextHop); }
+    void addNextHop(O2NextHop nextHop) { nextHops.push_back(nextHop); }
     void clearNextHops() { nextHops.clear(); }
     unsigned int getNextHopCount() const { return nextHops.size(); }
-    NextHop getNextHop(unsigned int index) const { return nextHops[index]; }
+    O2NextHop getNextHop(unsigned int index) const { return nextHops[index]; }
     void setDistance(unsigned long d) { distance = d; }
     unsigned long getDistance() const { return distance; }
     void setParent(Ospfv2Lsa *p) { parent = p; }
@@ -202,14 +280,14 @@ inline bool operator!=(const Ospfv2Options& leftOptions, const Ospfv2Options& ri
     return !(leftOptions == rightOptions);
 }
 
-inline bool operator==(const NextHop& leftHop, const NextHop& rightHop)
+inline bool operator==(const O2NextHop& leftHop, const O2NextHop& rightHop)
 {
     return (leftHop.ifIndex == rightHop.ifIndex) &&
            (leftHop.hopAddress == rightHop.hopAddress) &&
            (leftHop.advertisingRouter == rightHop.advertisingRouter);
 }
 
-inline bool operator!=(const NextHop& leftHop, const NextHop& rightHop)
+inline bool operator!=(const O2NextHop& leftHop, const O2NextHop& rightHop)
 {
     return !(leftHop == rightHop);
 }

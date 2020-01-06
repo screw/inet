@@ -34,6 +34,42 @@ class IIpv4RoutingTable;
  */
 class INET_API Ipv4Route : public cObject, public IRoute
 {
+  public:
+    class Ipv4RouteNextHop: RouteNextHop{
+        public:
+        Ipv4Address hopAddress;
+//        Ipv4Route * owner;
+        public:
+        Ipv4RouteNextHop(){
+          hopAddress = Ipv4Address::UNSPECIFIED_ADDRESS;
+        };
+        Ipv4RouteNextHop(Ipv4Address _hopAddress){
+          hopAddress = _hopAddress;
+        };
+        Ipv4RouteNextHop(const Ipv4RouteNextHop& other){
+          copy(other);
+        }
+        void copy(const Ipv4RouteNextHop& other)
+        {
+          hopAddress = other.hopAddress;
+        }
+
+        Ipv4Address getHopAddress() const { return hopAddress;}
+        void setHopAddress(const Ipv4Address& _hopAddress) { hopAddress = _hopAddress;}
+
+        virtual L3Address getHopAddressAsGeneric() const override {return getHopAddress();}
+        virtual void setHopAddress(const L3Address& _hopAddress) override { setHopAddress(_hopAddress.toIpv4()); }
+
+
+
+
+
+
+
+    };
+
+    typedef std::vector<Ipv4RouteNextHop*> Ipv4RouteNextHopVector;
+
   private:
     IIpv4RoutingTable *rt;    ///< the routing table in which this route is inserted, or nullptr
     Ipv4Address dest;    ///< Destination
@@ -45,6 +81,11 @@ class INET_API Ipv4Route : public cObject, public IRoute
     int metric;    ///< Metric ("cost" to reach the destination)
     cObject *source;    ///< Object identifying the source
     cObject *protocolData;    ///< Routing Protocol specific data
+
+    int nextHopIndex = -1;
+
+  protected:
+    Ipv4RouteNextHopVector nextHops;
 
   private:
     // copying not supported: following are private and also left undefined
@@ -81,6 +122,14 @@ class INET_API Ipv4Route : public cObject, public IRoute
     virtual void setAdminDist(unsigned int _adminDist) override { if (adminDist != _adminDist) { adminDist = _adminDist; changed(F_ADMINDIST); } }
     virtual void setMetric(int _metric) override { if (metric != _metric) { metric = _metric; changed(F_METRIC); } }
 
+
+    virtual void addNextHop(Ipv4RouteNextHop hop){};
+    virtual void clearNextHops() { nextHops.clear(); }
+    virtual void removeNextHop(unsigned int index) {nextHops.erase(nextHops.begin() + index); }
+    virtual unsigned int getNextHopCount() const { return nextHops.size(); }
+    virtual Ipv4RouteNextHop* getNextHop1(unsigned int index) const { return nextHops[index]; }
+    virtual void setNextHop(unsigned int index, Ipv4RouteNextHop *nextHop) { nextHops[index] = nextHop; }
+
     /** Destination address prefix to match */
     Ipv4Address getDestination() const { return dest; }
 
@@ -115,6 +164,7 @@ class INET_API Ipv4Route : public cObject, public IRoute
     virtual void setDestination(const L3Address& dest) override { setDestination(dest.toIpv4()); }
     virtual void setPrefixLength(int len) override { setNetmask(Ipv4Address::makeNetmask(len)); }
     virtual void setNextHop(const L3Address& nextHop) override { setGateway(nextHop.toIpv4()); }    //TODO rename Ipv4 method
+    virtual void addNextHop(const L3Address& nextHop) override { setNextHop(nextHop); }
 
     virtual L3Address getDestinationAsGeneric() const override { return getDestination(); }
     virtual int getPrefixLength() const override { return getNetmask().getNetmaskLength(); }
