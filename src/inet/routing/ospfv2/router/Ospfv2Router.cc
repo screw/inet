@@ -711,7 +711,7 @@ void Router::rebuildRoutingTable()
       {
         unsigned int count = (*tmp)->getNextHopCount();
         for (unsigned int i = 0; i < count; i++ ){
-          NextHop *hop = (*tmp)->getNextHop(0);
+          O2NextHop *hop = (*tmp)->getNextHop(0);
           hop->cost = (*tmp)->getCost();
           (*tmp)->addNextHop(*hop);
           (*tmp)->removeNextHop(0);
@@ -839,7 +839,7 @@ void Router::rebuildRoutingTable()
                   (*entryLocal)->addNextHop(*(*entryToNextHop)->getNextHop(0));
                 }
                 else{
-                  NextHop nextHop;
+                  O2NextHop nextHop;
                   nextHop.advertisingRouter = routerID;
                   nextHop.hopAddress = (*it)->getNeighborIpAddress();
                   //                                nextHop.hopAddress =
@@ -1119,8 +1119,8 @@ Ospfv2RoutingTableEntry *Router::getPreferredEntry(const Ospfv2Lsa& lsa, bool sk
         // if a direct delivery, update hop address to point to the forward address
         if(isDirectRoute(*forwardEntry)) {
             forwardEntry->clearNextHops();
-            NextHop hop = {forwardEntry->getInterface()->getInterfaceId(), forwardingAddress, routerID};
-            forwardEntry->addNextHop(hop);
+            O2NextHop *hop = new O2NextHop(forwardEntry->getInterface()->getInterfaceId(), forwardingAddress, routerID);
+            forwardEntry->addNextHop(*hop);
         }
 
         return forwardEntry;
@@ -1169,9 +1169,9 @@ void Router::calculateASExternalRoutes(std::vector<Ospfv2RoutingTableEntry *>& n
             newEntry->setLinkStateOrigin(currentLSA);
 
             for (unsigned int j = 0; j < preferredEntry->getNextHopCount(); j++) {
-                NextHop* nextHop = new NextHop(*(preferredEntry->getNextHop(j)));
+                O2NextHop* nextHop = new O2NextHop(*(preferredEntry->getNextHop(j)));
                 if(!nextHop->hopAddress.isUnspecified()) {
-                    nextHop = new NextHop(*(preferredEntry->getNextHop(j)));
+                    nextHop = new O2NextHop(*(preferredEntry->getNextHop(j)));
                     nextHop->advertisingRouter = originatingRouter;
                     newEntry->addNextHop(*nextHop);
                     delete nextHop; //TODO create addNextHop(NextHop *hop) that accept the pointer and doesn't create copy
@@ -1232,9 +1232,9 @@ void Router::calculateASExternalRoutes(std::vector<Ospfv2RoutingTableEntry *>& n
             {
                 for (unsigned int j = 0; j < nextHopCount; j++) {
                     // TODO: merge next hops, not add
-                  NextHop *nextHop = (preferredEntry->getNextHop(j));
+                  O2NextHop *nextHop = (preferredEntry->getNextHop(j));
                   if(!nextHop->hopAddress.isUnspecified()) {
-                      nextHop = new NextHop(*(preferredEntry->getNextHop(j)));
+                      nextHop = new O2NextHop(*(preferredEntry->getNextHop(j)));
                       nextHop->advertisingRouter = originatingRouter;
                       destinationEntry->addNextHop(*nextHop);
                       delete nextHop; //TODO create addNextHop that accept the pointer and doesn't create copy
@@ -1258,9 +1258,9 @@ void Router::calculateASExternalRoutes(std::vector<Ospfv2RoutingTableEntry *>& n
             destinationEntry->clearNextHops();
 
             for (unsigned int j = 0; j < nextHopCount; j++) {
-              NextHop *nextHop = (preferredEntry->getNextHop(j));
+              O2NextHop *nextHop = (preferredEntry->getNextHop(j));
               if(!nextHop->hopAddress.isUnspecified()) {
-                  nextHop = new NextHop(*(preferredEntry->getNextHop(j)));
+                  nextHop = new O2NextHop(*(preferredEntry->getNextHop(j)));
                   nextHop->advertisingRouter = originatingRouter;
                   destinationEntry->addNextHop(*nextHop);
                   delete nextHop; //TODO create addNextHop that accept the pointer and doesn't create copy

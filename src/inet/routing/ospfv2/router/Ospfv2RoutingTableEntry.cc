@@ -54,7 +54,7 @@ Ospfv2RoutingTableEntry::Ospfv2RoutingTableEntry(const Ospfv2RoutingTableEntry& 
     setAdminDist(entry.getAdminDist());
 }
 
-void Ospfv2RoutingTableEntry::addNextHop(NextHop hop)
+void Ospfv2RoutingTableEntry::addNextHop(O2NextHop hop)
 {
     if (nextHops.size() == 0) {
         InterfaceEntry *routingInterface = ift->getInterfaceById(hop.ifIndex);
@@ -71,7 +71,7 @@ void Ospfv2RoutingTableEntry::addNextHop(NextHop hop)
       }
     }
 //    NextHop* nextHop = Nex
-    nextHops.push_back(new NextHop(hop));
+    nextHops.push_back(new O2NextHop(hop));
 }
 
 bool Ospfv2RoutingTableEntry::operator==(const Ospfv2RoutingTableEntry& entry) const
