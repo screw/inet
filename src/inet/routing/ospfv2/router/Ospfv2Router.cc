@@ -713,8 +713,8 @@ void Router::rebuildRoutingTable()
         for (unsigned int i = 0; i < count; i++ ){
           O2NextHop *hop = (*tmp)->getNextHop(0);
           hop->cost = (*tmp)->getCost();
-          (*tmp)->addNextHop(*hop);
-          (*tmp)->removeNextHop(0);
+//          (*tmp)->addNextHop(*hop);
+//          (*tmp)->removeNextHop(0);
         }
       }
 
