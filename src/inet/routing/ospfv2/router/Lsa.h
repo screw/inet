@@ -32,26 +32,24 @@ namespace inet {
 
 namespace ospfv2 {
 
-class NextHop : public Ipv4Route::Ipv4RouteNextHop
+class O2NextHop : public Ipv4Route::Ipv4RouteNextHop
 {
   public:
-    NextHop(int ifIndex, Ipv4Address hopAddress, RouterId advertisingRouter):
-
+    O2NextHop(int ifIndex, Ipv4Address hopAddress, RouterId advertisingRouter):
+    Ipv4RouteNextHop(hopAddress),
     ifIndex(ifIndex),
-    hopAddress(hopAddress),
     advertisingRouter(advertisingRouter)
     {
 //      IRoute::NextHop(hopAddress);
 
     };
-    NextHop(){};
-    NextHop(const NextHop &other): Ipv4Route::Ipv4RouteNextHop(other){
+    O2NextHop(const O2NextHop &other): Ipv4Route::Ipv4RouteNextHop(other){
       copy(other);
     };
 
-    void copy(const NextHop &other){
+    void copy(const O2NextHop &other){
       ifIndex = other.ifIndex;
-      hopAddress = other.hopAddress;
+//      hopAddress = other.hopAddress;
        advertisingRouter = other.advertisingRouter;
        cost = other.cost;
 
@@ -70,8 +68,9 @@ class NextHop : public Ipv4Route::Ipv4RouteNextHop
        signalFwdPacketCount = other.signalFwdPacketCount;
        signalMaxRatio = other.signalMaxRatio;
     }
+
     int ifIndex;
-    Ipv4Address hopAddress = Ipv4Address::UNSPECIFIED_ADDRESS;
+//    Ipv4Address hopAddress = Ipv4Address::UNSPECIFIED_ADDRESS;
     RouterId advertisingRouter;
     Metric cost = -1;
 
@@ -98,7 +97,7 @@ class NextHop : public Ipv4Route::Ipv4RouteNextHop
 class INET_API RoutingInfo
 {
   private:
-    std::vector<NextHop> nextHops;
+    std::vector<O2NextHop> nextHops;
     unsigned long distance;
     Ospfv2Lsa *parent;
 
@@ -107,10 +106,10 @@ class INET_API RoutingInfo
     RoutingInfo(const RoutingInfo& routingInfo) : nextHops(routingInfo.nextHops), distance(routingInfo.distance), parent(routingInfo.parent) {}
     virtual ~RoutingInfo() {}
 
-    void addNextHop(NextHop nextHop) { nextHops.push_back(nextHop); }
+    void addNextHop(O2NextHop nextHop) { nextHops.push_back(nextHop); }
     void clearNextHops() { nextHops.clear(); }
     unsigned int getNextHopCount() const { return nextHops.size(); }
-    NextHop getNextHop(unsigned int index) const { return nextHops[index]; }
+    O2NextHop getNextHop(unsigned int index) const { return nextHops[index]; }
     void setDistance(unsigned long d) { distance = d; }
     unsigned long getDistance() const { return distance; }
     void setParent(Ospfv2Lsa *p) { parent = p; }
@@ -233,14 +232,14 @@ inline bool operator!=(const Ospfv2Options& leftOptions, const Ospfv2Options& ri
     return !(leftOptions == rightOptions);
 }
 
-inline bool operator==(const NextHop& leftHop, const NextHop& rightHop)
+inline bool operator==(const O2NextHop& leftHop, const O2NextHop& rightHop)
 {
     return (leftHop.ifIndex == rightHop.ifIndex) &&
            (leftHop.hopAddress == rightHop.hopAddress) &&
            (leftHop.advertisingRouter == rightHop.advertisingRouter);
 }
 
-inline bool operator!=(const NextHop& leftHop, const NextHop& rightHop)
+inline bool operator!=(const O2NextHop& leftHop, const O2NextHop& rightHop)
 {
     return !(leftHop == rightHop);
 }
