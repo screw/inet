@@ -68,14 +68,14 @@ simsignal_t Dmpr::registerSignal(std::stringstream title, std::stringstream name
 
   if(!hasListeners(signal)){
 
-  cResultRecorder *vectorRecorder = cResultRecorderType::get("vector")->create();
+    cResultRecorder *vectorRecorder = cResultRecorderType::get("vector")->create();
 
-  opp_string_map *attrs = new opp_string_map;
-  (*attrs)["title"] = title.str() + " " + destination.str() + " " + interfaceName.str();
-//  (*attrs)["title"] += ie->getFullName();
+    opp_string_map *attrs = new opp_string_map;
+    (*attrs)["title"] = title.str() + " " + destination.str() + " " + interfaceName.str();
+  //  (*attrs)["title"] += ie->getFullName();
 
-  vectorRecorder->init(this, signalName.str().c_str() , "vector", nullptr, attrs);
-  subscribe(signal,vectorRecorder);
+    vectorRecorder->init(this, signalName.str().c_str() , "vector", nullptr, attrs);
+    subscribe(signal,vectorRecorder);
   }
   return signal;
 
@@ -164,7 +164,7 @@ void Dmpr::handleMessage(cMessage *msg)
     // TODO - Generated method body
 }
 
-void Dmpr::updateIntervalCong(ospfv2::NextHop* nextHop, DmprInterfaceData* dmprData)
+void Dmpr::updateIntervalCong(ospfv2::O2NextHop* nextHop, DmprInterfaceData* dmprData)
 {
 //    double min_threshold = 0.000001; // 0.01;
     // if the packetCount for previous period is 0 then don't change the current value -> use the current value as smootEce in the exponential smooth equation
@@ -224,7 +224,7 @@ void Dmpr::updateIntervalCong(ospfv2::NextHop* nextHop, DmprInterfaceData* dmprD
 
 }
 
-void Dmpr::registerNextHop(int interfaceId, ospfv2::NextHop* nextHop, const ospfv2::Ospfv2RoutingTableEntry* route)
+void Dmpr::registerNextHop(int interfaceId, ospfv2::O2NextHop* nextHop, const ospfv2::Ospfv2RoutingTableEntry* route)
 {
   InterfaceEntry* ie = ift->getInterfaceById(interfaceId);
   nextHop->signalCongLevel = registerSignal(std::stringstream("DMPR Load"), std::stringstream("congLevel"),
@@ -260,7 +260,7 @@ void Dmpr::updateCongestionLevel(int ece, DmprInterfaceData* dmprData, Ipv4Addre
     int count = route->getNextHopCount();
     for (int i = 0; i< count; i++)
     {
-      ospfv2::NextHop* nextHop = route->getNextHop(i);
+      ospfv2::O2NextHop* nextHop = route->getNextHop(i);
 //      if(nextHop.ifIndex == interfaceId)
 //      {
         registerNextHop(nextHop->ifIndex, nextHop, route);
@@ -274,7 +274,7 @@ void Dmpr::updateCongestionLevel(int ece, DmprInterfaceData* dmprData, Ipv4Addre
 
   for(int i = 0; i < ospfEntry->getNextHopCount(); i++)
   {
-    ospfv2::NextHop* nextHop = ospfEntry->getNextHop(i);
+    ospfv2::O2NextHop* nextHop = ospfEntry->getNextHop(i);
     if(nextHop->ifIndex == interfaceId) // && (nextHop.hopAddress == srcIp || nextHop.hopAddress == Ipv4Address::UNSPECIFIED_ADDRESS)
     {
       if (nextHop->lastChange + getInterval() < simTime())
@@ -301,9 +301,9 @@ void Dmpr::updateNextHop(ospfv2::Ospfv2RoutingTableEntry* route)
 
   //  double congestLevel = INT_MAX;
     Ipv4Address nextHopAddr = Ipv4Address::UNSPECIFIED_ADDRESS;
-    ospfv2::NextHop* resNextHop, *tmpNextHop;
-    resNextHop->hopAddress = Ipv4Address::UNSPECIFIED_ADDRESS;
-    std::vector<ospfv2::NextHop*> resNextHops;
+    ospfv2::O2NextHop* resNextHop, *tmpNextHop;
+//    resNextHop->hopAddress = Ipv4Address::UNSPECIFIED_ADDRESS;
+    std::vector<ospfv2::O2NextHop*> resNextHops;
 
     int count = route->getNextHopCount();
 
@@ -321,7 +321,7 @@ void Dmpr::updateNextHop(ospfv2::Ospfv2RoutingTableEntry* route)
 
     for (int i = 0; i < count; i++)
     {
-      ospfv2::NextHop* nextHop = route->getNextHop(i);
+      ospfv2::O2NextHop* nextHop = route->getNextHop(i);
       if (nextHop->lastChange + getInterval() < simTime())
       {
         update = true;
@@ -331,7 +331,7 @@ void Dmpr::updateNextHop(ospfv2::Ospfv2RoutingTableEntry* route)
     DmprInterfaceData *dmprData = nullptr;
     for (int i = 0; i < count; i++)
     {
-      ospfv2::NextHop* nextHop = route->getNextHop(i);
+      ospfv2::O2NextHop* nextHop = route->getNextHop(i);
 //      InterfaceEntry* ie = ift->getInterfaceById(nextHop->ifIndex);
 
 
@@ -697,7 +697,7 @@ void Dmpr::updateFwdCongLevel(int ecn, DmprInterfaceData* dmprData, const Ipv4Ad
     int count = dmprRoute->getNextHopCount();
     for (int i = 0; i < count; i++)
     {
-      ospfv2::NextHop* nextHop = dmprRoute->getNextHop(i);
+      ospfv2::O2NextHop* nextHop = dmprRoute->getNextHop(i);
       InterfaceEntry* ie = ift->getInterfaceById(nextHop->ifIndex);
 //      ie->dmprData()->table->insertEntry(destAddr, dmprRoute);
       registerNextHop(nextHop->ifIndex, nextHop, dmprRoute);
@@ -714,7 +714,7 @@ void Dmpr::updateFwdCongLevel(int ecn, DmprInterfaceData* dmprData, const Ipv4Ad
   ospfv2::Ospfv2RoutingTableEntry* ospfEntry = dynamic_cast<ospfv2::Ospfv2RoutingTableEntry*>(dmprRoute);
   for (int i = 0; i < ospfEntry->getNextHopCount(); i++)
   {
-    ospfv2::NextHop* nextHop = ospfEntry->getNextHop(i);
+    ospfv2::O2NextHop* nextHop = ospfEntry->getNextHop(i);
     if (nextHop->ifIndex == interfaceId) // && (nextHop->hopAddress == srcIp || nextHop->hopAddress == Ipv4Address::UNSPECIFIED_ADDRESS)
     {
       if(nextHop->lastChange + getInterval() < simTime())
