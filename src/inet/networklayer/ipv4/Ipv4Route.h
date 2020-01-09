@@ -40,7 +40,12 @@ class INET_API Ipv4Route : public cObject, public IRoute
         Ipv4Address hopAddress;
 //        Ipv4Route * owner;
         public:
-        Ipv4RouteNextHop(){};
+        Ipv4RouteNextHop(){
+          hopAddress = Ipv4Address::UNSPECIFIED_ADDRESS;
+        };
+        Ipv4RouteNextHop(Ipv4Address _hopAddress){
+          hopAddress = _hopAddress;
+        };
         Ipv4RouteNextHop(const Ipv4RouteNextHop& other){
           copy(other);
         }
@@ -76,8 +81,11 @@ class INET_API Ipv4Route : public cObject, public IRoute
     int metric;    ///< Metric ("cost" to reach the destination)
     cObject *source;    ///< Object identifying the source
     cObject *protocolData;    ///< Routing Protocol specific data
-    Ipv4RouteNextHopVector nextHops;
+
     int nextHopIndex = -1;
+
+  protected:
+    Ipv4RouteNextHopVector nextHops;
 
   private:
     // copying not supported: following are private and also left undefined
