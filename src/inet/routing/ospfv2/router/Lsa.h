@@ -42,6 +42,54 @@ class O2NextHop : public Ipv4Route::Ipv4RouteNextHop
     {
 //      IRoute::NextHop(hopAddress);
 
+
+
+      cost = -1;
+
+      congLevel = 0.000001; //0.001; //0.000001
+      fwdCongLevel = 0; //forwarded Congestion level
+      downstreamCongLevel = 0.000001; //0.001;  //0.000001
+  //    int packetCount = 0;
+
+      fwdPacketCount = 0; //total number of ECN capable packet forwarded within current interval
+      fwdPacketSum = 0; //sum of ECE marks for forwarded packets within current interval (effectively the number of marked packet)
+      ackPacketCount = 0; //total number of ECN capable Ack packets within current interval
+      ackPacketSum = 0; //sum of ECE marks for ECN capable Acks packets within current interval (effectively the number of marked packet)
+
+      lastChange = 0;
+
+      signalCongLevel = 0;
+      signalfwdCongLevel = 0;
+      signalDownstreamCongLevel = 0;
+      signalFwdPacketCount = 0;
+      signalMaxRatio = 0;
+
+    };
+    O2NextHop(){
+      //      IRoute::NextHop(hopAddress);
+            ifIndex = -1;
+      //      Ipv4Address hopAddress = Ipv4Address::UNSPECIFIED_ADDRESS;
+//            advertisingRouter  = Ipv4Address::UNSPECIFIED_ADDRESS;
+            cost = -1;
+
+            congLevel = 0.000001; //0.001; //0.000001
+            fwdCongLevel = 0; //forwarded Congestion level
+            downstreamCongLevel = 0.000001; //0.001;  //0.000001
+        //    int packetCount = 0;
+
+            fwdPacketCount = 0; //total number of ECN capable packet forwarded within current interval
+            fwdPacketSum = 0; //sum of ECE marks for forwarded packets within current interval (effectively the number of marked packet)
+            ackPacketCount = 0; //total number of ECN capable Ack packets within current interval
+            ackPacketSum = 0; //sum of ECE marks for ECN capable Acks packets within current interval (effectively the number of marked packet)
+
+            lastChange = 0;
+
+            signalCongLevel = 0;
+            signalfwdCongLevel = 0;
+            signalDownstreamCongLevel = 0;
+            signalFwdPacketCount = 0;
+            signalMaxRatio = 0;
+
     };
     O2NextHop(const O2NextHop &other): Ipv4Route::Ipv4RouteNextHop(other){
       copy(other);
