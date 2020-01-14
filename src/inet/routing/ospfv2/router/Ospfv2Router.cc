@@ -25,11 +25,12 @@ namespace inet {
 
 namespace ospfv2 {
 
-Router::Router(cSimpleModule *containingModule, IInterfaceTable *ift, IIpv4RoutingTable *rt) :
+Router::Router(cSimpleModule *containingModule, IInterfaceTable *ift, IIpv4RoutingTable *rt, bool hasDmpr) :
     ift(ift),
     rt(rt),
     routerID(rt->getRouterId()),
-    rfc1583Compatibility(false)
+    rfc1583Compatibility(false),
+    hasDmpr(hasDmpr)
 {
     messageHandler = new MessageHandler(this, containingModule);
     ageTimer = new cMessage("Router::DatabaseAgeTimer", DATABASE_AGE_TIMER);
@@ -1012,6 +1013,7 @@ void Router::calculateASExternalRoutes(std::vector<Ospfv2RoutingTableEntry *>& n
                     newEntry->addNextHop(nextHop);
                 }
             }
+            newEntry->setHasDmpr(hasDmpr);
 
             newRoutingTable.push_back(newEntry);
         }
@@ -1530,6 +1532,11 @@ bool Router::isDirectRoute(Ospfv2RoutingTableEntry &entry)
     }
 
     return false;
+}
+
+bool Router::isHasDmpr() const
+{
+  return hasDmpr;
 }
 
 } // namespace ospfv2

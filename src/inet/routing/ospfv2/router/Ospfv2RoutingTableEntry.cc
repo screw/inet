@@ -198,6 +198,16 @@ const std::string Ospfv2RoutingTableEntry::getPathTypeString(RoutingPathType pat
     return "Unknown";
 }
 
+bool Ospfv2RoutingTableEntry::isHasDmpr() const
+{
+  return hasDmpr;
+}
+
+void Ospfv2RoutingTableEntry::setHasDmpr(bool hasDmpr)
+{
+  this->hasDmpr = hasDmpr;
+}
+
 } // namespace ospfv2
 
 } // namespace inet
