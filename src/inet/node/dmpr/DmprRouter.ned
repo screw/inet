@@ -25,16 +25,18 @@ import inet.routing.dmpr.DmprForwardingTable;
 module DmprRouter extends Router
 {
     parameters:
-        bool hasDmpr = true;
+        bool hasDmpr = default(true);
         hasOspf = true;
+        
+        *.hasDmpr = hasDmpr;
 
     submodules:
-        dmpr: Dmpr {
+        dmpr: Dmpr if hasDmpr {
             parameters:
                 @display("p=1080.45,225");
 
         }
-        dmprForwardingTable: DmprForwardingTable {
+        dmprForwardingTable: DmprForwardingTable if hasDmpr {
             parameters:
                 @display("p=1168.6499,225.22499");
         }

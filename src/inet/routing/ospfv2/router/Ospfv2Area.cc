@@ -1705,6 +1705,7 @@ void Ospfv2Area::calculateShortestPathTree(std::vector<Ospfv2RoutingTableEntry *
                     for (uint32_t i = 0; i < nextHopCount; i++) {
                         entry->addNextHop(routerLSA->getNextHop(i));
                     }
+                    entry->setHasDmpr(parentRouter->isHasDmpr());
 
                     newRoutingTable.push_back(entry);
 
@@ -1813,6 +1814,7 @@ void Ospfv2Area::calculateShortestPathTree(std::vector<Ospfv2RoutingTableEntry *
                     for (uint32_t i = 0; i < nextHopCount; i++) {
                         entry->addNextHop(networkLSA->getNextHop(i));
                     }
+                    entry->setHasDmpr(parentRouter->isHasDmpr());
 
                     if (!overWrite) {
                         newRoutingTable.push_back(entry);
@@ -1926,6 +1928,7 @@ void Ospfv2Area::calculateShortestPathTree(std::vector<Ospfv2RoutingTableEntry *
                 for (auto it = newNextHops->begin(); it != newNextHops->end(); ++it)
                     entry->addNextHop(*it);
                 delete newNextHops;
+                entry->setHasDmpr(parentRouter->isHasDmpr());
 
                 newRoutingTable.push_back(entry);
             }
@@ -2324,6 +2327,7 @@ Ospfv2RoutingTableEntry *Ospfv2Area::createRoutingTableEntryFromSummaryLSA(const
     for (unsigned int j = 0; j < nextHopCount; j++) {
         newEntry->addNextHop(borderRouterEntry.getNextHop(j));
     }
+    newEntry->setHasDmpr(parentRouter->isHasDmpr());
 
     return newEntry;
 }
