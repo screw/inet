@@ -180,6 +180,7 @@ simple Ospfv2 like IOspf
         string authenticationType @enum("SimplePasswordType","CrytographicType","NullType") = default("NullType");
         string authenticationKey = default("0x00");  // 0xnn..nn
 
+		bool hasDmpr = default(false);
         @display("i=block/network2");
     gates:
         input ipIn @labels(Ipv4ControlInfo/up);
