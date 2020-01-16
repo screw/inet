@@ -90,6 +90,13 @@ class INET_API Ospfv2RoutingTableEntry : public Ipv4Route
     unsigned int getNextHopCount() const { return nextHops.size(); }
     NextHop getNextHop(unsigned int index) const { return nextHops[index]; }
     virtual std::string str() const;
+    
+    
+    /** Next hop address */
+       Ipv4Address getGateway() const;
+
+       /** Next hop interface */
+       InterfaceEntry *getInterface() const;
 };
 
 std::ostream& operator<<(std::ostream& out, const Ospfv2RoutingTableEntry& entry);
