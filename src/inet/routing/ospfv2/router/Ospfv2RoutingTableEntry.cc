@@ -16,6 +16,7 @@
 //
 
 #include "inet/routing/ospfv2/router/Ospfv2RoutingTableEntry.h"
+#include "inet/routing/dmpr/DmprInterfaceData.h"
 
 namespace inet {
 
