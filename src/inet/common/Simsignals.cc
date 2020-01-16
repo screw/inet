@@ -79,6 +79,9 @@ simsignal_t ipv6MulticastGroupUnregisteredSignal = cComponent::registerSignal("i
 //layer 3 - ISIS
 simsignal_t isisAdjChangedSignal = cComponent::registerSignal("isisAdjChanged");
 
+//for DMPR
+simsignal_t interfaceDmprConfigChangedSignal = cComponent::registerSignal("interfaceDmprConfigChanged");
+
 // - layer 4 (transport)
 //...
 
