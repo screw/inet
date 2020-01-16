@@ -1,0 +1,112 @@
+<?xml version="1.0"?>
+<OSPFASConfig xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="OSPF.xsd">
+
+  <!-- Areas -->
+  <Area id="0.0.0.0">
+    <AddressRange address="routerCore1>routerCore2" mask="routerCore1>routerCore2" status="Advertise" />
+    <AddressRange address="routerCore2>routerCore3" mask="routerCore2>routerCore3" status="Advertise" />
+    <AddressRange address="routerCore3>routerCore4" mask="routerCore3>routerCore4" status="Advertise" />
+    <AddressRange address="routerCore4>routerCore5" mask="routerCore4>routerCore5" status="Advertise" />
+    <AddressRange address="routerCore5>routerCore6" mask="routerCore5>routerCore6" status="Advertise" />
+    <AddressRange address="routerCore6>routerCore1" mask="routerCore6>routerCore1" status="Advertise" />
+    
+    <AddressRange address="routerCore1>routerCore3" mask="routerCore1>routerCore3" status="Advertise" />
+    <AddressRange address="routerCore2>routerCore4" mask="routerCore2>routerCore4" status="Advertise" />
+    <AddressRange address="routerCore3>routerCore5" mask="routerCore3>routerCore5" status="Advertise" />
+    <AddressRange address="routerCore4>routerCore6" mask="routerCore4>routerCore6" status="Advertise" />
+    <AddressRange address="routerCore5>routerCore1" mask="routerCore5>routerCore1" status="Advertise" />
+    <AddressRange address="routerCore6>routerCore2" mask="routerCore6>routerCore2" status="Advertise" />
+    
+    <AddressRange address="client101" mask="client101" status="Advertise" />
+    <AddressRange address="client201" mask="client201" status="Advertise" />
+    <AddressRange address="client301" mask="client301" status="Advertise" />
+    <AddressRange address="client401" mask="client401" status="Advertise" />
+    <AddressRange address="client501" mask="client501" status="Advertise" />
+    <AddressRange address="client601" mask="client601" status="Advertise" />
+    
+    
+  </Area>
+<!-- 
+  <Area id="0.0.0.1">
+    <AddressRange address="client101" mask="client101" status="Advertise" />
+  </Area>
+  <Area id="0.0.0.2">
+    <AddressRange address="client201" mask="client201" status="Advertise" />
+  </Area>
+  
+    <Area id="0.0.0.3">
+    <AddressRange address="client301" mask="client301" status="Advertise" />
+  </Area>
+  
+    <Area id="0.0.0.4">
+    <AddressRange address="client401" mask="client401" status="Advertise" />
+  </Area>
+  
+    <Area id="0.0.0.5">
+    <AddressRange address="client501" mask="client501" status="Advertise" />
+  </Area>
+  
+    <Area id="0.0.0.6">
+    <AddressRange address="client601" mask="client601" status="Advertise" />
+  </Area>
+-->
+
+  <!-- Routers -->
+  <Router name="routerCore1" RFC1583Compatible="true">
+    <PointToPointInterface ifName="eth0" areaID="0.0.0.0" interfaceOutputCost="1" />
+    <PointToPointInterface ifName="eth1" areaID="0.0.0.0" interfaceOutputCost="1" />
+    <PointToPointInterface ifName="eth2" areaID="0.0.0.0" interfaceOutputCost="1" />
+    <PointToPointInterface ifName="eth3" areaID="0.0.0.0" interfaceOutputCost="1" />
+    <BroadcastInterface ifName="eth4" areaID="0.0.0.0" interfaceOutputCost="1" />
+ 
+  </Router>
+  
+  <Router name="routerCore2" RFC1583Compatible="true">
+    <PointToPointInterface ifName="eth0" areaID="0.0.0.0" interfaceOutputCost="1" />
+    <PointToPointInterface ifName="eth1" areaID="0.0.0.0" interfaceOutputCost="1" />
+    <PointToPointInterface ifName="eth2" areaID="0.0.0.0" interfaceOutputCost="1" />
+    <PointToPointInterface ifName="eth3" areaID="0.0.0.0" interfaceOutputCost="1" />
+    <BroadcastInterface ifName="eth4" areaID="0.0.0.0" interfaceOutputCost="1" />
+ 
+  </Router>
+  
+    <Router name="routerCore3" RFC1583Compatible="true">
+    <PointToPointInterface ifName="eth0" areaID="0.0.0.0" interfaceOutputCost="1" />
+    <PointToPointInterface ifName="eth1" areaID="0.0.0.0" interfaceOutputCost="1" />
+    <PointToPointInterface ifName="eth2" areaID="0.0.0.0" interfaceOutputCost="1" />
+    <PointToPointInterface ifName="eth3" areaID="0.0.0.0" interfaceOutputCost="1" />
+    <BroadcastInterface ifName="eth4" areaID="0.0.0.0" interfaceOutputCost="1" />
+ 
+  </Router>
+  
+    <Router name="routerCore4" RFC1583Compatible="true">
+    <PointToPointInterface ifName="eth0" areaID="0.0.0.0" interfaceOutputCost="1" />
+    <PointToPointInterface ifName="eth1" areaID="0.0.0.0" interfaceOutputCost="1" />
+    <PointToPointInterface ifName="eth2" areaID="0.0.0.0" interfaceOutputCost="1" />
+    <PointToPointInterface ifName="eth3" areaID="0.0.0.0" interfaceOutputCost="1" />
+    <BroadcastInterface ifName="eth4" areaID="0.0.0.0" interfaceOutputCost="1" />
+ 
+  </Router>
+  
+  
+    <Router name="routerCore5" RFC1583Compatible="true">
+    <PointToPointInterface ifName="eth0" areaID="0.0.0.0" interfaceOutputCost="1" />
+    <PointToPointInterface ifName="eth1" areaID="0.0.0.0" interfaceOutputCost="1" />
+    <PointToPointInterface ifName="eth2" areaID="0.0.0.0" interfaceOutputCost="1" />
+    <PointToPointInterface ifName="eth3" areaID="0.0.0.0" interfaceOutputCost="1" />
+    <BroadcastInterface ifName="eth4" areaID="0.0.0.0" interfaceOutputCost="1" />
+ 
+  </Router>
+  
+    <Router name="routerCore6" RFC1583Compatible="true">
+    <PointToPointInterface ifName="eth0" areaID="0.0.0.0" interfaceOutputCost="1" />
+    <PointToPointInterface ifName="eth1" areaID="0.0.0.0" interfaceOutputCost="1" />
+    <PointToPointInterface ifName="eth2" areaID="0.0.0.0" interfaceOutputCost="1" />
+    <PointToPointInterface ifName="eth3" areaID="0.0.0.0" interfaceOutputCost="1" />
+    <BroadcastInterface ifName="eth4" areaID="0.0.0.0" interfaceOutputCost="1" />
+ 
+  </Router>
+  
+
+
+</OSPFASConfig>
