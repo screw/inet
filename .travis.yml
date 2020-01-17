@@ -39,74 +39,78 @@ script:
 jobs:
   include:
 
-    - stage: build
-      env: TARGET_PLATFORM=linux MODE=release
-    - env: TARGET_PLATFORM=linux MODE=debug
-    - env: TARGET_PLATFORM=windows MODE=release
-    - env: TARGET_PLATFORM=windows MODE=debug
-    - env: TARGET_PLATFORM=macosx MODE=release
-    - env: TARGET_PLATFORM=macosx MODE=debug
+#    - stage: build
+#      env: TARGET_PLATFORM=linux MODE=release
+#    - env: TARGET_PLATFORM=linux MODE=debug
+#    - env: TARGET_PLATFORM=windows MODE=release
+#    - env: TARGET_PLATFORM=windows MODE=debug
+#    - env: TARGET_PLATFORM=macosx MODE=release
+#    - env: TARGET_PLATFORM=macosx MODE=debug
 
     # The following atrocity was necessitated by the timeout limits on Travis.
 
     # release mode fingerprints, split into three arbitrary parts using filters, to avoid freaking timeouts
     - stage: fingerprints
       script:
-        - export STAGE=fingerprints INNER_ARGS="-n 2 -i 0" # not env, so it doesn't affect the cache key
+        - export STAGE=fingerprints INNER_ARGS="-m backboneandonestub" # not env, so it doesn't affect the cache key
         - *DOCKER_COMMAND
       env: TARGET_PLATFORM=linux MODE=release
-    - script:
-        - export STAGE=fingerprints INNER_ARGS="-n 2 -i 1" # not env, so it doesn't affect the cache key
-        - *DOCKER_COMMAND
-      env: TARGET_PLATFORM=linux MODE=release
+    #  script:
+    #    - export STAGE=fingerprints INNER_ARGS="-n 2 -i 0" # not env, so it doesn't affect the cache key
+    #    - *DOCKER_COMMAND
+    #  env: TARGET_PLATFORM=linux MODE=release
+    #- script:
+    #    - export STAGE=fingerprints INNER_ARGS="-n 2 -i 1" # not env, so it doesn't affect the cache key
+    #    - *DOCKER_COMMAND
+    #  env: TARGET_PLATFORM=linux MODE=release
 
 
-    - script:
-        - export STAGE=fingerprints INNER_ARGS="-n 8 -i 0" # not env, so it doesn't affect the cache key
-        - *DOCKER_COMMAND
-      env: TARGET_PLATFORM=linux MODE=debug
-    - script:
-        - export STAGE=fingerprints INNER_ARGS="-n 8 -i 1" # not env, so it doesn't affect the cache key
-        - *DOCKER_COMMAND
-      env: TARGET_PLATFORM=linux MODE=debug
-    - script:
-        - export STAGE=fingerprints INNER_ARGS="-n 8 -i 2" # not env, so it doesn't affect the cache key
-        - *DOCKER_COMMAND
-      env: TARGET_PLATFORM=linux MODE=debug
-    - script:
-        - export STAGE=fingerprints INNER_ARGS="-n 8 -i 3" # not env, so it doesn't affect the cache key
-        - *DOCKER_COMMAND
-      env: TARGET_PLATFORM=linux MODE=debug
-    - script:
-        - export STAGE=fingerprints INNER_ARGS="-n 8 -i 4" # not env, so it doesn't affect the cache key
-        - *DOCKER_COMMAND
-      env: TARGET_PLATFORM=linux MODE=debug
-    - script:
-        - export STAGE=fingerprints INNER_ARGS="-n 8 -i 5" # not env, so it doesn't affect the cache key
-        - *DOCKER_COMMAND
-      env: TARGET_PLATFORM=linux MODE=debug
-    - script:
-        - export STAGE=fingerprints INNER_ARGS="-n 8 -i 6" # not env, so it doesn't affect the cache key
-        - *DOCKER_COMMAND
-      env: TARGET_PLATFORM=linux MODE=debug
-    - script:
-        - export STAGE=fingerprints INNER_ARGS="-n 8 -i 7" # not env, so it doesn't affect the cache key
-        - *DOCKER_COMMAND
-      env: TARGET_PLATFORM=linux MODE=debug
+    #- script:
+    #    - export STAGE=fingerprints INNER_ARGS="-n 8 -i 0" # not env, so it doesn't affect the cache key
+    #    - *DOCKER_COMMAND
+    #  env: TARGET_PLATFORM=linux MODE=debug
+    #- script:
+    #    - export STAGE=fingerprints INNER_ARGS="-n 8 -i 1" # not env, so it doesn't affect the cache key
+    #    - *DOCKER_COMMAND
+    #  env: TARGET_PLATFORM=linux MODE=debug
+    #- script:
+    #    - export STAGE=fingerprints INNER_ARGS="-n 8 -i 2" # not env, so it doesn't affect the cache key
+    #    - *DOCKER_COMMAND
+    #  env: TARGET_PLATFORM=linux MODE=debug
+    #- script:
+    #    - export STAGE=fingerprints INNER_ARGS="-n 8 -i 3" # not env, so it doesn't affect the cache key
+    #    - *DOCKER_COMMAND
+    #  env: TARGET_PLATFORM=linux MODE=debug
+    #- script:
+    #    - export STAGE=fingerprints INNER_ARGS="-n 8 -i 4" # not env, so it doesn't affect the cache key
+    #    - *DOCKER_COMMAND
+    #  env: TARGET_PLATFORM=linux MODE=debug
+    #- script:
+    #    - export STAGE=fingerprints INNER_ARGS="-n 8 -i 5" # not env, so it doesn't affect the cache key
+    #    - *DOCKER_COMMAND
+    #  env: TARGET_PLATFORM=linux MODE=debug
+    #- script:
+    #    - export STAGE=fingerprints INNER_ARGS="-n 8 -i 6" # not env, so it doesn't affect the cache key
+    #    - *DOCKER_COMMAND
+    #  env: TARGET_PLATFORM=linux MODE=debug
+    #- script:
+    #    - export STAGE=fingerprints INNER_ARGS="-n 8 -i 7" # not env, so it doesn't affect the cache key
+    #    - *DOCKER_COMMAND
+    #  env: TARGET_PLATFORM=linux MODE=debug
 
 
-    - stage: moduletests
-      script:
-        - export STAGE=moduletests INNER_ARGS="" # not env, so it doesn't affect the cache key
-        - *DOCKER_COMMAND
-      env: TARGET_PLATFORM=linux MODE=debug
+    #- stage: moduletests
+    #  script:
+    #    - export STAGE=moduletests INNER_ARGS="" # not env, so it doesn't affect the cache key
+    #    - *DOCKER_COMMAND
+    #  env: TARGET_PLATFORM=linux MODE=debug
     # TODO add release mode when the runner script supports it
 
-    - stage: unittests
-      script:
-        - export STAGE=unittests INNER_ARGS="" # not env, so it doesn't affect the cache key
-        - *DOCKER_COMMAND
-      env: TARGET_PLATFORM=linux MODE=debug
+    #- stage: unittests
+    #  script:
+    #    - export STAGE=unittests INNER_ARGS="" # not env, so it doesn't affect the cache key
+    #    - *DOCKER_COMMAND
+    # env: TARGET_PLATFORM=linux MODE=debug
     # TODO add release mode when the runner script supports it
 
 # "Look what you made me do", Travis.
