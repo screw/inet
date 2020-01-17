@@ -33,8 +33,8 @@ opp_featuretool enable VoIPStream VoIPStream_examples TCP_NSC TCP_lwIP
 echo -e "CFLAGS += -fcolor-diagnostics\n\n$(cat src/makefrag)" > src/makefrag
 
 echo -e "\nBuilding (silently)...\n"
-make makefiles > /dev/null 2>&1
-make MODE=$MODE USE_PRECOMPILED_HEADER=no -j $(nproc) > /dev/null 2>&1
+make makefiles # > /dev/null 2>&1
+make MODE=$MODE USE_PRECOMPILED_HEADER=no -j $(nproc) # > /dev/null 2>&1
 
 echo -e "\nccache summary:\n"
 ccache -s
