@@ -23,7 +23,8 @@
 #include "inet/common/Protocol.h"
 #include "inet/networklayer/contract/ipv4/Ipv4Address.h"
 #include "inet/networklayer/common/IpProtocolId_m.h"
-#include "inet/networklayer/ipv4/Ipv4Route.h"
+//#include "inet/networklayer/ipv4/Ipv4Route.h"
+#include "inet/routing/ospfv2/router/OspfRoutingTableEntry.h"
 
 
 namespace inet {
@@ -31,7 +32,7 @@ namespace inet {
 /**
  * TODO - Generated class
  */
-class DmprForwardingTable : public cSimpleModule
+class DmprForwardingTable : public cObject
 {
   public:
       typedef struct Socket{
@@ -101,23 +102,45 @@ class DmprForwardingTable : public cSimpleModule
 
       typedef std::map<Socket, NextHopInterface> ForwardingCache;
 
-  private:
 
-
-
-    ForwardingCache forwardingCache;
+      class OspfRouteLessThan
+      {
+          const DmprForwardingTable &c;
+        public:
+          OspfRouteLessThan(const DmprForwardingTable& c) : c(c) {}
+          bool operator () (const ospf::RoutingTableEntry *a, const ospf::RoutingTableEntry *b) { return c.ospfRouteLessThan(a, b); }
+      };
+      bool ospfRouteLessThan(const ospf::RoutingTableEntry *a, const ospf::RoutingTableEntry *b) const;
 
 
 
   protected:
-    virtual void initialize();
-    virtual void handleMessage(cMessage *msg);
+
+
+    typedef std::vector<ospf::RoutingTableEntry *> RouteVector;
+    RouteVector routes;
+    typedef std::map<Ipv4Address, ospf::RoutingTableEntry *> RoutingCache;
+
+
+    mutable RoutingCache routingCache;
+
+
+
+//    ForwardingCache forwardingCache;
+
+
+
+//  protected:
+//    virtual void initialize();
+//    virtual void handleMessage(cMessage *msg);
 
 
   public:
     bool isInCache(Socket socket);
     NextHopInterface getNextHopForSocket(Socket socket);
-    void insertEntry(Socket socket, NextHopInterface);
+    void insertEntry(Ipv4Address address, ospf::RoutingTableEntry* entry);
+
+    ospf::RoutingTableEntry *findBestMatchingRoute(const Ipv4Address& dest) const;
 };
 
 } //namespace
