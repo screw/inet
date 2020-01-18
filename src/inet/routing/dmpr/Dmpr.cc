@@ -21,9 +21,11 @@
 #include "inet/linklayer/common/InterfaceTag_m.h"
 
 #include "inet/networklayer/common/NextHopAddressTag_m.h"
+#include "inet/networklayer/common/L3Tools.h"
 #include "inet/networklayer/ipv4/Ipv4Header_m.h"
 #include "inet/transportlayer/common/TransportPseudoHeader_m.h"
 #include "inet/transportlayer/contract/TransportHeaderBase_m.h"
+
 
 #include "inet/routing/dmpr/DmprInterfaceData.h"
 
@@ -96,7 +98,8 @@ INetfilter::IHook::Result Dmpr::datagramPreRoutingHook(Packet* datagram)
 //  std::cout << "DMPR: PreRouting: Packet: ";
 //  printer.printPacket(std::cout, datagram);
 //  EV_DEBUG << "DMPR Prerouting detailedInf: " << datagram->;
-  const auto& ipv4Header = datagram->peekAtFront<Ipv4Header>();
+
+  auto ipv4Header = datagram->peekAtFront<Ipv4Header>();
 
   const Protocol *protocolPtr = ipv4Header->getProtocol();
   if(*protocolPtr == Protocol::tcp)
@@ -129,9 +132,24 @@ INetfilter::IHook::Result Dmpr::datagramPreRoutingHook(Packet* datagram)
       for(int i = ipv4Header->getOptionArraySize(); i > 0; i--)
       {
 
-        if(ipv4Header->getOption(i).getType() == IPOPTION_STRICT_SOURCE_ROUTING)
+        if(ipv4Header->getOption(i-1).getType() == IPOPTION_STRICT_SOURCE_ROUTING)
         {
+//          ipv4Header->q
+          auto ipv4HeaderForUpdate = removeNetworkProtocolHeader<Ipv4Header>(datagram);
+          TlvOptionBase& option = ipv4HeaderForUpdate->getOptionForUpdate(i-1);
+          Ipv4OptionRecordRoute& strictRoute = dynamic_cast<Ipv4OptionRecordRoute&>(option);
+          short position = strictRoute.getNextAddressIdx();
+          if (strictRoute.getRecordAddressArraySize() > 0)
+          {
 
+            const Ipv4Address& nextHop = strictRoute.getRecordAddress(position);
+            strictRoute.eraseRecordAddress(position);
+            strictRoute.setNextAddressIdx(position - 1);
+
+            datagram->addTagIfAbsent<NextHopAddressReq>()->setNextHopAddress(nextHop);
+
+          }
+          insertNetworkProtocolHeader(datagram, Protocol::ipv4, ipv4HeaderForUpdate);
         }
       }
     }
@@ -145,6 +163,13 @@ INetfilter::IHook::Result Dmpr::datagramPreRoutingHook(Packet* datagram)
 INetfilter::IHook::Result Dmpr::datagramForwardHook(Packet* datagram)
 {
   PacketPrinter printer;
+//  if(datagram->findTag<NextHopAddressReq() != nullptr)
+//  {
+//
+//  }
+
+
+
   const auto& ipv4Header = datagram->peekAtFront<Ipv4Header>();
 
   Ipv4Address destAddr = ipv4Header->getDestAddress();
@@ -228,6 +253,53 @@ INetfilter::IHook::Result Dmpr::datagramForwardHook(Packet* datagram)
 
 INetfilter::IHook::Result Dmpr::datagramPostRoutingHook(Packet* datagram)
 {
+//
+//  auto ipv4Header = removeNetworkProtocolHeader<Ipv4Header>(datagram);
+////  auto ipv4Header = datagram->peekAtFront<Ipv4Header>();
+//
+//const Protocol *protocolPtr = ipv4Header->getProtocol();
+//if(*protocolPtr == Protocol::tcp)
+//{
+//  auto headerOffset = datagram->getFrontOffset();
+//  datagram->setFrontOffset(headerOffset + ipv4Header->getChunkLength());
+//  const auto& transportHeader = peekTransportProtocolHeader(datagram, *protocolPtr);
+//
+//  // must be a TcpHeader
+//  auto tcpHeader = datagram->peekAtFront<tcp::TcpHeader>();
+//
+////    auto tcpHeader = datagram->peekAtFront<TcpHeader>();
+//  datagram->setFrontOffset(headerOffset);
+//
+//
+//    int interfaceId = datagram->getTag<InterfaceInd>()->getInterfaceId();
+//    DmprInterfaceData *dmprData =  interfaceTable->getInterfaceById(interfaceId)->dmprData();
+//
+//
+//
+//    for(int i = ipv4Header->getOptionArraySize(); i > 0; i--)
+//    {
+//
+//      if(ipv4Header->getOption(i-1).getType() == IPOPTION_STRICT_SOURCE_ROUTING)
+//      {
+////          ipv4Header->q
+//        TlvOptionBase& option = ipv4Header->getOptionForUpdate(i-1);
+//        Ipv4OptionRecordRoute& strictRoute = dynamic_cast<Ipv4OptionRecordRoute&>(option);
+//        short position = strictRoute.getNextAddressIdx();
+//        if (strictRoute.getRecordAddressArraySize() > 0)
+//        {
+//          const Ipv4Address& nextHop = strictRoute.getRecordAddress(position);
+//          strictRoute.eraseRecordAddress(position);
+//          strictRoute.setNextAddressIdx(position - 1);
+//
+//          datagram->addTagIfAbsent<NextHopAddressReq>()->setNextHopAddress(nextHop);
+//        }
+//      }
+//    }
+//  }
+//}
+//
+//
+//insertNetworkProtocolHeader(datagram, Protocol::ipv4, ipv4Header);
   return ACCEPT;
 }
 

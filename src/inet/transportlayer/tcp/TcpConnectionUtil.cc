@@ -557,6 +557,10 @@ void TcpConnection::sendSyn()
     writeHeaderOptions(tcpseg);
     Packet *fp = new Packet("SYN");
 
+    // TODO add .ned variable to activate this feature
+    auto routeRecordTag  = fp->addTagIfAbsent<Ipv4RouteRecordReq>();
+    routeRecordTag->setType(IPOPTION_RECORD_ROUTE);
+
     // send it
     sendToIP(fp, tcpseg);
 }
@@ -587,6 +591,37 @@ void TcpConnection::sendSynAck()
 
     Packet *fp = new Packet("SYN+ACK");
 
+    int size = state->ipv4Options.getTlvOptionArraySize();
+    for(int i = 0; i < size; i++)
+    {
+      if(state->ipv4Options.getTlvOptionForUpdate(i)->getType() == IPOPTION_RECORD_ROUTE)
+      {
+        Ipv4StrictSourceRoutingReq* ssrTag = fp->addTag<Ipv4StrictSourceRoutingReq>();
+        TlvOptionBase *option = (state->ipv4Options.getTlvOptionForUpdate(i)->dup());
+        const Ipv4Option ipOption = dynamic_cast<const Ipv4Option&>(*(state->ipv4Options.getTlvOption(i))); // ipv4Header->getOption(i));
+        const Ipv4OptionRecordRoute routeRecord = dynamic_cast<const Ipv4OptionRecordRoute&>(*(state->ipv4Options.getTlvOption(i)));
+//        ASSERT(routeRecord!=nullptr);
+        int routeRecordSize = routeRecord.getRecordAddressArraySize();
+        Ipv4OptionRecordRoute strictRoute; // = new Ipv4OptionRecordRoute;
+        strictRoute.setType(IPOPTION_STRICT_SOURCE_ROUTING);
+
+        for(int k = 0; k < routeRecordSize; k++){
+          strictRoute.insertRecordAddress(routeRecord.getRecordAddress(k));
+        }
+        ssrTag->setOption(strictRoute);
+//        ssrTag->setOption(*(const_cast<Ipv4Option*>(static_cast<Ipv4Option*>(strictRoute))));
+
+//        const Ipv4Option ipOption = *(state->ipv4Options.getTlvOption(i));
+//        ssrTag->setOption(static_cast<inet::Ipv4Option*>(option));
+//        ssrTag->setOption(const_cast<const inet::Ipv4Option>((state->ipv4Options.getTlvOption(i))));
+      }
+
+    }
+
+//  for (int i = 0; i < size; i++)
+//  {
+//    state->ipv4Options.eraseTlvOption(i);
+//  }
     // send it
     sendToIP(fp, tcpseg);
 
@@ -654,15 +689,25 @@ void TcpConnection::sendAck()
         tcpseg->setEceBit(true);
         state->ecnCe = false;
     }
+
+
+    // write header options
+    writeHeaderOptions(tcpseg);
+    Packet *fp = new Packet("TcpAck");
     
-    //clean IPv4 options from state
-    for(int i = state->ipv4Options.getTlvOptionArraySize(); i > 0; i--)
+    
+
+    int size = state->ipv4Options.getTlvOptionArraySize();
+    for(int i = 0; i < size; i++)
     {
+      TlvOptionBase * option = state->ipv4Options.getTlvOptionForUpdate(i);
+      ASSERT(option);
       if(state->ipv4Options.getTlvOptionForUpdate(i)->getType() == IPOPTION_RECORD_ROUTE)
       {
-        Ipv4StrictSourceRoutingReq* ssrTag = tcpseg->addTag<Ipv4StrictSourceRoutingReq>();
+        Ipv4StrictSourceRoutingReq* ssrTag = fp->addTag<Ipv4StrictSourceRoutingReq>();
+        ssrTag->setType(IPOPTION_STRICT_SOURCE_ROUTING);
         TlvOptionBase *option = (state->ipv4Options.getTlvOptionForUpdate(i));
-        ssrTag->setOption(*(const_cast<Ipv4Option*>(static_cast<Ipv4Option*>(option))));
+        ssrTag->setOption(*(const_cast<Ipv4OptionRecordRoute*>(static_cast<Ipv4OptionRecordRoute*>(option))));
 
 //        const Ipv4Option ipOption = *(state->ipv4Options.getTlvOption(i));
 //        ssrTag->setOption(static_cast<inet::Ipv4Option*>(option));
@@ -670,9 +715,10 @@ void TcpConnection::sendAck()
       }
     }
 
-    // write header options
-    writeHeaderOptions(tcpseg);
-    Packet *fp = new Packet("TcpAck");
+//    for (int i = 0; i < size; i++)
+//    {
+//      state->ipv4Options.eraseTlvOption(i);
+//    }
 
     // send it
     sendToIP(fp, tcpseg);
