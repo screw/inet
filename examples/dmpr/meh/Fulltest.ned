@@ -19,8 +19,8 @@ import ned.DatarateChannel;
 ////import inet.linklayer.queue.DropTailQueue;
 //import inet.common.queue.FifoQueue;
 //import inet.common.queue.RedDropper;
-////import inet.linklayer.queue.REDDropperNUMDual;
-////import inet.linklayer.queue.REDDropperNUMDual2;
+//import inet.linklayer.queue.REDDropperNUMDual;
+//import inet.linklayer.queue.REDDropperNUMDual2;
 
 //module REDQueueNUM like IOutputQueue
 //{
