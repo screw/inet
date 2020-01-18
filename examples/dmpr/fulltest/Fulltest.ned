@@ -62,6 +62,7 @@ channel GEth extends DatarateChannel
 
 
 
+
     submodules:
         visualizer: IntegratedCanvasVisualizer {
             @display("p=500,115");
@@ -131,78 +132,78 @@ channel GEth extends DatarateChannel
 
 
         etherSwitch1: EtherSwitch {
-            @display("p=311.61002,1655.81");
+            @display("p=476.58002,1503.06");
         }
         etherSwitch2: EtherSwitch {
-            @display("p=1588.6001,2474.55");
+            @display("p=1228.1101,2431.78");
         }
         etherSwitch3: EtherSwitch {
-            @display("p=2553.9802,2462.33");
+            @display("p=2780.05,2401.23");
         }
         etherSwitch4: EtherSwitch {
-            @display("p=3519.36,1661.92");
+            @display("p=3537.6902,1496.9501");
         }
         etherSwitch5: EtherSwitch {
-            @display("p=2553.9802,659.88");
+            @display("p=2706.7302,659.88");
         }
         etherSwitch6: EtherSwitch {
-            @display("p=1545.8301,641.55005");
+            @display("p=1252.55,617.11005");
         }
 
 
         client101: StandardHost {
             parameters:
-                @display("p=244.40001,1209.78");
+                @display("p=287.17,1020.37006");
         }
         client199: StandardHost {
             parameters:
-                @display("p=177.19,2089.62");
+                @display("p=256.62003,1930.7601");
         }
 
 
         client201: StandardHost {
             parameters:
-                @display("p=739.31006,2816.7102");
+                @display("p=604.89,2492.8801");
         }
         client299: StandardHost {
             parameters:
-                @display("p=1845.2201,2816.7102");
+                @display("p=1741.3501,2725.06");
         }
 
         client301: StandardHost {
             parameters:
-                @display("p=3079.4402,2780.05");
+                @display("p=3336.06,2486.77");
         }
         client399: StandardHost {
             parameters:
-                @display("p=2297.36,2810.6");
+                @display("p=2572.31,2755.61");
         }
         client401: StandardHost {
             parameters:
-                @display("p=3806.5303,2175.1602");
+                @display("p=3769.87,1863.55");
         }
         client499: StandardHost {
             parameters:
-                @display("p=3800.4202,1319.76");
+                @display("p=3775.9802,1075.36");
         }
         client501: StandardHost {
             parameters:
-                @display("p=3287.1802,513.24005");
+                @display("p=3122.2102,568.23004");
         }
 
         client599: StandardHost {
             parameters:
-                @display("p=2169.05,256.62003");
+                @display("p=2437.8901,336.05002");
         }
 
         client601: StandardHost {
             parameters:
-                @display("p=1765.79,293.28");
+                @display("p=1649.7001,360.49002");
         }
 
         client699: StandardHost {
             parameters:
-                @display("p=665.99005,409.37003");
+                @display("p=800.41003,464.36002");
         }
     connections:
 

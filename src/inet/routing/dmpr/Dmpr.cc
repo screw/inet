@@ -15,8 +15,10 @@
 
 #include "inet/routing/dmpr/Dmpr.h"
 
+#include "inet/applications/udpapp/UdpEcnAppHeader_m.h"
 
 #include "inet/transportlayer/tcp/Tcp.h"
+#include "inet/transportlayer/udp/Udp.h"
 #include "inet/common/packet/printer/PacketPrinter.h"
 #include "inet/linklayer/common/InterfaceTag_m.h"
 
@@ -156,6 +158,49 @@ INetfilter::IHook::Result Dmpr::datagramPreRoutingHook(Packet* datagram)
 //        }
 //      }
     }
+  }
+  else if (*protocolPtr == Protocol::udp)
+  {
+
+    auto originalOffset = datagram->getFrontOffset();
+    auto newOffset = originalOffset + ipv4Header->getChunkLength();
+    datagram->setFrontOffset(newOffset);
+    const auto& transportHeader = peekTransportProtocolHeader(datagram, *protocolPtr);
+
+
+    newOffset += transportHeader->getChunkLength();
+    datagram->setFrontOffset(newOffset);
+    // must be a UdpHeader
+//    auto udpHeader = datagram->peekAtFront<UdpHeader>();
+
+    //    auto udpHeader = datagram->peekAtFront<TcpHeader>();
+    // hasAtFront() doesn't work the way I would expect. Returns true if the header matches, but
+    // raises an error if not.
+    if(datagram->hasAtFront<UdpEcnAppHeader>())
+    {
+      auto udpEcnAppHeader = datagram->peekAtFront<UdpEcnAppHeader>();
+      datagram->setFrontOffset(originalOffset);
+
+      //    int64_t payload = (ipv4Header->getTotalLengthField() - ipv4Header->getHeaderLength() - udpHeader->getHeaderLength()).get();
+
+      if (udpEcnAppHeader->getType() == UDP_ECN_ACK)
+      {
+        //ACKnowledgement
+        int interfaceId = datagram->getTag<InterfaceInd>()->getInterfaceId();
+        DmprInterfaceData *dmprData =  interfaceTable->getInterfaceById(interfaceId)->getProtocolData<DmprInterfaceData>();
+
+        int ece = udpEcnAppHeader->getEceBit();
+
+        double p = dmprData->getCongestionLevel();
+        //      double alpha = 0.1
+        p = (1 - alpha) * p + ece * alpha;
+        dmprData->setCongestionLevel(p);
+
+      }
+    }
+
+    datagram->setFrontOffset(originalOffset);
+
   }
 
 
@@ -313,31 +358,30 @@ INetfilter::IHook::Result Dmpr::datagramPostRoutingHook(Packet* datagram)
 
   auto ipv4Header = datagram->peekAtFront<Ipv4Header>();
 
-  const Protocol *protocolPtr = ipv4Header->getProtocol();
-  if(*protocolPtr == Protocol::tcp)
-  {
-    auto headerOffset = datagram->getFrontOffset();
-    datagram->setFrontOffset(headerOffset + ipv4Header->getChunkLength());
-    const auto& transportHeader = peekTransportProtocolHeader(datagram, *protocolPtr);
-
-    // must be a TcpHeader
-    auto tcpHeader = datagram->peekAtFront<tcp::TcpHeader>();
-
-//    auto tcpHeader = datagram->peekAtFront<TcpHeader>();
-    datagram->setFrontOffset(headerOffset);
-
-    int64_t payload = (ipv4Header->getTotalLengthField() - ipv4Header->getHeaderLength() - tcpHeader->getHeaderLength()).get();
-
-
-      //ACKnowledgement
-      int interfaceId = datagram->getTag<InterfaceInd>()->getInterfaceId();
-      DmprInterfaceData *dmprData =  interfaceTable->getInterfaceById(interfaceId)->getProtocolData<DmprInterfaceData>();
-
-//      int ece = tcpHeader->getEceBit();
-
+//
+//  const Protocol *protocolPtr = ipv4Header->getProtocol();
+//  if(*protocolPtr == Protocol::tcp || *protocolPtr == Protocol::udp)
+//  {
+//    auto headerOffset = datagram->getFrontOffset();
+//    datagram->setFrontOffset(headerOffset + ipv4Header->getChunkLength());
+////    const auto& transportHeader = peekTransportProtocolHeader(datagram, *protocolPtr);
+//
+//    // must be a TcpHeader
+//    auto tcpHeader = datagram->peekAtFront<tcp::TcpHeader>();
+//
+////    auto tcpHeader = datagram->peekAtFront<TcpHeader>();
+//    datagram->setFrontOffset(headerOffset);
+//
+////    int64_t payload = (ipv4Header->getTotalLengthField() - ipv4Header->getHeaderLength() - tcpHeader->getHeaderLength()).get();
+//
+//
+//      //ACKnowledgement
+////      int interfaceId = datagram->getTag<InterfaceInd>()->getInterfaceId();
+////      DmprInterfaceData *dmprData =  interfaceTable->getInterfaceById(interfaceId)->getProtocolData<DmprInterfaceData>();
 
 
-      for(int i = ipv4Header->getOptionArraySize(); i > 0; i--)
+
+      for (int i = ipv4Header->getOptionArraySize(); i > 0; i--)
       {
 
         if(ipv4Header->getOption(i-1).getType() == IPOPTION_STRICT_SOURCE_ROUTING)
@@ -404,7 +448,7 @@ INetfilter::IHook::Result Dmpr::datagramPostRoutingHook(Packet* datagram)
         }
       }
 
-  }
+//  }
 
   return ACCEPT;
 }
