@@ -28,4 +28,10 @@ simple Dmpr
         
         double alpha = default(0.03);
         
+        @signal[congLevel*](type=double);
+        @signal[inUseCongLevel*](type=double);
+        
+        //@statistics -> created dynamically 
+        // vectors for congLevel and inUseCongLevel  
+        
 }
