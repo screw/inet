@@ -105,44 +105,9 @@ void Dmpr::initialize(int stage)
     {
       ie = ift->getInterface(i);
 
-//      std::stringstream sigCongLevel;
-//      sigCongLevel << "congLevel." << ie->getFullName();
-////      std::cout << sigCongLevel.str() << std::endl;
-//      std::stringstream sigInUseCongLevel;
-//      sigInUseCongLevel<< "inUseCongLevel." << ie->getFullName();
-//
-//
-//      simsignal_t signalCongLevel = cComponent::registerSignal(sigCongLevel.str().c_str());
-//      simsignal_t signalInUseCongLevel = cComponent::registerSignal(sigInUseCongLevel.str().c_str());
-//
-//      cResultRecorder *vectorRecorder = cResultRecorderType::get("vector")->create();
-//      opp_string_map *attrs = new opp_string_map;
-//      (*attrs)["title"] = "DMPR  Load ";
-//      (*attrs)["title"] += ie->getFullName();
-//      //      (*attrs)["unit"] = "packets";
-//      vectorRecorder->init(this, sigCongLevel.str().c_str() , "vector", nullptr, attrs);
-//      subscribe(signalCongLevel,vectorRecorder);
-//
-//      simsignal_t signal = registerSignal("congLevel", ie->getFullName(), destIp);
-//
-//
-//      cResultRecorder *vectorRecorderInUse = cResultRecorderType::get("vector")->create();
-//      opp_string_map *attrsInUse = new opp_string_map;
-//      (*attrsInUse)["title"] = "DMPR  InUse Load ";
-//      (*attrsInUse)["title"] += ie->getFullName();
-//      //      (*attrs)["unit"] = "packets";
-//      vectorRecorderInUse->init(this, sigInUseCongLevel.str().c_str(), "vector", nullptr, attrsInUse);
-//      subscribe(signalInUseCongLevel, vectorRecorderInUse);
-//
-//      registerSignal(signalInUseCongLevel, vectorRecorderInUse);
-
-
-
 
       DmprInterfaceData *d = ie->addProtocolData<DmprInterfaceData>();
-//      d->setSignalCongLevel(signalCongLevel);
-//      d->setSignalInUseCongLevel(signalInUseCongLevel);
-//      ie->setDmprInterfaceData(d);
+
 
 
 
@@ -242,8 +207,8 @@ void Dmpr::updateIntervalCong(ospf::NextHop& nextHop, DmprInterfaceData* dmprDat
     nextHop.fwdPacketCount = 0;
     nextHop.fwdPacketSum = 0;
 
-    nextHop.inUseCongLevel = (nextHop.congLevel - nextHop.fwdCongLevel) < 0.001 ? 0 : (nextHop.congLevel - nextHop.fwdCongLevel); //dmprData->setInUseCongLevel(dmprData->getCongestionLevel());
-    emitSignal(nextHop.signalInUseCongLevel, nextHop.inUseCongLevel);
+    nextHop.downstreamCongLevel = (nextHop.congLevel - nextHop.fwdCongLevel) < 0.001 ? 0 : (nextHop.congLevel - nextHop.fwdCongLevel); //dmprData->setInUseCongLevel(dmprData->getCongestionLevel());
+    emitSignal(nextHop.signalDownstreamCongLevel, nextHop.downstreamCongLevel);
 
     nextHop.lastChange = simTime();
     nextHop.packetCount = 0;
@@ -257,8 +222,8 @@ void Dmpr::registerNextHop(int interfaceId, ospf::NextHop& nextHop, const ospf::
       std::stringstream(ie->getFullName()), route->getDestination());
   nextHop.signalfwdCongLevel = registerSignal(std::stringstream("DMPR Fwd Load"), std::stringstream("fwdCongLevel"),
       std::stringstream(ie->getFullName()), route->getDestination());
-  nextHop.signalInUseCongLevel = registerSignal(std::stringstream("DMPR InUseLoad"),
-      std::stringstream("inUseCongLevel"), std::stringstream(ie->getFullName()), route->getDestination());
+  nextHop.signalDownstreamCongLevel = registerSignal(std::stringstream("DMPR DownstreamCongLev"),
+      std::stringstream("downstreamCongLevel"), std::stringstream(ie->getFullName()), route->getDestination());
   nextHop.signalFwdPacketCount = registerSignal(std::stringstream("DMPR Fwd Packet Count"),
       std::stringstream("fwdPacketCount"), std::stringstream(ie->getFullName()), route->getDestination());
   nextHop.lastChange = simTime();
@@ -359,7 +324,7 @@ void Dmpr::updateNextHop(ospf::RoutingTableEntry* route)
 
 
 //        NextHop nextHop = entry->getNextHop(i);
-        if(nextHop.signalInUseCongLevel == 0)
+        if(nextHop.signalDownstreamCongLevel == 0)
         {
           registerNextHop(nextHop.ifIndex, nextHop, route);
 
@@ -375,7 +340,7 @@ void Dmpr::updateNextHop(ospf::RoutingTableEntry* route)
 
         packetCount[i] = nextHop.packetCount; //dmprData->getPacketCount();
         //          availableLoad[i] = 1 - dmprData->getCongestionLevel();
-        availableLoad[i] = 1 - nextHop.inUseCongLevel;// dmprData->getInUseCongLevel();
+        availableLoad[i] = 1 - nextHop.downstreamCongLevel;// dmprData->getInUseCongLevel();
 
         availableLoadSum += availableLoad[i];
         packetSum += packetCount[i];
@@ -718,7 +683,7 @@ void Dmpr::updateFwdCongLevel(int ecn, DmprInterfaceData* dmprData, const Ipv4Ad
 //      ie->dmprData()->table->insertEntry(destAddr, dmprRoute);
       nextHop.signalCongLevel = registerSignal(std::stringstream("DMPR Load"), std::stringstream("congLevel"), std::stringstream(ie->getFullName()), route->getDestination());
       nextHop.signalfwdCongLevel = registerSignal(std::stringstream("DMPR Fwd Load"), std::stringstream("fwdCongLevel"), std::stringstream(ie->getFullName()), route->getDestination());
-      nextHop.signalInUseCongLevel = registerSignal(std::stringstream("DMPR InUseLoad"), std::stringstream("inUseCongLevel"), std::stringstream(ie->getFullName()), route->getDestination());
+      nextHop.signalDownstreamCongLevel = registerSignal(std::stringstream("DMPR InUseLoad"), std::stringstream("downstreamCongLevel"), std::stringstream(ie->getFullName()), route->getDestination());
       nextHop.signalFwdPacketCount = registerSignal(std::stringstream("DMPR Fwd Packet Count"), std::stringstream("fwdPacketCount"), std::stringstream(ie->getFullName()), route->getDestination());
       nextHop.lastChange = simTime();
       dmprRoute->setNextHop(i, nextHop);
