@@ -286,7 +286,7 @@ INetfilter::IHook::Result Dmpr::datagramPostRoutingHook(Packet* datagram)
 
       //ACKnowledgement
       int interfaceId = datagram->getTag<InterfaceInd>()->getInterfaceId();
-      DmprInterfaceData *dmprData =  interfaceTable->getInterfaceById(interfaceId)->dmprData();
+      DmprInterfaceData *dmprData =  interfaceTable->getInterfaceById(interfaceId)->getProtocolData<DmprInterfaceData>();
 
       int ece = tcpHeader->getEceBit();
 
@@ -338,7 +338,7 @@ INetfilter::IHook::Result Dmpr::datagramPostRoutingHook(Packet* datagram)
           TlvOptionBase& option = ipv4HeaderForUpdate->getOptionForUpdate(i-1);
           Ipv4OptionRecordRoute& recordRoute = dynamic_cast<Ipv4OptionRecordRoute&>(option);
 
-          recordRoute.insertRecordAddress(destIE->ipv4Data()->getIPAddress());
+          recordRoute.insertRecordAddress(destIE->getProtocolData<Ipv4InterfaceData>()->getIPAddress());
           recordRoute.setNextAddressIdx(recordRoute.getRecordAddressArraySize() - 1);
 
 //          short position = strictRoute.getNextAddressIdx();
