@@ -19,26 +19,36 @@
 #include "inet/common/INETDefs.h"
 #include "inet/networklayer/common/InterfaceEntry.h"
 
+#include "inet/routing/dmpr/Dmpr.h"
+
 namespace inet {
+
+class Dmpr;
 
 class INET_API DmprInterfaceData : public InterfaceProtocolData
 {
   private:
-    double congestionLevel;
+    Dmpr* dmpr;
+    double congLevel;
+    double fwdCongLevel; //forwarded Congestion level
     double inUseCongLevel;
     int packetCount;
 
     simtime_t lastChange;
 
+    simsignal_t signalCongLevel;
+    simsignal_t signalInUseCongLevel;
+
   public:
 
     DmprInterfaceData();
+    DmprInterfaceData(Dmpr* dmpr);
+
     virtual ~DmprInterfaceData();
     virtual std::string str() const override;
     virtual std::string detailedInfo() const;
     double getCongestionLevel() const;
     void setCongestionLevel(double congestionLevel);
-    void incCongestionLevel();
     int getPacketCount() const;
     void setPacketCount(int packetCount);
     void incPacketCount();
@@ -46,6 +56,13 @@ class INET_API DmprInterfaceData : public InterfaceProtocolData
     void setInUseCongLevel(double inUseCongLevel);
     const simtime_t& getLastChange() const;
     void setLastChange(const simtime_t& lastChange);
+
+    simsignal_t getSignalCongLevel() const;
+    simsignal_t getSignalInUseCongLevel() const;
+    void setSignalCongLevel(simsignal_t signalCongLevel);
+    void setSignalInUseCongLevel(simsignal_t signalInUseCongLevel);
+    double getFwdCongLevel() const;
+    void setFwdCongLevel(double fwdCongLevel);
 
 };
 

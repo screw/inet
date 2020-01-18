@@ -20,23 +20,40 @@ namespace inet {
 
 DmprInterfaceData::DmprInterfaceData()
 {
-  congestionLevel = 0;
+
+}
+DmprInterfaceData::DmprInterfaceData(Dmpr* dmpr):
+dmpr(dmpr)
+{
+//  dmpr = dmpr;
+  //Note that the "zero" emit won't be recorded
+
+
+
+  congLevel = 0;
+//  setCongestionLevel(0);
   inUseCongLevel = 0;
+//  setInUseCongLevel(0);
   packetCount = 0;
 
+
   lastChange = 0;
+
+
+
 
 }
 
 double DmprInterfaceData::getCongestionLevel() const
 {
-  return congestionLevel;
+  return congLevel;
 }
 
 
-void DmprInterfaceData::setCongestionLevel(double congestionLevel)
+void DmprInterfaceData::setCongestionLevel(double congLevel)
 {
-  this->congestionLevel = congestionLevel;
+  this->congLevel = congLevel;
+  dmpr->emitSignal(signalCongLevel, congLevel);
 }
 
 DmprInterfaceData::~DmprInterfaceData()
@@ -56,10 +73,6 @@ std::string DmprInterfaceData::detailedInfo() const
   return str();
 }
 
-void DmprInterfaceData::incCongestionLevel()
-{
-  congestionLevel++;
-}
 
 int DmprInterfaceData::getPacketCount() const
 {
@@ -89,11 +102,42 @@ void DmprInterfaceData::setLastChange(const simtime_t& lastChange)
 void DmprInterfaceData::setInUseCongLevel(double inUseCongLevel)
 {
   this->inUseCongLevel = inUseCongLevel;
+  dmpr->emitSignal(signalInUseCongLevel, inUseCongLevel);
 }
 
 void DmprInterfaceData::incPacketCount()
 {
   packetCount++;
+}
+
+simsignal_t DmprInterfaceData::getSignalCongLevel() const
+{
+  return signalCongLevel;
+}
+
+simsignal_t DmprInterfaceData::getSignalInUseCongLevel() const
+{
+  return signalInUseCongLevel;
+}
+
+void DmprInterfaceData::setSignalCongLevel(simsignal_t signalCongLevel)
+{
+  this->signalCongLevel = signalCongLevel;
+}
+
+void DmprInterfaceData::setSignalInUseCongLevel(simsignal_t signalInUseCongLevel)
+{
+  this->signalInUseCongLevel = signalInUseCongLevel;
+}
+
+double DmprInterfaceData::getFwdCongLevel() const
+{
+  return fwdCongLevel;
+}
+
+void DmprInterfaceData::setFwdCongLevel(double fwdCongLevel)
+{
+  this->fwdCongLevel = fwdCongLevel;
 }
 
 } /* namespace inet */
