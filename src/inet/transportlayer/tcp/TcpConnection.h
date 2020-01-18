@@ -116,12 +116,7 @@ enum TcpEventCode {
     // are handled in TcpAlgorithm.
 };
 
-enum IpEcnCode {
-  IP_ECN_NOT_ECT,
-  IP_ECN_ECT_1,
-  IP_ECN_ECT_0,
-  IP_ECN_CE,
-};
+
 
 /** @name Timeout values */
 //@{
