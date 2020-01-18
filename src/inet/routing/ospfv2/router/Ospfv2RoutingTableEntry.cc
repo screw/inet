@@ -42,7 +42,8 @@ Ospfv2RoutingTableEntry::Ospfv2RoutingTableEntry(const Ospfv2RoutingTableEntry& 
     cost(entry.cost),
     type2Cost(entry.type2Cost),
     linkStateOrigin(entry.linkStateOrigin),
-    nextHops(entry.nextHops)
+    nextHops(entry.nextHops),
+    hasDmpr(entry.hasDmpr)
 {
     setDestination(entry.getDestination());
     setNetmask(entry.getNetmask());
@@ -204,6 +205,185 @@ const std::string Ospfv2RoutingTableEntry::getPathTypeString(RoutingPathType pat
     return "Unknown";
 }
 
+/** Next hop interface */
+InterfaceEntry *Ospfv2RoutingTableEntry::getInterface() const
+{
+  return Ipv4Route::getInterface();
+//  initstate()
+  if(!ift || !hasDmpr || !getDestination().isUnicast() || nextHops.size() == 1){
+    return Ipv4Route::getInterface();
+  }
+//  double congestLevel = INT_MAX;
+  Ipv4Address nextHopAddr = Ipv4Address::UNSPECIFIED_ADDRESS;
+  NextHop resNextHop, tmpNextHop;
+  resNextHop.hopAddress = Ipv4Address::UNSPECIFIED_ADDRESS;
+  std::vector<NextHop> resNextHops;
+
+  int count = nextHops.size();
+
+//  double loadIndicator[count];
+  double availableLoad[count];
+  double maxRatio[count];
+  double actualRatio[count];
+  double ratioDiff[count];
+  int packetCount[count];
+  double availableLoadSum = 0;
+  int packetSum = 0;
+
+//  double interval = 0.020;
+
+  DmprInterfaceData *dmprData;
+  for (int i = 0; i < count; i++)
+  {
+    tmpNextHop = nextHops.at(i);
+    InterfaceEntry* ie = ift->getInterfaceById(tmpNextHop.ifIndex);
+    if (ie)
+    {
+      dmprData = ie->getProtocolData<DmprInterfaceData>();
+      Ospfv2RoutingTableEntry* entry =(Ospfv2RoutingTableEntry*)dmprData->dmpr->getRoutingTable()->findBestMatchingRoute(this->getDestination());
+
+      if(!entry)
+      {
+        return Ipv4Route::getInterface();
+      }
+      //TODO: this() and 'entry' have to match (how exactly?; num of hops? same dest?, ???)
+      // if not delete 'entry' from the forwarding table and replace it with this
+
+      NextHop nextHop = entry->getNextHop(i);
+      if(nextHop.signalDownstreamCongLevel == 0)
+      {
+        dmprData->dmpr->registerNextHop(nextHop.ifIndex, nextHop, this);
+
+      }
+
+      if(nextHop.lastChange + dmprData->dmpr->getInterval() < simTime())
+      {
+        //if there has been 0 ACKs in the previous period, use the current congLevel value
+        double smoothEcn = nextHop.ackPacketCount == 0 ? nextHop.congLevel : (double) nextHop.ackPacketSum / (double) nextHop.ackPacketCount;
+        nextHop.congLevel = (1 - dmprData->dmpr->getAlpha()) * nextHop.congLevel + smoothEcn * dmprData->dmpr->getAlpha();
+        dmprData->dmpr->emitSignal(nextHop.signalCongLevel, nextHop.congLevel);
+
+        double smoothEce = nextHop.fwdPacketCount == 0 ? nextHop.fwdCongLevel : (double) nextHop.fwdPacketSum / (double) nextHop.fwdPacketCount;
+        nextHop.fwdCongLevel = (1 - dmprData->dmpr->getAlpha()) * nextHop.fwdCongLevel + smoothEce * dmprData->dmpr->getAlpha();
+        dmprData->dmpr->emitSignal(nextHop.signalfwdCongLevel, nextHop.fwdCongLevel);
+
+        dmprData->dmpr->emitSignal(nextHop.signalFwdPacketCount, nextHop.fwdPacketCount);
+
+        nextHop.downstreamCongLevel = (nextHop.congLevel - nextHop.fwdCongLevel) < 0 ? 0 : nextHop.congLevel - nextHop.fwdCongLevel; //dmprData->setInUseCongLevel(dmprData->getCongestionLevel());
+        dmprData->dmpr->emitSignal(nextHop.signalDownstreamCongLevel, nextHop.downstreamCongLevel);
+
+        nextHop.lastChange = simTime(); //dmprData->setLastChange(simTime());
+//        nextHop.packetCount = 0; //dmprData->setPacketCount(0);
+
+        nextHop.fwdPacketCount = 0;
+        nextHop.fwdPacketSum = 0;
+        nextHop.ackPacketCount = 0;
+        nextHop.ackPacketSum = 0;
+        entry->setNextHop(i, nextHop);
+
+      }
+
+//      packetCount[i] = nextHop.packetCount; //dmprData->getPacketCount();
+      packetCount[i] = nextHop.fwdPacketCount;
+      //          availableLoad[i] = 1 - dmprData->getCongestionLevel();
+      availableLoad[i] = 1 - nextHop.downstreamCongLevel;// dmprData->getInUseCongLevel();
+
+      availableLoadSum += availableLoad[i];
+      packetSum += packetCount[i];
+    } else
+    {
+      packetCount[i] = 0;
+      availableLoad[i] = 0;
+    }
+
+  }
+
+  for (int i = 0; i < count; i++)
+  {
+    maxRatio[i] = availableLoadSum == 0 ? 0 : availableLoad[i] / availableLoadSum; // This can be pre-computed;
+
+    actualRatio[i] =  (packetSum == 0) ? 0 : (double) packetCount[i] / (double)packetSum;
+
+
+    //if the current portion of packets sent over this hop exceeds the maxRatio, then skip this interface in the decision process
+    if (actualRatio[i] > maxRatio[i])
+    {
+      maxRatio[i] = 0;
+    }
+
+    ratioDiff[i] = maxRatio[i] - actualRatio[i];
+  }
+
+  double ratio = -1;
+
+  /*
+   * Chooses the one with the highest available ratio (except the ones that already exceeded maxRatio)
+   */
+  int lastIndex = lastNextHopIndex;
+  EV << "lastNextHopIndex = " << lastIndex <<"\n";
+  int index = 0;
+  for (int i = 0; i < count; i++)
+  {
+
+    index = (i + lastIndex + 1) % count;
+    tmpNextHop = nextHops.at(index);
+    //    std::cout << "DMPR: nextHop: "<< tmpNextHop.hopAddress << " availableLoad: "<< availableLoad[i] << " loadSum: " << availableLoadSum << " ratioDiff: " << ratioDiff[i] << " maxRatio: " << maxRatio[i] << " actualRatio: "<< actualRatio[i] << " packets: " << packetCount[i] << " packetSum: " << packetSum << std::endl;
+
+    if (ratioDiff[index] > ratio)
+    {
+
+      resNextHops.clear();
+      resNextHops.push_back(tmpNextHop);
+      ratio = ratioDiff[index];
+
+      const_cast<ospfv2::Ospfv2RoutingTableEntry*> ( this )->lastNextHopIndex = index;
+
+    }else if(ratioDiff[index] == ratio)
+    {
+      resNextHops.push_back(tmpNextHop);
+
+    }
+  }
+
+  bool randomNextHopEnabled = true;
+
+
+  if(randomNextHopEnabled && resNextHops.size() > 1)
+  {
+    cRNG* rand = dmprData->dmpr->getRNG(0);
+
+
+    int i = rand->intRand(resNextHops.size());
+//    std::cout<<resNextHops.size() << " int i: "<< i << std::endl;
+
+    resNextHop = resNextHops.at(i);
+  }else{
+    resNextHop = resNextHops.at(0);
+  }
+//  /*
+//   * Chooses the one with the highest available ratio (except the ones that already exceeded maxRatio)
+//   */
+//  for (int i = 0; i < count; i++)
+//  {
+//    tmpNextHop = nextHops.at(i);
+//
+//      if (maxRatio[i] > ratio)
+//      {
+//        nextHop = tmpNextHop;
+//        ratio = maxRatio[i];
+//    }
+//  }
+
+  if(resNextHop.hopAddress != Ipv4Address::UNSPECIFIED_ADDRESS){
+    //TODO FIX Dirty hack with const_cast
+    const_cast<Ospfv2RoutingTableEntry*> ( this )->setInterface(ift->getInterfaceById(resNextHop.ifIndex));
+    const_cast<Ospfv2RoutingTableEntry*> ( this )->setGateway(resNextHop.hopAddress);
+  }
+
+
+  return Ipv4Route::getInterface();
+}
+
 bool Ospfv2RoutingTableEntry::isHasDmpr() const
 {
   return hasDmpr;
@@ -212,6 +392,16 @@ bool Ospfv2RoutingTableEntry::isHasDmpr() const
 void Ospfv2RoutingTableEntry::setHasDmpr(bool hasDmpr)
 {
   this->hasDmpr = hasDmpr;
+}
+
+bool Ospfv2RoutingTableEntry::isDmprInit() const
+{
+  return dmprInit;
+}
+
+void Ospfv2RoutingTableEntry::setDmprInit(bool dmprInit)
+{
+  this->dmprInit = dmprInit;
 }
 
 } // namespace ospfv2
