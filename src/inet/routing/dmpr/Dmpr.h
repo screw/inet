@@ -59,6 +59,8 @@ class Dmpr : public cSimpleModule, public NetfilterBase::HookBase
     virtual Result datagramPostRoutingHook(Packet *datagram) override;
     virtual Result datagramLocalInHook(Packet *datagram) override;
     virtual Result datagramLocalOutHook(Packet *datagram) override;
+    void updateCongestionLevel(int ece, DmprInterfaceData* dmprData, Ipv4Address srcIp, int interfaceId );
+    simsignal_t registerSignal(std::stringstream title, std::stringstream name, std::stringstream interfaceName, Ipv4Address destination);
 
   public:
     void emitSignal(simsignal_t signal, double value);
