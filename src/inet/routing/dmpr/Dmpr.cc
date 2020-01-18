@@ -120,7 +120,7 @@ INetfilter::IHook::Result Dmpr::datagramPreRoutingHook(Packet* datagram)
     {
       //ACKnowledgement
       int interfaceId = datagram->getTag<InterfaceInd>()->getInterfaceId();
-      DmprInterfaceData *dmprData =  interfaceTable->getInterfaceById(interfaceId)->dmprData();
+      DmprInterfaceData *dmprData =  interfaceTable->getInterfaceById(interfaceId)->getProtocolData<DmprInterfaceData>();
 
       int ece = tcpHeader->getEceBit();
 
