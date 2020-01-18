@@ -15,7 +15,6 @@ import ned.DatarateChannel;
 
 //import inet.linklayer.queue.REDDropper;
 
-
 //import inet.common.queue.IOutputQueue;
 ////import inet.linklayer.queue.DropTailQueue;
 //import inet.common.queue.FifoQueue;
@@ -26,7 +25,6 @@ import ned.DatarateChannel;
 
 
 import inet.visualizer.integrated.IntegratedCanvasVisualizer;
-
 
 
 //module RedMarkerQueue like IOutputQueue
