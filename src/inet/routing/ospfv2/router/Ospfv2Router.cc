@@ -25,7 +25,7 @@ namespace inet {
 
 namespace ospfv2 {
 
-Router::Router(cSimpleModule *containingModule, IInterfaceTable *ift, IIpv4RoutingTable *rt, bool hasDmpr) :
+Router::Router(cSimpleModule *containingModule, IInterfaceTable *ift, IIpv4RoutingTable *rt, bool hasDmpr, bool hasUnEqualPaths) :
     ift(ift),
     rt(rt),
     routerID(rt->getRouterId()),
