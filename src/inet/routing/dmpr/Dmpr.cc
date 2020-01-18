@@ -85,22 +85,23 @@ void Dmpr::initialize(int stage)
   if (stage == INITSTAGE_LOCAL)
   {
     routingTable = getModuleFromPar<IIpv4RoutingTable>(par("routingTableModule"), this);
-    interfaceTable = getModuleFromPar<IInterfaceTable>(par("interfaceTableModule"), this);
+    ift = getModuleFromPar<IInterfaceTable>(par("interfaceTableModule"), this);
     networkProtocol = getModuleFromPar<INetfilter>(par("networkProtocolModule"), this);
 //    forwardingTable = getModuleFromPar<DmprForwardingTable>(par("dmprForwardingTableModule"), this);
 
     alpha = par("alpha").doubleValue();
     interval = par("interval").doubleValue();
+
+    randomNextHopEnabled = par("randomNextHopEnabled").boolValue();
   }
   else if (stage == INITSTAGE_LINK_LAYER)
   {
 
-    int numInter = interfaceTable->getNumInterfaces();
+    int numInter = ift->getNumInterfaces();
     InterfaceEntry* ie;
     for (int i = 0; i < numInter; i++ )
     {
-
-      ie = interfaceTable->getInterface(i);
+      ie = ift->getInterface(i);
 
 //      std::stringstream sigCongLevel;
 //      sigCongLevel << "congLevel." << ie->getFullName();
@@ -163,6 +164,11 @@ double Dmpr::getAlpha() const
   return alpha;
 }
 
+IIpv4RoutingTable* Dmpr::getRoutingTable() const
+{
+  return routingTable;
+}
+
 void Dmpr::setAlpha(double alpha)
 {
   this->alpha = alpha;
@@ -216,7 +222,7 @@ void Dmpr::updateIntervalCong(ospf::NextHop& nextHop, DmprInterfaceData* dmprDat
 
 void Dmpr::registerNextHop(int interfaceId, ospf::NextHop& nextHop, const ospf::RoutingTableEntry* route)
 {
-  InterfaceEntry* ie = interfaceTable->getInterfaceById(interfaceId);
+  InterfaceEntry* ie = ift->getInterfaceById(interfaceId);
   nextHop.signalCongLevel = registerSignal(std::stringstream("DMPR Load"), std::stringstream("congLevel"),
       std::stringstream(ie->getFullName()), route->getDestination());
   nextHop.signalfwdCongLevel = registerSignal(std::stringstream("DMPR Fwd Load"), std::stringstream("fwdCongLevel"),
@@ -231,12 +237,12 @@ void Dmpr::registerNextHop(int interfaceId, ospf::NextHop& nextHop, const ospf::
 void Dmpr::updateCongestionLevel(int ece, DmprInterfaceData* dmprData, Ipv4Address srcIp, int interfaceId)
 {
 
-  ospf::RoutingTableEntry* route = dmprData->table->findBestMatchingRoute(srcIp);
-  if(!route)
+  ospf::RoutingTableEntry* route = (ospf::RoutingTableEntry*)routingTable->findBestMatchingRoute(srcIp);//dmprData->table->findBestMatchingRoute(srcIp);
+  if(!route->isDmprInit())
   {
     //This should never happen as the entry should have been created when the data was forwarded
-    route = (ospf::RoutingTableEntry*)routingTable->findBestMatchingRoute(srcIp);
-    dmprData->table->insertEntry(srcIp, (ospf::RoutingTableEntry*) route);
+//    route = (ospf::RoutingTableEntry*)routingTable->findBestMatchingRoute(srcIp);
+//    dmprData->table->insertEntry(srcIp, (ospf::RoutingTableEntry*) route);
 
     int count = route->getNextHopCount();
     for (int i = 0; i< count; i++)
@@ -269,6 +275,169 @@ void Dmpr::updateCongestionLevel(int ece, DmprInterfaceData* dmprData, Ipv4Addre
     }
 
   }
+
+}
+
+void Dmpr::updateNextHop(ospf::RoutingTableEntry* route)
+{
+
+  if(!route->isHasDmpr() || !route->getDestination().isUnicast() || route->getNextHopCount() == 1){
+    return;
+  }
+
+  //  double congestLevel = INT_MAX;
+    Ipv4Address nextHopAddr = Ipv4Address::UNSPECIFIED_ADDRESS;
+    ospf::NextHop resNextHop, tmpNextHop;
+    resNextHop.hopAddress = Ipv4Address::UNSPECIFIED_ADDRESS;
+    std::vector<ospf::NextHop> resNextHops;
+
+    int count = route->getNextHopCount();
+
+  //  double loadIndicator[count];
+    double availableLoad[count];
+    double maxRatio[count];
+    double actualRatio[count];
+    double ratioDiff[count];
+    int packetCount[count];
+    double availableLoadSum = 0;
+    int packetSum = 0;
+
+  //  double interval = 0.020;
+
+    DmprInterfaceData *dmprData;
+    for (int i = 0; i < count; i++)
+    {
+      ospf::NextHop nextHop = route->getNextHop(i);
+      InterfaceEntry* ie = ift->getInterfaceById(nextHop.ifIndex);
+
+
+//        NextHop nextHop = entry->getNextHop(i);
+        if(nextHop.signalInUseCongLevel == 0)
+        {
+          registerNextHop(nextHop.ifIndex, nextHop, route);
+
+        }
+
+        if(nextHop.lastChange + getInterval() < simTime())
+        {
+          //if there has been 0 ACKs in the previous period, use the current congLevel value
+          double smoothEcn = nextHop.ackPacketCount == 0 ? nextHop.congLevel : (double) nextHop.ackPacketSum / (double) nextHop.ackPacketCount;
+          nextHop.congLevel = (1 - getAlpha()) * nextHop.congLevel + smoothEcn * getAlpha();
+          emitSignal(nextHop.signalCongLevel, nextHop.congLevel);
+
+          double smoothEce = nextHop.fwdPacketCount == 0 ? nextHop.fwdCongLevel : (double) nextHop.fwdPacketSum / (double) nextHop.fwdPacketCount;
+          nextHop.fwdCongLevel = (1 - getAlpha()) * nextHop.fwdCongLevel + smoothEce * getAlpha();
+          emitSignal(nextHop.signalfwdCongLevel, nextHop.fwdCongLevel);
+
+          emitSignal(nextHop.signalFwdPacketCount, nextHop.fwdPacketCount);
+
+          nextHop.inUseCongLevel = (nextHop.congLevel - nextHop.fwdCongLevel) < 0 ? 0 : nextHop.congLevel - nextHop.fwdCongLevel; //dmprData->setInUseCongLevel(dmprData->getCongestionLevel());
+          emitSignal(nextHop.signalInUseCongLevel, nextHop.inUseCongLevel);
+
+          nextHop.lastChange = simTime(); //dmprData->setLastChange(simTime());
+          nextHop.packetCount = 0; //dmprData->setPacketCount(0);
+
+          nextHop.fwdPacketCount = 0;
+          nextHop.fwdPacketSum = 0;
+          nextHop.ackPacketCount = 0;
+          nextHop.ackPacketSum = 0;
+          route->setNextHop(i, nextHop);
+
+        }
+
+        packetCount[i] = nextHop.packetCount; //dmprData->getPacketCount();
+        //          availableLoad[i] = 1 - dmprData->getCongestionLevel();
+        availableLoad[i] = 1 - nextHop.inUseCongLevel;// dmprData->getInUseCongLevel();
+
+        availableLoadSum += availableLoad[i];
+        packetSum += packetCount[i];
+
+
+    }
+
+    for (int i = 0; i < count; i++)
+    {
+      maxRatio[i] = availableLoadSum == 0 ? 0 : availableLoad[i] / availableLoadSum; // This can be pre-computed;
+
+      actualRatio[i] =  (packetSum == 0) ? 0 : (double) packetCount[i] / (double)packetSum;
+
+
+      //if the current portion of packets sent over this hop exceeds the maxRatio, then skip this interface in the decision process
+      if (actualRatio[i] > maxRatio[i])
+      {
+        maxRatio[i] = 0;
+      }
+
+      ratioDiff[i] = maxRatio[i] - actualRatio[i];
+    }
+
+    double ratio = -1;
+
+    /*
+     * Chooses the one with the highest available ratio (except the ones that already exceeded maxRatio)
+     */
+    int lastIndex = route->getLastNextHopIndex();
+    EV << "lastNextHopIndex = " << lastIndex <<"\n";
+    int index = 0;
+    for (int i = 0; i < count; i++)
+    {
+
+      index = (i + lastIndex + 1) % count;
+      tmpNextHop = route->getNextHop(index);
+      //    std::cout << "DMPR: nextHop: "<< tmpNextHop.hopAddress << " availableLoad: "<< availableLoad[i] << " loadSum: " << availableLoadSum << " ratioDiff: " << ratioDiff[i] << " maxRatio: " << maxRatio[i] << " actualRatio: "<< actualRatio[i] << " packets: " << packetCount[i] << " packetSum: " << packetSum << std::endl;
+
+      if (ratioDiff[index] > ratio)
+      {
+
+        resNextHops.clear();
+        resNextHops.push_back(tmpNextHop);
+        ratio = ratioDiff[index];
+
+        route->setLastNextHopIndex(index);
+
+      }else if(ratioDiff[index] == ratio)
+      {
+        resNextHops.push_back(tmpNextHop);
+
+      }
+    }
+
+
+
+
+    if(randomNextHopEnabled && resNextHops.size() > 1)
+    {
+      cRNG* rand = getRNG(0);
+
+
+      int i = rand->intRand(resNextHops.size());
+  //    std::cout<<resNextHops.size() << " int i: "<< i << std::endl;
+
+      resNextHop = resNextHops.at(i);
+    }else{
+      resNextHop = resNextHops.at(0);
+    }
+  //  /*
+  //   * Chooses the one with the highest available ratio (except the ones that already exceeded maxRatio)
+  //   */
+  //  for (int i = 0; i < count; i++)
+  //  {
+  //    tmpNextHop = nextHops.at(i);
+  //
+  //      if (maxRatio[i] > ratio)
+  //      {
+  //        nextHop = tmpNextHop;
+  //        ratio = maxRatio[i];
+  //    }
+  //  }
+
+    if(resNextHop.hopAddress != Ipv4Address::UNSPECIFIED_ADDRESS){
+      //TODO FIX Dirty hack with const_cast
+      route->setInterface(ift->getInterfaceById(resNextHop.ifIndex));
+      route->setGateway(resNextHop.hopAddress);
+    }
+
+
 
 }
 
@@ -320,7 +489,7 @@ INetfilter::IHook::Result Dmpr::datagramPreRoutingHook(Packet* datagram)
     {
       //ACKnowledgement
       int interfaceId = datagram->getTag<InterfaceInd>()->getInterfaceId();
-      DmprInterfaceData *dmprData =  interfaceTable->getInterfaceById(interfaceId)->getProtocolData<DmprInterfaceData>();
+      DmprInterfaceData *dmprData =  ift->getInterfaceById(interfaceId)->getProtocolData<DmprInterfaceData>();
 
       int ece = tcpHeader->getEceBit();
 
@@ -355,7 +524,7 @@ INetfilter::IHook::Result Dmpr::datagramPreRoutingHook(Packet* datagram)
       {
         //ACKnowledgement
         int interfaceId = datagram->getTag<InterfaceInd>()->getInterfaceId();
-        DmprInterfaceData *dmprData =  interfaceTable->getInterfaceById(interfaceId)->getProtocolData<DmprInterfaceData>();
+        DmprInterfaceData *dmprData =  ift->getInterfaceById(interfaceId)->getProtocolData<DmprInterfaceData>();
 
         int ece = udpEcnAppHeader->getEceBit();
 
@@ -396,10 +565,12 @@ INetfilter::IHook::Result Dmpr::datagramPreRoutingHook(Packet* datagram)
 
   if(!found){
     //STRICT SOURCE ROUTING OPTION NOT FOUND
-    Ipv4Route *route = routingTable->findBestMatchingRoute(destAddr);
 
-      if (route)
+    Ipv4Route *route1 = routingTable->findBestMatchingRoute(destAddr);
+    ospf::RoutingTableEntry *route = nullptr;
+      if ((route = dynamic_cast<ospf::RoutingTableEntry*>(route1)))
       {
+        updateNextHop(route);
         InterfaceEntry* ie = route->getInterface();
 
         Ipv4Address nextHopAddr = route->getGateway();
@@ -469,7 +640,7 @@ INetfilter::IHook::Result Dmpr::datagramPreRoutingHook(Packet* datagram)
         if (nextHopTag != nullptr && !nextHopTag->getNextHopAddress().toIpv4().isUnspecified()
             && nextHopTag->getNextHopAddress().toIpv4() != ipv4Header->getDestAddress())
         {
-          const InterfaceEntry *destIE = interfaceTable->getInterfaceById(
+          const InterfaceEntry *destIE = ift->getInterfaceById(
               datagram->getTag<InterfaceReq>()->getInterfaceId());
 
           auto ipv4HeaderForUpdate = removeNetworkProtocolHeader<Ipv4Header>(datagram);
@@ -502,18 +673,18 @@ void Dmpr::updateFwdCongLevel(int ecn, DmprInterfaceData* dmprData, const Ipv4Ad
 {
   // get the best matching route from DMPR table
   //TODO what if route exists in DMPR table, but there is better route in the global Routing Table
-  ospf::RoutingTableEntry* dmprRoute = dmprData->table->findBestMatchingRoute(destAddr);
-  if (!dmprRoute)
+  ospf::RoutingTableEntry* dmprRoute = (ospf::RoutingTableEntry*)route; ;//dmprData->table->findBestMatchingRoute(destAddr);
+  if (!dmprRoute->isDmprInit())
   {
-    //if it doesn't exist yet;
-    dmprRoute = new ospf::RoutingTableEntry(*(const_cast<ospf::RoutingTableEntry*>((ospf::RoutingTableEntry*) (route))));
-    dmprData->table->insertEntry(destAddr, dmprRoute);
+    //if it isn't initialised
+//    dmprRoute = new ospf::RoutingTableEntry(*(const_cast<ospf::RoutingTableEntry*>((ospf::RoutingTableEntry*) (route))));
+//    dmprData->table->insertEntry(destAddr, dmprRoute);
     int count = dmprRoute->getNextHopCount();
     for (int i = 0; i < count; i++)
     {
       ospf::NextHop nextHop = dmprRoute->getNextHop(i);
-      InterfaceEntry* ie = interfaceTable->getInterfaceById(nextHop.ifIndex);
-      ie->dmprData()->table->insertEntry(destAddr, dmprRoute);
+      InterfaceEntry* ie = ift->getInterfaceById(nextHop.ifIndex);
+//      ie->dmprData()->table->insertEntry(destAddr, dmprRoute);
       nextHop.signalCongLevel = registerSignal(std::stringstream("DMPR Load"), std::stringstream("congLevel"), std::stringstream(ie->getFullName()), route->getDestination());
       nextHop.signalfwdCongLevel = registerSignal(std::stringstream("DMPR Fwd Load"), std::stringstream("fwdCongLevel"), std::stringstream(ie->getFullName()), route->getDestination());
       nextHop.signalInUseCongLevel = registerSignal(std::stringstream("DMPR InUseLoad"), std::stringstream("inUseCongLevel"), std::stringstream(ie->getFullName()), route->getDestination());
@@ -521,6 +692,7 @@ void Dmpr::updateFwdCongLevel(int ecn, DmprInterfaceData* dmprData, const Ipv4Ad
       nextHop.lastChange = simTime();
       dmprRoute->setNextHop(i, nextHop);
     }
+    dmprRoute->setDmprInit(true);
   }
 
   ospf::RoutingTableEntry* ospfEntry = dynamic_cast<ospf::RoutingTableEntry*>(dmprRoute);
@@ -536,7 +708,7 @@ void Dmpr::updateFwdCongLevel(int ecn, DmprInterfaceData* dmprData, const Ipv4Ad
 
 
       nextHop.fwdPacketCount++;
-      nextHop.fwdPacketSum =+ ecn;
+      nextHop.fwdPacketSum += ecn;
 
       nextHop.packetCount++;
       ospfEntry->setNextHop(i, nextHop);
@@ -625,64 +797,64 @@ INetfilter::IHook::Result Dmpr::datagramForwardHook(Packet* datagram)
 
 
 
-  DmprForwardingTable::Socket socket;
-  socket.dstIp = destAddr;
-  socket.srcIp = ipv4Header->getSrcAddress();
-  socket.protocol = ipv4Header->getProtocolId();
-
-  const Protocol *protocolPtr = ipv4Header->getProtocol();
-  if (!protocolPtr || !isTransportProtocol(*protocolPtr))
-  {
-    // only intended for transport level traffic (NB isTransportProtocol() currently supports only TCP and UDP)
-    return ACCEPT;
-  }
-  auto headerOffset = datagram->getFrontOffset();
-  datagram->setFrontOffset(headerOffset + ipv4Header->getChunkLength());
-  const auto& transportHeader = peekTransportProtocolHeader(datagram, *protocolPtr);
-  datagram->setFrontOffset(headerOffset);
-
-  socket.srcPort = transportHeader->getSourcePort();
-  socket.dstPort = transportHeader->getDestinationPort();
-
-
-  DmprForwardingTable::NextHopInterface nextHop = forwardingTable->getNextHopForSocket(socket);
-
-  if(nextHop.nextHop != Ipv4Address::ALLONES_ADDRESS)
-  {
-    //the 5-tuple (socket) identifier already exists in our forwarding table
-    //set nextHop and return ACCEPT
-
-    datagram->addTagIfAbsent<InterfaceReq>()->setInterfaceId(nextHop.interfaceId);
-    datagram->addTagIfAbsent<NextHopAddressReq>()->setNextHopAddress(nextHop.nextHop);
-    std::cout << "DMPR: Existing nextHop: " << nextHop.nextHop.str() << std::endl;
-
-
-    return ACCEPT;
-  }
-
-  //This flow is not yet in our forwarding table -> create new entry
-  route = routingTable->findBestMatchingRoute(destAddr);
-
-  if (route)
-  {
-    InterfaceEntry* ie = route->getInterface();
-
-    Ipv4Address nextHopAddr = route->getGateway();
-//    DmprForwardingTable::NextHopInterface nextHop;
-    nextHop.interfaceId = ie->getInterfaceId();
-    nextHop.nextHop = nextHopAddr;
-
-//    forwardingTable->insertEntry(socket, nextHop);
-    std::cout << "DMPR: Adding socket: " << socket.str() << std::endl;
-
-    DmprInterfaceData* dmprData = ie->getProtocolData<DmprInterfaceData>();
-//    dmprData->incCongestionLevel();
-
-    datagram->addTagIfAbsent<InterfaceReq>()->setInterfaceId(nextHop.interfaceId);
-    datagram->addTagIfAbsent<NextHopAddressReq>()->setNextHopAddress(nextHop.nextHop);
-//    std::cout << "DMPR: new nextHop: " << nextHop.nextHop.str() << " with congest: " << dmprData->getCongestionLevel()
-//        << "\n";
-  }
+//  DmprForwardingTable::Socket socket;
+//  socket.dstIp = destAddr;
+//  socket.srcIp = ipv4Header->getSrcAddress();
+//  socket.protocol = ipv4Header->getProtocolId();
+//
+//  const Protocol *protocolPtr = ipv4Header->getProtocol();
+//  if (!protocolPtr || !isTransportProtocol(*protocolPtr))
+//  {
+//    // only intended for transport level traffic (NB isTransportProtocol() currently supports only TCP and UDP)
+//    return ACCEPT;
+//  }
+//  auto headerOffset = datagram->getFrontOffset();
+//  datagram->setFrontOffset(headerOffset + ipv4Header->getChunkLength());
+//  const auto& transportHeader = peekTransportProtocolHeader(datagram, *protocolPtr);
+//  datagram->setFrontOffset(headerOffset);
+//
+//  socket.srcPort = transportHeader->getSourcePort();
+//  socket.dstPort = transportHeader->getDestinationPort();
+//
+//
+//  DmprForwardingTable::NextHopInterface nextHop = forwardingTable->getNextHopForSocket(socket);
+//
+//  if(nextHop.nextHop != Ipv4Address::ALLONES_ADDRESS)
+//  {
+//    //the 5-tuple (socket) identifier already exists in our forwarding table
+//    //set nextHop and return ACCEPT
+//
+//    datagram->addTagIfAbsent<InterfaceReq>()->setInterfaceId(nextHop.interfaceId);
+//    datagram->addTagIfAbsent<NextHopAddressReq>()->setNextHopAddress(nextHop.nextHop);
+//    std::cout << "DMPR: Existing nextHop: " << nextHop.nextHop.str() << std::endl;
+//
+//
+//    return ACCEPT;
+//  }
+//
+//  //This flow is not yet in our forwarding table -> create new entry
+//  route = routingTable->findBestMatchingRoute(destAddr);
+//
+//  if (route)
+//  {
+//    InterfaceEntry* ie = route->getInterface();
+//
+//    Ipv4Address nextHopAddr = route->getGateway();
+////    DmprForwardingTable::NextHopInterface nextHop;
+//    nextHop.interfaceId = ie->getInterfaceId();
+//    nextHop.nextHop = nextHopAddr;
+//
+////    forwardingTable->insertEntry(socket, nextHop);
+//    std::cout << "DMPR: Adding socket: " << socket.str() << std::endl;
+//
+//    DmprInterfaceData* dmprData = ie->dmprData();
+////    dmprData->incCongestionLevel();
+//
+//    datagram->addTagIfAbsent<InterfaceReq>()->setInterfaceId(nextHop.interfaceId);
+//    datagram->addTagIfAbsent<NextHopAddressReq>()->setNextHopAddress(nextHop.nextHop);
+////    std::cout << "DMPR: new nextHop: " << nextHop.nextHop.str() << " with congest: " << dmprData->getCongestionLevel()
+////        << "\n";
+//  }
 
 
 
@@ -736,7 +908,7 @@ INetfilter::IHook::Result Dmpr::datagramPostRoutingHook(Packet* datagram)
       if (nextHopTag != nullptr && !nextHopTag->getNextHopAddress().toIpv4().isUnspecified()
           && nextHopTag->getNextHopAddress().toIpv4() != ipv4Header->getDestAddress())
       {
-        const InterfaceEntry *destIE = interfaceTable->getInterfaceById(
+        const InterfaceEntry *destIE = ift->getInterfaceById(
             datagram->getTag<InterfaceReq>()->getInterfaceId());
 
         auto ipv4HeaderForUpdate = removeNetworkProtocolHeader<Ipv4Header>(datagram);
