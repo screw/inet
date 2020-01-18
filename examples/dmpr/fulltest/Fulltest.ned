@@ -17,9 +17,10 @@ import ned.DatarateChannel;
 //import inet.linklayer.queue.REDDropper;
 
 //import inet.common.queue.IOutputQueue;
-////import inet.linklayer.queue.DropTailQueue;
+//import inet.linklayer.queue.DropTailQueue;
 //import inet.common.queue.FifoQueue;
-////import inet.common.queue.RedDropper;
+//import inet.common.queue.RedDropper;
+
 //import inet.common.queue.RedMarker;
 ////import inet.linklayer.queue.REDDropperNUMDual;
 ////import inet.linklayer.queue.REDDropperNUMDual2;
@@ -31,6 +32,7 @@ import inet.visualizer.integrated.IntegratedCanvasVisualizer;
 network Hexagon
 {
     types:
+
 
 
 
