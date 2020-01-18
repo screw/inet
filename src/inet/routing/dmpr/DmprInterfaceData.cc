@@ -21,6 +21,10 @@ namespace inet {
 DmprInterfaceData::DmprInterfaceData()
 {
   congestionLevel = 0;
+  inUseCongLevel = 0;
+  packetCount = 0;
+
+  lastChange = 0;
 
 }
 
@@ -57,4 +61,41 @@ void DmprInterfaceData::incCongestionLevel()
   congestionLevel++;
 }
 
+int DmprInterfaceData::getPacketCount() const
+{
+  return packetCount;
+}
+
+void DmprInterfaceData::setPacketCount(int packetCount)
+{
+  this->packetCount = packetCount;
+}
+
+double DmprInterfaceData::getInUseCongLevel() const
+{
+  return inUseCongLevel;
+}
+
+const simtime_t& DmprInterfaceData::getLastChange() const
+{
+  return lastChange;
+}
+
+void DmprInterfaceData::setLastChange(const simtime_t& lastChange)
+{
+  this->lastChange = lastChange;
+}
+
+void DmprInterfaceData::setInUseCongLevel(double inUseCongLevel)
+{
+  this->inUseCongLevel = inUseCongLevel;
+}
+
+void DmprInterfaceData::incPacketCount()
+{
+  packetCount++;
+}
+
 } /* namespace inet */
+
+
