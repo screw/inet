@@ -15,11 +15,11 @@ import ned.DatarateChannel;
 
 //import inet.linklayer.queue.REDDropper;
 
-import inet.common.queue.IOutputQueue;
-//import inet.linklayer.queue.DropTailQueue;
-import inet.common.queue.FifoQueue;
-//import inet.common.queue.RedDropper;
-import inet.common.queue.RedMarker;
+//import inet.common.queue.IOutputQueue;
+////import inet.linklayer.queue.DropTailQueue;
+//import inet.common.queue.FifoQueue;
+////import inet.common.queue.RedDropper;
+//import inet.common.queue.RedMarker;
 //import inet.linklayer.queue.REDDropperNUMDual;
 //import inet.linklayer.queue.REDDropperNUMDual2;
 
@@ -28,28 +28,28 @@ import inet.visualizer.integrated.IntegratedCanvasVisualizer;
 
 
 
-module RedMarkerQueue like IOutputQueue
-{
-    gates:
-        input in;
-        output out;
-
-    submodules:
-        red: RedMarker {
-            numGates = 1;
-            wq = 0.0032;
-            minths = "5";
-            maxths = "40";
-            maxps = "0.10";
-            pkrates = "8333.333";
-            marks = "1";
-        }
-        fifo: FifoQueue;
-    connections:
-        in --> red.in[0];
-        red.out[0] --> fifo.in++;
-        fifo.out --> out;
-}
+//module RedMarkerQueue like IOutputQueue
+//{
+//    gates:
+//        input in;
+//        output out;
+//
+//    submodules:
+//        red: RedMarker {
+//            numGates = 1;
+//            wq = 0.0032;
+//            minths = "5";
+//            maxths = "40";
+//            maxps = "0.10";
+//            pkrates = "8333.333";
+//            marks = "1";
+//        }
+//        fifo: FifoQueue;
+//    connections:
+//        in --> red.in[0];
+//        red.out[0] --> fifo.in++;
+//        fifo.out --> out;
+//}
 network Fulltest
 {
     parameters:
