@@ -10,12 +10,6 @@
     <AddressRange address="routerCore5>routerCore6" mask="routerCore5>routerCore6" status="Advertise" />
     <AddressRange address="routerCore6>routerCore1" mask="routerCore6>routerCore1" status="Advertise" />
     
-    <AddressRange address="routerCore1>routerCore3" mask="routerCore1>routerCore3" status="Advertise" />
-    <AddressRange address="routerCore2>routerCore4" mask="routerCore2>routerCore4" status="Advertise" />
-    <AddressRange address="routerCore3>routerCore5" mask="routerCore3>routerCore5" status="Advertise" />
-    <AddressRange address="routerCore4>routerCore6" mask="routerCore4>routerCore6" status="Advertise" />
-    <AddressRange address="routerCore5>routerCore1" mask="routerCore5>routerCore1" status="Advertise" />
-    <AddressRange address="routerCore6>routerCore2" mask="routerCore6>routerCore2" status="Advertise" />
     
     <AddressRange address="client101" mask="client101" status="Advertise" />
     <AddressRange address="client201" mask="client201" status="Advertise" />
@@ -56,8 +50,6 @@
     <BroadcastInterface ifName="eth0" areaID="0.0.0.0" interfaceOutputCost="1" />
     <PointToPointInterface ifName="eth1" areaID="0.0.0.0" interfaceOutputCost="1" />
     <PointToPointInterface ifName="eth2" areaID="0.0.0.0" interfaceOutputCost="1" />
-    <PointToPointInterface ifName="eth3" areaID="0.0.0.0" interfaceOutputCost="1" />
-    <PointToPointInterface ifName="eth4" areaID="0.0.0.0" interfaceOutputCost="1" />
  
   </Router>
   
@@ -65,8 +57,6 @@
     <BroadcastInterface ifName="eth0" areaID="0.0.0.0" interfaceOutputCost="1" />
     <PointToPointInterface ifName="eth1" areaID="0.0.0.0" interfaceOutputCost="1" />
     <PointToPointInterface ifName="eth2" areaID="0.0.0.0" interfaceOutputCost="1" />
-    <PointToPointInterface ifName="eth3" areaID="0.0.0.0" interfaceOutputCost="1" />
-    <PointToPointInterface ifName="eth4" areaID="0.0.0.0" interfaceOutputCost="1" />
  
   </Router>
   
@@ -74,16 +64,12 @@
      <BroadcastInterface ifName="eth0" areaID="0.0.0.0" interfaceOutputCost="1" />
     <PointToPointInterface ifName="eth1" areaID="0.0.0.0" interfaceOutputCost="1" />
     <PointToPointInterface ifName="eth2" areaID="0.0.0.0" interfaceOutputCost="1" />
-    <PointToPointInterface ifName="eth3" areaID="0.0.0.0" interfaceOutputCost="1" />
-    <PointToPointInterface ifName="eth4" areaID="0.0.0.0" interfaceOutputCost="1" />
   </Router>
   
     <Router name="routerCore4" RFC1583Compatible="true">
     <BroadcastInterface ifName="eth0" areaID="0.0.0.0" interfaceOutputCost="1" />
     <PointToPointInterface ifName="eth1" areaID="0.0.0.0" interfaceOutputCost="1" />
     <PointToPointInterface ifName="eth2" areaID="0.0.0.0" interfaceOutputCost="1" />
-    <PointToPointInterface ifName="eth3" areaID="0.0.0.0" interfaceOutputCost="1" />
-    <PointToPointInterface ifName="eth4" areaID="0.0.0.0" interfaceOutputCost="1" />
  
   </Router>
   
@@ -92,8 +78,6 @@
     <BroadcastInterface ifName="eth0" areaID="0.0.0.0" interfaceOutputCost="1" />
     <PointToPointInterface ifName="eth1" areaID="0.0.0.0" interfaceOutputCost="1" />
     <PointToPointInterface ifName="eth2" areaID="0.0.0.0" interfaceOutputCost="1" />
-    <PointToPointInterface ifName="eth3" areaID="0.0.0.0" interfaceOutputCost="1" />
-    <PointToPointInterface ifName="eth4" areaID="0.0.0.0" interfaceOutputCost="1" />
  
   </Router>
   
@@ -101,8 +85,6 @@
     <BroadcastInterface ifName="eth0" areaID="0.0.0.0" interfaceOutputCost="1" />
     <PointToPointInterface ifName="eth1" areaID="0.0.0.0" interfaceOutputCost="1" />
     <PointToPointInterface ifName="eth2" areaID="0.0.0.0" interfaceOutputCost="1" />
-    <PointToPointInterface ifName="eth3" areaID="0.0.0.0" interfaceOutputCost="1" />
-    <PointToPointInterface ifName="eth4" areaID="0.0.0.0" interfaceOutputCost="1" />
  
   </Router>
   
