@@ -17,11 +17,6 @@
 
 
 namespace inet {
-DmprInterfaceData::DmprInterfaceData()
-{
-
-}
-
 
 DmprInterfaceData::DmprInterfaceData()
 {

@@ -31,6 +31,8 @@
 
 #include "inet/transportlayer/common/L4Tools.h"
 
+#include "inet/routing/dmpr/DmprInterfaceData.h"
+
 
 
 namespace inet {
@@ -54,8 +56,14 @@ void Dmpr::initialize(int stage)
     InterfaceEntry* ie;
     for (int i = 0; i < numInter; i++ )
     {
+
       ie = interfaceTable->getInterface(i);
-      ie->setDmprInterfaceData(new DmprInterfaceData());
+
+
+//       = new DmprInterfaceData(this);
+
+       DmprInterfaceData *d = ie->addProtocolData<DmprInterfaceData>();
+
     }
   }
   else if (stage == INITSTAGE_ROUTING_PROTOCOLS)
@@ -150,7 +158,7 @@ INetfilter::IHook::Result Dmpr::datagramForwardHook(Packet* datagram)
     forwardingTable->insertEntry(socket, nextHop);
     std::cout << "DMPR: Adding socket: " << socket.str() << std::endl;
 
-    DmprInterfaceData* dmprData = ie->dmprData();
+    DmprInterfaceData* dmprData = ie->getProtocolData<DmprInterfaceData>();
     dmprData->incCongestionLevel();
 
     datagram->addTagIfAbsent<InterfaceReq>()->setInterfaceId(nextHop.interfaceId);

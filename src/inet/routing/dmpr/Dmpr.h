@@ -18,6 +18,8 @@
 
 #include "inet/common/INETDefs.h"
 
+//#include "inet/routing/dmpr/DmprInterfaceData.h"
+
 #include "inet/networklayer/contract/IInterfaceTable.h"
 #include "inet/networklayer/contract/IRoutingTable.h"
 #include "inet/networklayer/ipv4/IIpv4RoutingTable.h"
@@ -29,6 +31,7 @@
 
 
 
+class DmprInterfaceData;
 
 namespace inet {
 
