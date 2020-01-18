@@ -190,7 +190,7 @@ network Stability
         
         
         
-        routerCore6.ethg++ <--> NormalP <--> routerCore4.ethg++;
+
         
 
 }

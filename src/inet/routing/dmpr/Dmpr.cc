@@ -284,6 +284,25 @@ INetfilter::IHook::Result Dmpr::datagramPreRoutingHook(Packet* datagram)
 
   const Protocol *protocolPtr = ipv4Header->getProtocol();
   Ipv4Address srcIp = ipv4Header->getSrcAddress();
+
+  Ipv4Address destAddr = ipv4Header->getDestAddress();
+
+  if(!destAddr.isUnicast())
+  {
+    //Only supports unicast
+    return ACCEPT;
+  }
+
+  int ect = ipv4Header->getExplicitCongestionNotification();
+
+//  if (((ect & IP_ECN_ECT_0) != IP_ECN_ECT_0) && ((ect & IP_ECN_ECT_1) != IP_ECN_ECT_1))
+//  {
+//    //packet does not support ECN
+//    return ACCEPT;
+//  }
+
+
+  // START Ack Packet counting
   if(*protocolPtr == Protocol::tcp)
   {
     auto headerOffset = datagram->getFrontOffset();
@@ -293,7 +312,6 @@ INetfilter::IHook::Result Dmpr::datagramPreRoutingHook(Packet* datagram)
     // must be a TcpHeader
     auto tcpHeader = datagram->peekAtFront<tcp::TcpHeader>();
 
-//    auto tcpHeader = datagram->peekAtFront<TcpHeader>();
     datagram->setFrontOffset(headerOffset);
 
     int64_t payload = (ipv4Header->getTotalLengthField() - ipv4Header->getHeaderLength() - tcpHeader->getHeaderLength()).get();
@@ -351,6 +369,123 @@ INetfilter::IHook::Result Dmpr::datagramPreRoutingHook(Packet* datagram)
     datagram->setFrontOffset(originalOffset);
 
   }
+  else
+  {
+    return ACCEPT;
+  }
+
+
+
+  // END Ack Packet counting
+
+
+
+  bool found = false;
+  // if this packet is using Source Routing then override the DMPR mechanism
+  for(int i = ipv4Header->getOptionArraySize(); i > 0; i--)
+  {
+
+    if(ipv4Header->getOption(i-1).getType() == IPOPTION_STRICT_SOURCE_ROUTING)
+    {
+//      return ACCEPT;
+      found = true;
+      break;
+    }
+  }
+
+
+  if(!found){
+    //STRICT SOURCE ROUTING OPTION NOT FOUND
+    Ipv4Route *route = routingTable->findBestMatchingRoute(destAddr);
+
+      if (route)
+      {
+        InterfaceEntry* ie = route->getInterface();
+
+        Ipv4Address nextHopAddr = route->getGateway();
+
+        int interfaceId = ie->getInterfaceId();
+
+        DmprInterfaceData* dmprData = ie->dmprData();
+    //    dmprData->incPacketCount();
+
+        datagram->addTagIfAbsent<InterfaceReq>()->setInterfaceId(interfaceId);
+        datagram->addTagIfAbsent<NextHopAddressReq>()->setNextHopAddress(nextHopAddr);
+
+        //update the congestionLevel for forwarded packets
+
+        int ect = ipv4Header->getExplicitCongestionNotification();
+
+        if (((ect & IP_ECN_ECT_0) == IP_ECN_ECT_0) || ((ect & IP_ECN_ECT_1) == IP_ECN_ECT_1))
+        {
+          int ecn = (ect == IP_ECN_CE) ? 1 : 0;
+
+          updateFwdCongLevel(ecn, dmprData, destAddr, interfaceId, route);
+        }
+      }
+  }
+
+
+
+//  auto ipv4Header = datagram->peekAtFront<Ipv4Header>();
+
+    for (int i = ipv4Header->getOptionArraySize(); i > 0; i--)
+    {
+
+      if(ipv4Header->getOption(i-1).getType() == IPOPTION_STRICT_SOURCE_ROUTING)
+      {
+
+        auto ipv4HeaderForUpdate = removeNetworkProtocolHeader<Ipv4Header>(datagram);
+        TlvOptionBase& option = ipv4HeaderForUpdate->getOptionForUpdate(i-1);
+        Ipv4OptionRecordRoute& strictRoute = dynamic_cast<Ipv4OptionRecordRoute&>(option);
+        short position = strictRoute.getNextAddressIdx();
+        if (strictRoute.getRecordAddressArraySize() > 0)
+        {
+
+          const Ipv4Address& nextHop = strictRoute.getRecordAddress(position);
+          const Ipv4Route *re = routingTable->findBestMatchingRoute(nextHop);
+          const InterfaceEntry *destIE;
+          if (re) {
+            destIE = re->getInterface();
+            datagram->addTagIfAbsent<InterfaceReq>()->setInterfaceId(destIE->getInterfaceId());
+          }
+          strictRoute.eraseRecordAddress(position);
+          strictRoute.setNextAddressIdx(position - 1);
+
+          datagram->addTagIfAbsent<NextHopAddressReq>()->setNextHopAddress(nextHop);
+
+        }
+        insertNetworkProtocolHeader(datagram, Protocol::ipv4, ipv4HeaderForUpdate);
+
+      }
+      else if (ipv4Header->getOption(i-1).getType() == IPOPTION_RECORD_ROUTE)
+      {
+
+        NextHopAddressReq* nextHopTag = datagram->findTag<NextHopAddressReq>();
+
+        //if this is the last hop, don't add it
+        if (nextHopTag != nullptr && !nextHopTag->getNextHopAddress().toIpv4().isUnspecified()
+            && nextHopTag->getNextHopAddress().toIpv4() != ipv4Header->getDestAddress())
+        {
+          const InterfaceEntry *destIE = interfaceTable->getInterfaceById(
+              datagram->getTag<InterfaceReq>()->getInterfaceId());
+
+          auto ipv4HeaderForUpdate = removeNetworkProtocolHeader<Ipv4Header>(datagram);
+
+          //          destIE->ipv4Data()->getIPAddress();
+          TlvOptionBase& option = ipv4HeaderForUpdate->getOptionForUpdate(i - 1);
+          Ipv4OptionRecordRoute& recordRoute = dynamic_cast<Ipv4OptionRecordRoute&>(option);
+
+          recordRoute.insertRecordAddress(destIE->ipv4Data()->getIPAddress());
+          recordRoute.setNextAddressIdx(recordRoute.getRecordAddressArraySize() - 1);
+
+          insertNetworkProtocolHeader(datagram, Protocol::ipv4, ipv4HeaderForUpdate);
+
+        }
+      }
+    }
+
+
 
 
 
@@ -401,6 +536,7 @@ void Dmpr::updateFwdCongLevel(int ecn, DmprInterfaceData* dmprData, const Ipv4Ad
 
       nextHop.packetCount++;
       ospfEntry->setNextHop(i, nextHop);
+      ospfEntry->setLastNextHopIndex(i);
 
     }
   }
@@ -409,7 +545,7 @@ void Dmpr::updateFwdCongLevel(int ecn, DmprInterfaceData* dmprData, const Ipv4Ad
 INetfilter::IHook::Result Dmpr::datagramForwardHook(Packet* datagram)
 {
 
-
+ return ACCEPT;
   PacketPrinter printer;
 
   const auto& ipv4Header = datagram->peekAtFront<Ipv4Header>();
@@ -437,7 +573,7 @@ INetfilter::IHook::Result Dmpr::datagramForwardHook(Packet* datagram)
 
   //This packet is not using Source Routing option so it is NOT ACK
 
-  //This flow is not yet in our forwarding table -> create new entry
+
   Ipv4Route *route = routingTable->findBestMatchingRoute(destAddr);
 
   if (route)
@@ -554,63 +690,65 @@ INetfilter::IHook::Result Dmpr::datagramForwardHook(Packet* datagram)
 INetfilter::IHook::Result Dmpr::datagramPostRoutingHook(Packet* datagram)
 {
 
+  return ACCEPT;
+
   auto ipv4Header = datagram->peekAtFront<Ipv4Header>();
 
-      for (int i = ipv4Header->getOptionArraySize(); i > 0; i--)
+  for (int i = ipv4Header->getOptionArraySize(); i > 0; i--)
+  {
+
+    if(ipv4Header->getOption(i-1).getType() == IPOPTION_STRICT_SOURCE_ROUTING)
+    {
+
+      auto ipv4HeaderForUpdate = removeNetworkProtocolHeader<Ipv4Header>(datagram);
+      TlvOptionBase& option = ipv4HeaderForUpdate->getOptionForUpdate(i-1);
+      Ipv4OptionRecordRoute& strictRoute = dynamic_cast<Ipv4OptionRecordRoute&>(option);
+      short position = strictRoute.getNextAddressIdx();
+      if (strictRoute.getRecordAddressArraySize() > 0)
       {
 
-        if(ipv4Header->getOption(i-1).getType() == IPOPTION_STRICT_SOURCE_ROUTING)
-        {
-
-          auto ipv4HeaderForUpdate = removeNetworkProtocolHeader<Ipv4Header>(datagram);
-          TlvOptionBase& option = ipv4HeaderForUpdate->getOptionForUpdate(i-1);
-          Ipv4OptionRecordRoute& strictRoute = dynamic_cast<Ipv4OptionRecordRoute&>(option);
-          short position = strictRoute.getNextAddressIdx();
-          if (strictRoute.getRecordAddressArraySize() > 0)
-          {
-
-            const Ipv4Address& nextHop = strictRoute.getRecordAddress(position);
-            const Ipv4Route *re = routingTable->findBestMatchingRoute(nextHop);
-            const InterfaceEntry *destIE;
-            if (re) {
-                destIE = re->getInterface();
-                datagram->addTagIfAbsent<InterfaceReq>()->setInterfaceId(destIE->getInterfaceId());
-            }
-            strictRoute.eraseRecordAddress(position);
-            strictRoute.setNextAddressIdx(position - 1);
-
-            datagram->addTagIfAbsent<NextHopAddressReq>()->setNextHopAddress(nextHop);
-
-          }
-          insertNetworkProtocolHeader(datagram, Protocol::ipv4, ipv4HeaderForUpdate);
-
+        const Ipv4Address& nextHop = strictRoute.getRecordAddress(position);
+        const Ipv4Route *re = routingTable->findBestMatchingRoute(nextHop);
+        const InterfaceEntry *destIE;
+        if (re) {
+          destIE = re->getInterface();
+          datagram->addTagIfAbsent<InterfaceReq>()->setInterfaceId(destIE->getInterfaceId());
         }
-        else if (ipv4Header->getOption(i-1).getType() == IPOPTION_RECORD_ROUTE)
-        {
+        strictRoute.eraseRecordAddress(position);
+        strictRoute.setNextAddressIdx(position - 1);
 
-        NextHopAddressReq* nextHopTag = datagram->findTag<NextHopAddressReq>();
+        datagram->addTagIfAbsent<NextHopAddressReq>()->setNextHopAddress(nextHop);
 
-        //if this is the last hop, don't add it
-        if (nextHopTag != nullptr && !nextHopTag->getNextHopAddress().toIpv4().isUnspecified()
-            && nextHopTag->getNextHopAddress().toIpv4() != ipv4Header->getDestAddress())
-        {
-          const InterfaceEntry *destIE = interfaceTable->getInterfaceById(
-              datagram->getTag<InterfaceReq>()->getInterfaceId());
-
-          auto ipv4HeaderForUpdate = removeNetworkProtocolHeader<Ipv4Header>(datagram);
-
-//          destIE->ipv4Data()->getIPAddress();
-          TlvOptionBase& option = ipv4HeaderForUpdate->getOptionForUpdate(i - 1);
-          Ipv4OptionRecordRoute& recordRoute = dynamic_cast<Ipv4OptionRecordRoute&>(option);
-
-          recordRoute.insertRecordAddress(destIE->getProtocolData<Ipv4InterfaceData>()->getIPAddress());
-          recordRoute.setNextAddressIdx(recordRoute.getRecordAddressArraySize() - 1);
-
-          insertNetworkProtocolHeader(datagram, Protocol::ipv4, ipv4HeaderForUpdate);
-
-          }
-        }
       }
+      insertNetworkProtocolHeader(datagram, Protocol::ipv4, ipv4HeaderForUpdate);
+
+    }
+    else if (ipv4Header->getOption(i-1).getType() == IPOPTION_RECORD_ROUTE)
+    {
+
+      NextHopAddressReq* nextHopTag = datagram->findTag<NextHopAddressReq>();
+
+      //if this is the last hop, don't add it
+      if (nextHopTag != nullptr && !nextHopTag->getNextHopAddress().toIpv4().isUnspecified()
+          && nextHopTag->getNextHopAddress().toIpv4() != ipv4Header->getDestAddress())
+      {
+        const InterfaceEntry *destIE = interfaceTable->getInterfaceById(
+            datagram->getTag<InterfaceReq>()->getInterfaceId());
+
+        auto ipv4HeaderForUpdate = removeNetworkProtocolHeader<Ipv4Header>(datagram);
+
+        //          destIE->ipv4Data()->getIPAddress();
+        TlvOptionBase& option = ipv4HeaderForUpdate->getOptionForUpdate(i - 1);
+        Ipv4OptionRecordRoute& recordRoute = dynamic_cast<Ipv4OptionRecordRoute&>(option);
+
+        recordRoute.insertRecordAddress(destIE->getProtocolData<Ipv4InterfaceData>()->getIPAddress());
+        recordRoute.setNextAddressIdx(recordRoute.getRecordAddressArraySize() - 1);
+
+        insertNetworkProtocolHeader(datagram, Protocol::ipv4, ipv4HeaderForUpdate);
+
+      }
+    }
+  }
 
 
 
