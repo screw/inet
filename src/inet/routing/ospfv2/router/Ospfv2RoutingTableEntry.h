@@ -119,6 +119,7 @@ class INET_API Ospfv2RoutingTableEntry : public Ipv4Route
     void setDmprInit(bool dmprInit = false);
 };
 
+
 std::ostream& operator<<(std::ostream& out, const Ospfv2RoutingTableEntry& entry);
 
 } // namespace ospfv2
