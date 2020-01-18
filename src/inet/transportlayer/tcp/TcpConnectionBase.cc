@@ -306,10 +306,14 @@ bool TcpConnection::processTCPSegment(Packet *packet, const Ptr<const TcpHeader>
     if (tryFastRoute(tcpseg))
         return true;
 
-    Ipv4RouteRecordInd* tag = packet->getTag<Ipv4RouteRecordInd>();
+    Ipv4RouteRecordInd* tag = packet->findTag<Ipv4RouteRecordInd>();
     if(tag != nullptr)
     {
-      state->ipv4Options.insertTlvOption(tag->getOption().dup());
+//      state->ipv4Options.insertTlvOption(tag->getOption().dup());
+      const Ipv4OptionRecordRoute recordRoute = dynamic_cast<const Ipv4OptionRecordRoute&>(tag->getOption());
+      state->ipv4Options.insertTlvOption(recordRoute.dup());
+
+
 //      Ipv4StrictSourceRoutingInd* tag = packet->getTag<Ipv4StrictSourceRoutingInd>();
 
     }
@@ -320,9 +324,11 @@ bool TcpConnection::processTCPSegment(Packet *packet, const Ptr<const TcpHeader>
 
     //clean IP options state
     //clean IPv4 options from state
-    for(int i = state->ipv4Options.getTlvOptionArraySize(); i > 0; i--)
+    int size = state->ipv4Options.getTlvOptionArraySize();
+    for(int i = size; i > 0 ; i--)
     {
-      state->ipv4Options.dropTlvOption(i);
+      state->ipv4Options.dropTlvOption(i-1);
+      state->ipv4Options.eraseTlvOption(i-1);
     }
 
 
