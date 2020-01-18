@@ -31,10 +31,10 @@
 
 
 
-class DmprInterfaceData;
+
 
 namespace inet {
-
+class DmprInterfaceData;
 /**
  * TODO - Generated class
  */
@@ -44,7 +44,7 @@ class Dmpr : public cSimpleModule, public NetfilterBase::HookBase
     IIpv4RoutingTable *routingTable = nullptr;
     IInterfaceTable *interfaceTable = nullptr;
     INetfilter *networkProtocol = nullptr;
-    DmprForwardingTable *forwardingTable = nullptr;
+//    DmprForwardingTable *forwardingTable = nullptr;
 
     double alpha;
 
@@ -59,6 +59,8 @@ class Dmpr : public cSimpleModule, public NetfilterBase::HookBase
     virtual Result datagramPostRoutingHook(Packet *datagram) override;
     virtual Result datagramLocalInHook(Packet *datagram) override;
     virtual Result datagramLocalOutHook(Packet *datagram) override;
+    void updateCongestionLevel(int ece, DmprInterfaceData* dmprData, Ipv4Address srcIp, int interfaceId );
+    simsignal_t registerSignal(std::stringstream title, std::stringstream name, std::stringstream interfaceName, Ipv4Address destination);
 
   public:
     void emitSignal(simsignal_t signal, double value);
