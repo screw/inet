@@ -270,8 +270,11 @@ class INET_API TcpStateVariables : public cObject
     bool ecnSetupSynReceived; // indicates the next ACK-SYN should have ECN-setup (ECE = 1; CRW = 0) set
     bool ecnActive; // ecn echoing is used on this connection (assumes ecnEnabled=true and successful handshake)
 
-    bool ecnCe;
+    bool ecnCe; // segment being processed has ECN field in IP set to IP_ECN_CE (congestion experienced)
     int DUPTHRESH;
+
+//    bool ecn;
+//    bool ece;
 
     TlvOptions ipv4Options;
 };
