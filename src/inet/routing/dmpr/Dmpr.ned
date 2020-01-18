@@ -33,7 +33,7 @@ simple Dmpr
         bool lastNextHopIndexEnabled = default(false); //when enabled - starts iterating over nextHops with index+1 of the previous chosen nextHop
         
         @signal[congLevel*](type=double);
-        @signal[inUseCongLevel*](type=double);
+        @signal[downstreamCongLevel*](type=double);
         @signal[fwdCongLevel*](type=double);
         @signal[fwdPacketCount*](type=double);
         

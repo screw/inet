@@ -38,7 +38,7 @@ struct NextHop
 
     double congLevel = 0;
     double fwdCongLevel = 0; //forwarded Congestion level
-    double inUseCongLevel = 0;
+    double downstreamCongLevel = 0;
     int packetCount = 0;
 
     int fwdPacketCount = 0; //total number of ECN capable packet forwarded within current interval
@@ -50,7 +50,7 @@ struct NextHop
 
     simsignal_t signalCongLevel = 0;
     simsignal_t signalfwdCongLevel = 0;
-    simsignal_t signalInUseCongLevel = 0;
+    simsignal_t signalDownstreamCongLevel = 0;
     simsignal_t signalFwdPacketCount = 0;
 
 };
