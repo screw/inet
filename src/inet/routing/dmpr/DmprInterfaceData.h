@@ -41,7 +41,7 @@ class INET_API DmprInterfaceData : public InterfaceProtocolData
 
   public:
     Dmpr* dmpr;
-    DmprForwardingTable* table;
+//    DmprForwardingTable* table;
 //    IIpv4RoutingTable *table = nullptr;
 
 
