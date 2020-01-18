@@ -214,7 +214,7 @@ void Dmpr::updateIntervalCong(ospfv2::NextHop& nextHop, DmprInterfaceData* dmprD
     emitSignal(nextHop.signalDownstreamCongLevel, nextHop.downstreamCongLevel);
 
     nextHop.lastChange = simTime();
-    nextHop.packetCount = 0;
+//    nextHop.packetCount = 0;
 
 }
 
@@ -344,7 +344,8 @@ void Dmpr::updateNextHop(ospfv2::Ospfv2RoutingTableEntry* route)
 
         }
 
-        packetCount[i] = nextHop.packetCount; //dmprData->getPacketCount();
+//        packetCount[i] = nextHop.packetCount; //dmprData->getPacketCount();
+        packetCount[i] = nextHop.fwdPacketCount;
         //          availableLoad[i] = 1 - dmprData->getCongestionLevel();
 //        availableLoad[i] = 1 - nextHop.downstreamCongLevel;// dmprData->getInUseCongLevel();
         availableLoad[i] = nextHop.downstreamCongLevel;// dmprData->getInUseCongLevel();
@@ -584,7 +585,7 @@ INetfilter::IHook::Result Dmpr::datagramPreRoutingHook(Packet* datagram)
 
         int interfaceId = ie->getInterfaceId();
 
-        DmprInterfaceData* dmprData = ie->dmprData();
+        DmprInterfaceData* dmprData = ie->getProtocolData<DmprInterfaceData>();
     //    dmprData->incPacketCount();
 
         datagram->addTagIfAbsent<InterfaceReq>()->setInterfaceId(interfaceId);
@@ -656,7 +657,7 @@ INetfilter::IHook::Result Dmpr::datagramPreRoutingHook(Packet* datagram)
           TlvOptionBase& option = ipv4HeaderForUpdate->getOptionForUpdate(i - 1);
           Ipv4OptionRecordRoute& recordRoute = dynamic_cast<Ipv4OptionRecordRoute&>(option);
 
-          Ipv4Address address = destIE->ipv4Data()->getIPAddress();
+          Ipv4Address address = destIE->getProtocolData<Ipv4InterfaceData>()->getIPAddress();
 //          std::cout<<address<<std::endl;
           recordRoute.insertRecordAddress(address);
           recordRoute.setNextAddressIdx(recordRoute.getRecordAddressArraySize() - 1);
@@ -718,7 +719,7 @@ void Dmpr::updateFwdCongLevel(int ecn, DmprInterfaceData* dmprData, const Ipv4Ad
       nextHop.fwdPacketCount++;
       nextHop.fwdPacketSum += ecn;
 
-      nextHop.packetCount++;
+//      nextHop.packetCount++;
       ospfEntry->setNextHop(i, nextHop);
 //      ospfEntry->setLastNextHopIndex(i);
 

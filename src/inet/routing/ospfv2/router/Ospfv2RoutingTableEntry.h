@@ -97,6 +97,11 @@ class INET_API Ospfv2RoutingTableEntry : public Ipv4Route
     virtual std::string str() const;
     
     
+    /** Next hop address */
+//       Ipv4Address getGateway() const;
+
+       /** Next hop interface */
+       InterfaceEntry *getInterface() const;
     bool isHasDmpr() const;
     void setHasDmpr(bool hasDmpr);
 
