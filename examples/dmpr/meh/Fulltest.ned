@@ -15,12 +15,12 @@ import ned.DatarateChannel;
 
 //import inet.linklayer.queue.REDDropper;
 
-import inet.common.queue.IOutputQueue;
-//import inet.linklayer.queue.DropTailQueue;
-import inet.common.queue.FifoQueue;
-import inet.common.queue.RedDropper;
-//import inet.linklayer.queue.REDDropperNUMDual;
-//import inet.linklayer.queue.REDDropperNUMDual2;
+//import inet.common.queue.IOutputQueue;
+////import inet.linklayer.queue.DropTailQueue;
+//import inet.common.queue.FifoQueue;
+//import inet.common.queue.RedDropper;
+////import inet.linklayer.queue.REDDropperNUMDual;
+////import inet.linklayer.queue.REDDropperNUMDual2;
 
 //module REDQueueNUM like IOutputQueue
 //{
@@ -44,27 +44,27 @@ import inet.common.queue.RedDropper;
 //        fifo.out --> out;
 //}
 
-module REDQueueNUMDual like IOutputQueue
-{
-    gates:
-        input in;
-        output out;
-
-    submodules:
-        red: RedDropper {
-            numGates = 1;
-            wq = default(0.002);
-            minths = default("10");
-            maxths = default("40");
-            maxps = default("0.10");
-            pkrates = default("8333.333");
-        }
-        fifo: FifoQueue;
-    connections:
-        in --> red.in[0];
-        red.out[0] --> fifo.in++;
-        fifo.out --> out;
-}
+//module REDQueueNUMDual like IOutputQueue
+//{
+//    gates:
+//        input in;
+//        output out;
+//
+//    submodules:
+//        red: RedDropper {
+//            numGates = 1;
+//            wq = default(0.002);
+//            minths = default("10");
+//            maxths = default("40");
+//            maxps = default("0.10");
+//            pkrates = default("8333.333");
+//        }
+//        fifo: FifoQueue;
+//    connections:
+//        in --> red.in[0];
+//        red.out[0] --> fifo.in++;
+//        fifo.out --> out;
+//}
 
 //module REDQueueNUMDual2 like IOutputQueue
 //{
