@@ -43,6 +43,18 @@ struct NextHop
     Ipv4Address hopAddress;
     RouterId advertisingRouter;
     Metric cost = -1;
+
+    double congLevel = 0;
+    double fwdCongLevel = 0; //forwarded Congestion level
+    double inUseCongLevel = 0;
+    int packetCount = 0;
+
+    simtime_t lastChange = 0;
+
+    simsignal_t signalCongLevel;
+    simsignal_t signalfwdCongLevel;
+    simsignal_t signalInUseCongLevel;
+
 };
 
 class INET_API RoutingInfo

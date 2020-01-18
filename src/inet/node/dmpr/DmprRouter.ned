@@ -20,7 +20,7 @@ package inet.node.dmpr;
 
 import inet.node.inet.Router;
 import inet.routing.dmpr.Dmpr;
-import inet.routing.dmpr.DmprForwardingTable;
+//import inet.routing.dmpr.DmprForwardingTable;
 
 module DmprRouter extends Router
 {
@@ -36,9 +36,9 @@ module DmprRouter extends Router
                 @display("p=1080.45,225");
 
         }
-        dmprForwardingTable: DmprForwardingTable if hasDmpr {
-            parameters:
-                @display("p=1168.6499,225.22499");
-        }
+//        dmprForwardingTable: DmprForwardingTable if hasDmpr {
+//            parameters:
+//                @display("p=1168.6499,225.22499");
+//        }
 
 }
