@@ -3,24 +3,29 @@
 
   <!-- Areas -->
   <Area id="0.0.0.0">
-    <AddressRange address="routerCore1>routerCore2" mask="routerCore1>routerCore2" status="Advertise" />
-    <AddressRange address="routerCore1>routerCore5" mask="routerCore1>routerCore5" status="Advertise" />
-    <AddressRange address="routerCore3>routerCore4" mask="routerCore3>routerCore4" status="Advertise" />
-    <AddressRange address="routerCore3>routerCore5" mask="routerCore3>routerCore5" status="Advertise" />
-    <AddressRange address="routerCore5>routerCore6" mask="routerCore5>routerCore6" status="Advertise" />
-    <AddressRange address="routerCore2>routerCore6" mask="routerCore2>routerCore6" status="Advertise" />
-    <AddressRange address="routerCore4>routerCore6" mask="routerCore4>routerCore6" status="Advertise" />
+   
+   <AddressRange address="routerCore1>routerCore2" mask="routerCore1>routerCore2" status="DoNotAdvertise" />
+    <AddressRange address="routerCore1>routerCore5" mask="routerCore1>routerCore5" status="DoNotAdvertise" />
+    <AddressRange address="routerCore3>routerCore4" mask="routerCore3>routerCore4" status="DoNotAdvertise" />
+    <AddressRange address="routerCore3>routerCore5" mask="routerCore3>routerCore5" status="DoNotAdvertise" />
+    <AddressRange address="routerCore5>routerCore6" mask="routerCore5>routerCore6" status="DoNotAdvertise" />
+    <AddressRange address="routerCore2>routerCore6" mask="routerCore2>routerCore6" status="DoNotAdvertise" />
+    <AddressRange address="routerCore4>routerCore6" mask="routerCore4>routerCore6" status="DoNotAdvertise" />
+	 
+	<AddressRange address="sender1" mask="sender1" status="Advertise" />
+    <AddressRange address="receiver1" mask="receiver1" status="Advertise" />
+    <AddressRange address="sender2" mask="sender2" status="Advertise" />
+    <AddressRange address="receiver2" mask="receiver2" status="Advertise" />
+    
+	 
+	 
     
     <AddressRange address="sender1>routerCore1" mask="sender1>routerCore1" status="Advertise" />
     <AddressRange address="receiver1>routerCore2" mask="receiver1>routerCore2" status="Advertise" />
     <AddressRange address="sender2>routerCore3" mask="sender2>routerCore3" status="Advertise" />
     <AddressRange address="receiver2>routerCore4" mask="receiver2>routerCore4" status="Advertise" />
-    
-    <AddressRange address="sender1" mask="sender1" status="Advertise" />
-    <AddressRange address="receiver1" mask="receiver1" status="Advertise" />
-    <AddressRange address="sender2" mask="sender2" status="Advertise" />
-    <AddressRange address="receiver2" mask="receiver2" status="Advertise" />
-    
+  
+
     
   </Area>
 

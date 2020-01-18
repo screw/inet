@@ -60,6 +60,7 @@ class INET_API Ospfv2RoutingTableEntry : public Ipv4Route
     std::vector<NextHop> nextHops;
     int lastNextHopIndex = 0;
     bool hasDmpr;
+    bool dmprInit = false;
     // Ipv4Route::interfacePtr comes from nextHops[0].ifIndex
     // Ipv4Route::gateway is nextHops[0].hopAddress
 
@@ -108,6 +109,9 @@ class INET_API Ospfv2RoutingTableEntry : public Ipv4Route
     {
       this->lastNextHopIndex = lastNextHopIndex;
     }
+
+    bool isDmprInit() const;
+    void setDmprInit(bool dmprInit = false);
 };
 
 std::ostream& operator<<(std::ostream& out, const Ospfv2RoutingTableEntry& entry);

@@ -26,6 +26,7 @@
 #include "inet/common/packet/Message.h"
 #include "inet/networklayer/common/IpProtocolId_m.h"
 #include "inet/networklayer/common/L3AddressTag_m.h"
+//#include "inet/networklayer/common/EcnTag_m.h"
 
 #ifdef WITH_IPv4
 #include "inet/networklayer/ipv4/IcmpHeader_m.h"

@@ -28,6 +28,7 @@
 #include "inet/common/ModuleAccess.h"
 
 #include "inet/routing/dmpr/DmprForwardingTable.h"
+#include "inet/routing/ospfv2/router/OspfRoutingTableEntry.h"
 
 
 
@@ -42,12 +43,14 @@ class Dmpr : public cSimpleModule, public NetfilterBase::HookBase
 {
   private:
     IIpv4RoutingTable *routingTable = nullptr;
-    IInterfaceTable *interfaceTable = nullptr;
+    IInterfaceTable *ift = nullptr;
     INetfilter *networkProtocol = nullptr;
-    DmprForwardingTable *forwardingTable = nullptr;
+//    DmprForwardingTable *forwardingTable = nullptr;
 
     double alpha;
     double interval;
+
+    bool randomNextHopEnabled = true;
 
   protected:
     virtual void initialize(int stage);
@@ -65,7 +68,7 @@ class Dmpr : public cSimpleModule, public NetfilterBase::HookBase
     void updateFwdCongLevel(int ece, DmprInterfaceData* dmprData, const Ipv4Address& destAddr, int interfaceId,
         Ipv4Route* route);
     void updateIntervalCong(ospf::NextHop& nextHop, DmprInterfaceData* dmprData);
-
+    void updateNextHop(ospf::RoutingTableEntry* route);
 
   public:
     void emitSignal(simsignal_t signal, double value);
@@ -77,6 +80,7 @@ class Dmpr : public cSimpleModule, public NetfilterBase::HookBase
     void setInterval(double interval);
     double getAlpha() const;
     void setAlpha(double alpha);
+    IIpv4RoutingTable* getRoutingTable() const;
 };
 
 } //namespace
