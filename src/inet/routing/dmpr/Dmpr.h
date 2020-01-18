@@ -60,6 +60,9 @@ class Dmpr : public cSimpleModule, public NetfilterBase::HookBase
     virtual Result datagramLocalInHook(Packet *datagram) override;
     virtual Result datagramLocalOutHook(Packet *datagram) override;
 
+  public:
+    void emitSignal(simsignal_t signal, double value);
+
 //    // Lifecycle
 //    virtual bool handleOperationStage(LifecycleOperation *operation, int stage, IDoneCallback *doneCallback) override;
 };
