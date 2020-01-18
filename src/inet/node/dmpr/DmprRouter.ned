@@ -25,7 +25,7 @@ import inet.routing.dmpr.Dmpr;
 module DmprRouter extends Router
 {
     parameters:
-        bool hasDmpr = default(true);
+        bool hasDmpr = default(false);
         hasOspf = true;
         
         *.hasDmpr = hasDmpr;
