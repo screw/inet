@@ -55,6 +55,7 @@ class INET_API Router
     MessageHandler *messageHandler;    ///< The message dispatcher class.
     bool rfc1583Compatibility;    ///< Decides whether to handle the preferred routing table entry to an AS boundary router as defined in RFC1583 or not.
     bool hasDmpr;
+    bool hasUnEqualPaths;
   public:
     /**
      * Constructor.
