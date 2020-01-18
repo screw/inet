@@ -24,12 +24,14 @@ simple Dmpr
         string interfaceTableModule = default("^.interfaceTable");
         string routingTableModule = default("^.ipv4.routingTable");
         string networkProtocolModule = default("^.ipv4.ip");
-        string dmprForwardingTableModule = default("^.dmprForwardingTable");
+//        string dmprForwardingTableModule = default("^.dmprForwardingTable");
         
         double alpha = default(0.03);
+        double interval = default(0.020);
         
         @signal[congLevel*](type=double);
         @signal[inUseCongLevel*](type=double);
+        @signal[fwdCongLevel*](type=double);
         
         //@statistics -> created dynamically 
         // vectors for congLevel and inUseCongLevel  
