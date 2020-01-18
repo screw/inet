@@ -103,6 +103,9 @@ simsignal_t TcpBaseAlg::srttSignal = cComponent::registerSignal("srtt");    // w
 simsignal_t TcpBaseAlg::rttvarSignal = cComponent::registerSignal("rttvar");    // will record RTT variance (rttvar)
 simsignal_t TcpBaseAlg::rtoSignal = cComponent::registerSignal("rto");    // will record retransmission timeout
 simsignal_t TcpBaseAlg::numRtosSignal = cComponent::registerSignal("numRtos");    // will record total number of RTOs
+simsignal_t TcpBaseAlg::loadSignal = cComponent::registerSignal("load"); // will record load
+simsignal_t TcpBaseAlg::calcLoadSignal = cComponent::registerSignal("calcLoad"); // will record total number of RTOs
+simsignal_t TcpBaseAlg::markingProbSignal = cComponent::registerSignal("markingProb"); // will record marking probability
 
 TcpBaseAlg::TcpBaseAlg() : TcpAlgorithm(),
     state((TcpBaseAlgStateVariables *&)TcpAlgorithm::state)
@@ -139,18 +142,18 @@ void TcpBaseAlg::initialize()
     delayedAckTimer->setContextPointer(conn);
     keepAliveTimer->setContextPointer(conn);
 
-    if (conn->getTcpMain()->recordStatistics) {
-        cwndVector = new cOutVector("cwnd");
-        ssthreshVector = new cOutVector("ssthresh");
-        rttVector = new cOutVector("measured RTT");
-        srttVector = new cOutVector("smoothed RTT");
-        rttvarVector = new cOutVector("RTTVAR");
-        rtoVector = new cOutVector("RTO");
-        numRtosVector = new cOutVector("numRTOs");
-        loadVector = new cOutVector("load");
-        calcLoadVector = new cOutVector("calcLoad");
-        markingProb = new cOutVector("markingProb");
-    }
+//    if (conn->getTcpMain()->recordStatistics) {
+//        cwndVector = new cOutVector("cwnd");
+//        ssthreshVector = new cOutVector("ssthresh");
+//        rttVector = new cOutVector("measured RTT");
+//        srttVector = new cOutVector("smoothed RTT");
+//        rttvarVector = new cOutVector("RTTVAR");
+//        rtoVector = new cOutVector("RTO");
+//        numRtosVector = new cOutVector("numRTOs");
+//        loadSignal = new cOutVector("load");
+//        calcLoadSignal = new cOutVector("calcLoad");
+//        markingProbSignal = new cOutVector("markingProb");
+//    }
 }
 
 void TcpBaseAlg::established(bool active)
