@@ -15,7 +15,6 @@ import ned.DatarateChannel;
 //import inet.linklayer.queue.DropTailQueue;
 //import inet.linklayer.queue.FIFOQueue;
 //import inet.linklayer.queue.REDDropper;
-import inet.common.queue.RedMarker;
 
 network DCTCPIncast
 {
