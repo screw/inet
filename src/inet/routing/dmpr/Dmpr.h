@@ -62,6 +62,9 @@ class Dmpr : public cSimpleModule, public NetfilterBase::HookBase
     virtual Result datagramLocalOutHook(Packet *datagram) override;
     void updateCongestionLevel(int ece, DmprInterfaceData* dmprData, Ipv4Address srcIp, int interfaceId );
     simsignal_t registerSignal(std::stringstream title, std::stringstream name, std::stringstream interfaceName, Ipv4Address destination);
+    void updateFwdCongLevel(int ece, DmprInterfaceData* dmprData, const Ipv4Address& destAddr, int interfaceId,
+        Ipv4Route* route);
+    void updateIntervalCong(ospfv2::NextHop& nextHop, DmprInterfaceData* dmprData);
 
   public:
     void emitSignal(simsignal_t signal, double value);
@@ -70,6 +73,8 @@ class Dmpr : public cSimpleModule, public NetfilterBase::HookBase
 //    virtual bool handleOperationStage(LifecycleOperation *operation, int stage, IDoneCallback *doneCallback) override;
     double getInterval() const;
     void setInterval(double interval);
+    double getAlpha() const;
+    void setAlpha(double alpha);
 };
 
 } //namespace
