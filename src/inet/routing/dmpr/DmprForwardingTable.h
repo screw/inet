@@ -25,6 +25,8 @@
 #include "inet/networklayer/common/IpProtocolId_m.h"
 //#include "inet/networklayer/ipv4/Ipv4Route.h"
 #include "inet/routing/ospfv2/router/Ospfv2RoutingTableEntry.h"
+#include "inet/routing/dmpr/DmprInterfaceData.h"
+
 
 
 namespace inet {

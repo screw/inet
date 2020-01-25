@@ -88,6 +88,8 @@ extern INET_API simsignal_t    // admin
 
 //layer 3 - ISIS
     isisAdjChangedSignal,
+//for DMPR
+    interfaceDmprConfigChangedSignal,
 
 // - layer 4 (transport)
 //...
