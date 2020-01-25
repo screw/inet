@@ -36,6 +36,18 @@ class INET_API TcpTahoeRenoFamilyStateVariables : public TcpBaseAlgStateVariable
     virtual void setSendQueueLimit(uint32 newLimit);
 
     uint32 ssthresh;    ///< slow start threshold
+
+    //DCTCP
+    double dctcp_marked;
+    double dctcp_windEnd;
+    double dctcp_bytesAcked;
+    double dctcp_bytesMarked;
+    bool dctcp_CWR;
+    double dctcp_total;
+    double dctcp_totalSent;
+    double dctcp_alpha;
+    simtime_t dctcp_lastCalcTime;
+    double dctcp_gamma;
 };
 
 /**
