@@ -42,7 +42,8 @@ Ospfv2RoutingTableEntry::Ospfv2RoutingTableEntry(const Ospfv2RoutingTableEntry& 
     cost(entry.cost),
     type2Cost(entry.type2Cost),
     linkStateOrigin(entry.linkStateOrigin),
-    nextHops(entry.nextHops)
+    nextHops(entry.nextHops),
+    hasDmpr(entry.hasDmpr)
 {
     setDestination(entry.getDestination());
     setNetmask(entry.getNetmask());
