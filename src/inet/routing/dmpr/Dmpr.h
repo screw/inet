@@ -28,6 +28,7 @@
 #include "inet/common/ModuleAccess.h"
 
 #include "inet/routing/dmpr/DmprForwardingTable.h"
+#include "inet/routing/ospfv2/router/Ospfv2RoutingTableEntry.h"
 
 
 
@@ -42,12 +43,14 @@ class Dmpr : public cSimpleModule, public NetfilterBase::HookBase
 {
   private:
     IIpv4RoutingTable *routingTable = nullptr;
-    IInterfaceTable *interfaceTable = nullptr;
+    IInterfaceTable *ift = nullptr;
     INetfilter *networkProtocol = nullptr;
 //    DmprForwardingTable *forwardingTable = nullptr;
 
     double alpha;
     double interval;
+
+    bool randomNextHopEnabled = true;
 
   protected:
     virtual void initialize(int stage);
@@ -64,12 +67,13 @@ class Dmpr : public cSimpleModule, public NetfilterBase::HookBase
     simsignal_t registerSignal(std::stringstream title, std::stringstream name, std::stringstream interfaceName, Ipv4Address destination);
     void updateFwdCongLevel(int ece, DmprInterfaceData* dmprData, const Ipv4Address& destAddr, int interfaceId,
         Ipv4Route* route);
-    void updateIntervalCong(ospfv2::NextHop& nextHop, DmprInterfaceData* dmprData);
 
+    void updateIntervalCong(ospfv2::NextHop& nextHop, DmprInterfaceData* dmprData);
+    void updateNextHop(ospfv2::Ospfv2RoutingTableEntry* route);
 
   public:
     void emitSignal(simsignal_t signal, double value);
-    void registerNextHop(int interfaceId, ospf::NextHop& nextHop, const ospf::RoutingTableEntry* route);
+    void registerNextHop(int interfaceId, ospfv2::NextHop& nextHop, const ospfv2::Ospfv2RoutingTableEntry* route);
 
 //    // Lifecycle
 //    virtual bool handleOperationStage(LifecycleOperation *operation, int stage, IDoneCallback *doneCallback) override;
@@ -77,6 +81,7 @@ class Dmpr : public cSimpleModule, public NetfilterBase::HookBase
     void setInterval(double interval);
     double getAlpha() const;
     void setAlpha(double alpha);
+    IIpv4RoutingTable* getRoutingTable() const;
 };
 
 } //namespace
