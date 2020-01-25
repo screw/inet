@@ -49,6 +49,11 @@ struct NextHop
     double inUseCongLevel = 0;
     int packetCount = 0;
 
+    int fwdPacketCount = 0; //total number of ECN capable packet forwarded within current interval
+    int fwdPacketSum = 0; //sum of ECE marks for forwarded packets within current interval (effectively the number of marked packet)
+    int ackPacketCount = 0; //total number of ECN capable Ack packets within current interval
+    int ackPacketSum = 0; //sum of ECE marks for ECN capable Acks packets within current interval (effectively the number of marked packet)
+
     simtime_t lastChange = 0;
 
     simsignal_t signalCongLevel;
