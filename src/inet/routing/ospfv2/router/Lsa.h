@@ -59,6 +59,7 @@ struct NextHop
     simsignal_t signalCongLevel;
     simsignal_t signalfwdCongLevel;
     simsignal_t signalInUseCongLevel;
+    simsignal_t signalFwdPacketCount;
 
 };
 
