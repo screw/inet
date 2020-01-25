@@ -91,8 +91,10 @@ void Dmpr::initialize(int stage)
 
     alpha = par("alpha").doubleValue();
     interval = par("interval").doubleValue();
+    logPar = par("logPar").doubleValue();
 
     randomNextHopEnabled = par("randomNextHopEnabled").boolValue();
+    lastNextHopIndexEnabled = par("lastNextHopIndexEnabled").boolValue();
   }
   else if (stage == INITSTAGE_LINK_LAYER)
   {
@@ -197,14 +199,42 @@ void Dmpr::updateIntervalCong(ospfv2::NextHop& nextHop, DmprInterfaceData* dmprD
 
     // if the packetCount for previous period is 0 then don't change the current value -> use the current value as smootEce in the exponential smooth equation
     double smoothEce = nextHop.ackPacketCount == 0 ? nextHop.congLevel : (double) (nextHop.ackPacketSum) / (double) (nextHop.ackPacketCount);
+//    smoothEce = (-std::log(1 - smoothEce) / std::log(logPar));
+//    smoothEce = std::sqrt(smoothEce);
+//    smoothEce = std::pow(smoothEce, 1.0/5.0);
+
+    if(smoothEce > 1){
+      smoothEce = 1;
+    }
     nextHop.ackPacketCount = 0;
     nextHop.ackPacketSum = 0;
-    nextHop.congLevel = (1 - alpha) * nextHop.congLevel + smoothEce * getAlpha();
+//    nextHop.congLevel = (1 - alpha) * nextHop.congLevel + smoothEce * getAlpha();
+    nextHop.congLevel = nextHop.congLevel + alpha * (smoothEce - 0.09);
+    if(nextHop.congLevel < 0.0){
+      nextHop.congLevel = 0.0;
+    }else if (nextHop.congLevel > 1.0){
+      nextHop.congLevel = 1.0;
+    }
+
     emitSignal(nextHop.signalCongLevel, nextHop.congLevel);
 
     smoothEce = nextHop.fwdPacketCount == 0 ? nextHop.fwdCongLevel : (double) (nextHop.fwdPacketSum) / (double) (nextHop.fwdPacketCount);
+//    smoothEce = (-std::log(1 - smoothEce) / std::log(logPar));
+//    smoothEce = std::sqrt(smoothEce);
+//    smoothEce = std::pow(smoothEce, 1.0/5.0);
+    if(smoothEce > 1){
+      smoothEce = 1;
+    }
 
-    nextHop.fwdCongLevel = (1 - alpha) * nextHop.fwdCongLevel + smoothEce * getAlpha();
+//    nextHop.fwdCongLevel = (1 - alpha) * nextHop.fwdCongLevel + smoothEce * getAlpha();
+    nextHop.fwdCongLevel = nextHop.fwdCongLevel + alpha * (smoothEce - 0.09);
+
+    if(nextHop.fwdCongLevel < 0.0){
+      nextHop.fwdCongLevel = 0.0;
+    }else if (nextHop.fwdCongLevel > 1.0){
+      nextHop.fwdCongLevel = 1.0;
+    }
+
     emitSignal(nextHop.signalfwdCongLevel, nextHop.fwdCongLevel);
 
     emitSignal(nextHop.signalFwdPacketCount, nextHop.fwdPacketCount);
@@ -212,7 +242,7 @@ void Dmpr::updateIntervalCong(ospfv2::NextHop& nextHop, DmprInterfaceData* dmprD
     nextHop.fwdPacketCount = 0;
     nextHop.fwdPacketSum = 0;
 
-    nextHop.inUseCongLevel = (nextHop.congLevel - nextHop.fwdCongLevel) < 0 ? 0 : nextHop.congLevel - nextHop.fwdCongLevel; //dmprData->setInUseCongLevel(dmprData->getCongestionLevel());
+    nextHop.inUseCongLevel = (nextHop.congLevel - nextHop.fwdCongLevel) < 0.001 ? 0 : (nextHop.congLevel - nextHop.fwdCongLevel); //dmprData->setInUseCongLevel(dmprData->getCongestionLevel());
     emitSignal(nextHop.signalInUseCongLevel, nextHop.inUseCongLevel);
 
     nextHop.lastChange = simTime();
@@ -238,6 +268,14 @@ void Dmpr::updateCongestionLevel(int ece, DmprInterfaceData* dmprData, Ipv4Addre
 {
 
   ospfv2::Ospfv2RoutingTableEntry* route = (ospfv2::Ospfv2RoutingTableEntry*)routingTable->findBestMatchingRoute(srcIp);//dmprData->table->findBestMatchingRoute(srcIp);
+
+  if(route->getAdminDist() == Ipv4Route::dDirectlyConnected || route->getSourceType() == Ipv4Route::MANUAL){
+    return;
+  }
+
+
+
+
   if(!route->isDmprInit())
   {
     //This should never happen as the entry should have been created when the data was forwarded
@@ -304,8 +342,18 @@ void Dmpr::updateNextHop(ospfv2::Ospfv2RoutingTableEntry* route)
     int packetSum = 0;
 
   //  double interval = 0.020;
+    bool update = false;
 
-    DmprInterfaceData *dmprData;
+    for (int i = 0; i < count; i++)
+    {
+      ospfv2::NextHop nextHop = route->getNextHop(i);
+      if (nextHop.lastChange + getInterval() < simTime())
+      {
+        update = true;
+      }
+    }
+
+    DmprInterfaceData *dmprData = nullptr;
     for (int i = 0; i < count; i++)
     {
       ospfv2::NextHop nextHop = route->getNextHop(i);
@@ -319,29 +367,31 @@ void Dmpr::updateNextHop(ospfv2::Ospfv2RoutingTableEntry* route)
 
         }
 
-        if(nextHop.lastChange + getInterval() < simTime())
+        if(nextHop.lastChange + getInterval() < simTime() || update)
         {
           //if there has been 0 ACKs in the previous period, use the current congLevel value
-          double smoothEcn = nextHop.ackPacketCount == 0 ? nextHop.congLevel : (double) nextHop.ackPacketSum / (double) nextHop.ackPacketCount;
-          nextHop.congLevel = (1 - getAlpha()) * nextHop.congLevel + smoothEcn * getAlpha();
-          emitSignal(nextHop.signalCongLevel, nextHop.congLevel);
-
-          double smoothEce = nextHop.fwdPacketCount == 0 ? nextHop.fwdCongLevel : (double) nextHop.fwdPacketSum / (double) nextHop.fwdPacketCount;
-          nextHop.fwdCongLevel = (1 - getAlpha()) * nextHop.fwdCongLevel + smoothEce * getAlpha();
-          emitSignal(nextHop.signalfwdCongLevel, nextHop.fwdCongLevel);
-
-          emitSignal(nextHop.signalFwdPacketCount, nextHop.fwdPacketCount);
-
-          nextHop.inUseCongLevel = (nextHop.congLevel - nextHop.fwdCongLevel) < 0 ? 0 : nextHop.congLevel - nextHop.fwdCongLevel; //dmprData->setInUseCongLevel(dmprData->getCongestionLevel());
-          emitSignal(nextHop.signalInUseCongLevel, nextHop.inUseCongLevel);
-
-          nextHop.lastChange = simTime(); //dmprData->setLastChange(simTime());
-          nextHop.packetCount = 0; //dmprData->setPacketCount(0);
-
-          nextHop.fwdPacketCount = 0;
-          nextHop.fwdPacketSum = 0;
-          nextHop.ackPacketCount = 0;
-          nextHop.ackPacketSum = 0;
+//          double smoothEcn = nextHop.ackPacketCount == 0 ? nextHop.congLevel : (double) nextHop.ackPacketSum / (double) nextHop.ackPacketCount;
+//          nextHop.congLevel = (1 - getAlpha()) * nextHop.congLevel + smoothEcn * getAlpha();
+//          emitSignal(nextHop.signalCongLevel, nextHop.congLevel);
+//
+//          double smoothEce = nextHop.fwdPacketCount == 0 ? nextHop.fwdCongLevel : (double) nextHop.fwdPacketSum / (double) nextHop.fwdPacketCount;
+//          nextHop.fwdCongLevel = (1 - getAlpha()) * nextHop.fwdCongLevel + smoothEce * getAlpha();
+//          emitSignal(nextHop.signalfwdCongLevel, nextHop.fwdCongLevel);
+//
+//          emitSignal(nextHop.signalFwdPacketCount, nextHop.fwdPacketCount);
+//
+//          nextHop.inUseCongLevel = (nextHop.congLevel - nextHop.fwdCongLevel) < 0.001 ? 0 : (nextHop.congLevel - nextHop.fwdCongLevel)*2; //dmprData->setInUseCongLevel(dmprData->getCongestionLevel());
+//          emitSignal(nextHop.signalInUseCongLevel, nextHop.inUseCongLevel);
+//
+//          nextHop.lastChange = simTime(); //dmprData->setLastChange(simTime());
+//          nextHop.packetCount = 0; //dmprData->setPacketCount(0);
+//
+//          nextHop.fwdPacketCount = 0;
+//          nextHop.fwdPacketSum = 0;
+//          nextHop.ackPacketCount = 0;
+//          nextHop.ackPacketSum = 0;
+//
+          updateIntervalCong(nextHop, dmprData);
           route->setNextHop(i, nextHop);
 
         }
@@ -377,16 +427,19 @@ void Dmpr::updateNextHop(ospfv2::Ospfv2RoutingTableEntry* route)
     /*
      * Chooses the one with the highest available ratio (except the ones that already exceeded maxRatio)
      */
-    int lastIndex = route->getLastNextHopIndex();
+    int lastIndex = 0;
+    if (lastNextHopIndexEnabled){
+      lastIndex = route->getLastNextHopIndex() + 1;
+    }
     EV << "lastNextHopIndex = " << lastIndex <<"\n";
     int index = 0;
     for (int i = 0; i < count; i++)
     {
 
-      index = (i + lastIndex + 1) % count;
+      index = (i + lastIndex) % count;
       tmpNextHop = route->getNextHop(index);
       //    std::cout << "DMPR: nextHop: "<< tmpNextHop.hopAddress << " availableLoad: "<< availableLoad[i] << " loadSum: " << availableLoadSum << " ratioDiff: " << ratioDiff[i] << " maxRatio: " << maxRatio[i] << " actualRatio: "<< actualRatio[i] << " packets: " << packetCount[i] << " packetSum: " << packetSum << std::endl;
-
+      double rat = ratioDiff[index];
       if (ratioDiff[index] > ratio)
       {
 
