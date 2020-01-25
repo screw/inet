@@ -214,7 +214,7 @@ void Dmpr::updateIntervalCong(ospfv2::NextHop& nextHop, DmprInterfaceData* dmprD
     emitSignal(nextHop.signalDownstreamCongLevel, nextHop.downstreamCongLevel);
 
     nextHop.lastChange = simTime();
-    nextHop.packetCount = 0;
+//    nextHop.packetCount = 0;
 
 }
 
@@ -251,7 +251,6 @@ void Dmpr::updateCongestionLevel(int ece, DmprInterfaceData* dmprData, Ipv4Addre
     //This should never happen as the entry should have been created when the data was forwarded
 //    route = (ospfv2::Ospfv2RoutingTableEntry*)routingTable->findBestMatchingRoute(srcIp);
 //    dmprData->table->insertEntry(srcIp, (ospfv2::Ospfv2RoutingTableEntry*) route);
-
 
     int count = route->getNextHopCount();
     for (int i = 0; i< count; i++)
@@ -346,7 +345,8 @@ void Dmpr::updateNextHop(ospfv2::Ospfv2RoutingTableEntry* route)
 
         }
 
-        packetCount[i] = nextHop.packetCount; //dmprData->getPacketCount();
+//        packetCount[i] = nextHop.packetCount; //dmprData->getPacketCount();
+        packetCount[i] = nextHop.fwdPacketCount;
         //          availableLoad[i] = 1 - dmprData->getCongestionLevel();
 //        availableLoad[i] = 1 - nextHop.downstreamCongLevel;// dmprData->getInUseCongLevel();
         availableLoad[i] = nextHop.downstreamCongLevel;// dmprData->getInUseCongLevel();
@@ -704,6 +704,8 @@ void Dmpr::updateFwdCongLevel(int ecn, DmprInterfaceData* dmprData, const Ipv4Ad
     }
     dmprRoute->setDmprInit(true);
   }
+
+
   ospfv2::Ospfv2RoutingTableEntry* ospfEntry = dynamic_cast<ospfv2::Ospfv2RoutingTableEntry*>(dmprRoute);
   for (int i = 0; i < ospfEntry->getNextHopCount(); i++)
   {
@@ -719,7 +721,7 @@ void Dmpr::updateFwdCongLevel(int ecn, DmprInterfaceData* dmprData, const Ipv4Ad
       nextHop.fwdPacketCount++;
       nextHop.fwdPacketSum += ecn;
 
-      nextHop.packetCount++;
+//      nextHop.packetCount++;
       ospfEntry->setNextHop(i, nextHop);
 //      ospfEntry->setLastNextHopIndex(i);
 

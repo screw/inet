@@ -34,6 +34,7 @@
 
 
 
+
 namespace inet {
 class DmprInterfaceData;
 /**
@@ -69,7 +70,6 @@ class Dmpr : public cSimpleModule, public NetfilterBase::HookBase
     simsignal_t registerSignal(std::stringstream title, std::stringstream name, std::stringstream interfaceName, Ipv4Address destination);
     void updateFwdCongLevel(int ece, DmprInterfaceData* dmprData, const Ipv4Address& destAddr, int interfaceId,
         Ipv4Route* route);
-
     void updateIntervalCong(ospfv2::NextHop& nextHop, DmprInterfaceData* dmprData);
     void updateNextHop(ospfv2::Ospfv2RoutingTableEntry* route);
 
