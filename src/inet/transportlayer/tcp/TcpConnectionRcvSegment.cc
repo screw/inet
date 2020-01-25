@@ -1191,6 +1191,9 @@ bool TcpConnection::processAckInEstabEtc(Packet *packet, const Ptr<const TcpHead
         }
     }
     else if (seqLE(tcpseg->getAckNo(), state->snd_max)) {
+
+
+
         // ack in window.
         uint32 old_snd_una = state->snd_una;
         state->snd_una = tcpseg->getAckNo();

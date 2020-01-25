@@ -208,6 +208,16 @@ void Ospfv2RoutingTableEntry::setHasDmpr(bool hasDmpr)
   this->hasDmpr = hasDmpr;
 }
 
+bool Ospfv2RoutingTableEntry::isDmprInit() const
+{
+  return dmprInit;
+}
+
+void Ospfv2RoutingTableEntry::setDmprInit(bool dmprInit)
+{
+  this->dmprInit = dmprInit;
+}
+
 } // namespace ospfv2
 
 } // namespace inet

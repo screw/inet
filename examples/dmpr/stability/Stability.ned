@@ -95,6 +95,7 @@ network Stability
         routerCore1: DmprRouter {
             parameters:
                 @display("p=1026.4801,995.93005;i=abstract/router");
+                
         }
         routerCore2: DmprRouter {
             parameters:
@@ -190,7 +191,7 @@ network Stability
         
         
         
-        routerCore6.ethg++ <--> NormalP <--> routerCore4.ethg++;
+
         
 
 }
