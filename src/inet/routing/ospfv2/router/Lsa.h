@@ -44,9 +44,9 @@ struct NextHop
     RouterId advertisingRouter;
     Metric cost = -1;
 
-    double congLevel = 0;
+    double congLevel = 0.000001;
     double fwdCongLevel = 0; //forwarded Congestion level
-    double downstreamCongLevel = 0;
+    double downstreamCongLevel = 0.000001;
     int packetCount = 0;
 
     int fwdPacketCount = 0; //total number of ECN capable packet forwarded within current interval
@@ -60,6 +60,7 @@ struct NextHop
     simsignal_t signalfwdCongLevel = 0;
     simsignal_t signalDownstreamCongLevel = 0;
     simsignal_t signalFwdPacketCount = 0;
+    simsignal_t signalMaxRatio = 0;
 
 };
 
