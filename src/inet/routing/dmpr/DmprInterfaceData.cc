@@ -43,7 +43,7 @@ dmpr(dmpr)
 //  cModuleType *moduleType = cModuleType::get("inet.networklayer.ipv4.Ipv4RoutingTable");
 //  table = (Ipv4RoutingTable*)moduleType->createScheduleInit("table", dmpr);
 //  table = new Ipv4RoutingTable();
-  table = new DmprForwardingTable();
+//  table = new DmprForwardingTable();
 
 
 
@@ -65,7 +65,7 @@ dmpr(dmpr)
 DmprInterfaceData::~DmprInterfaceData()
 {
   // TODO Auto-generated destructor stub
-    delete table;
+//    delete table;
 }
 
 std::string DmprInterfaceData::str() const
