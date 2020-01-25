@@ -36,6 +36,7 @@ simple Dmpr
         @signal[downstreamCongLevel*](type=double);
         @signal[fwdCongLevel*](type=double);
         @signal[fwdPacketCount*](type=double);
+        @signal[maxRatio*](type=double);
         
         //@statistics -> created dynamically 
         // vectors for congLevel and inUseCongLevel  
