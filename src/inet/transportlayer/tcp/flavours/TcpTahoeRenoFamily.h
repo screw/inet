@@ -38,10 +38,10 @@ class INET_API TcpTahoeRenoFamilyStateVariables : public TcpBaseAlgStateVariable
     uint32 ssthresh;    ///< slow start threshold
 
     //DCTCP
-    double dctcp_marked;
+    double dctcp_marked; //number of marked packets (acks)
     double dctcp_windEnd;
     double dctcp_bytesAcked;
-    double dctcp_bytesMarked;
+    double dctcp_bytesMarked; //amount of bytes marked
     bool dctcp_CWR;
     double dctcp_total;
     double dctcp_totalSent;

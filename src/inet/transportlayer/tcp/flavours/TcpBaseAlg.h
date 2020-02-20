@@ -124,6 +124,7 @@ class INET_API TcpBaseAlg : public TcpAlgorithm
     cMessage *delayedAckTimer;
     cMessage *keepAliveTimer;
 
+  public:
     static simsignal_t cwndSignal;    // will record changes to snd_cwnd
     static simsignal_t cwndTotalSignal;    // will record changes to snd_cwnd_total
     static simsignal_t ssthreshSignal;    // will record changes to ssthresh

@@ -152,7 +152,7 @@ void Tcp::updateCoupledCwnd(const L3Address& srcAddr)
   auto it = tcpCoupledMap.find(srcAddr);
   if (it != tcpCoupledMap.end())
   {
-    uint64 cwnd_total = 0;
+    uint32 cwnd_total = 0;
     double max_cwnd_rtt = 0;
     double sum_max_cwnd_rtt = 0;
     for (auto itVec = (*it).second.begin(); itVec != (*it).second.end(); itVec++)
@@ -180,7 +180,8 @@ void Tcp::updateCoupledCwnd(const L3Address& srcAddr)
       {
 //        TcpBaseAlg* conn = dynamic_cast<TcpBaseAlg*>((*itVec)->getTcpAlgorithm());
         state->snd_cwnd_total = cwnd_total;
-//        (*itVec)->emit(conn->, cwnd_total);
+        TcpBaseAlg* alg = (TcpBaseAlg*)(*itVec)->getTcpAlgorithm();
+        (*itVec)->emit(alg->cwndTotalSignal, cwnd_total);
         state->alpha = cwnd_total * (max_cwnd_rtt / sum_max_cwnd_rtt);
       }
     }
@@ -250,6 +251,9 @@ TcpConnection *Tcp::createConnection(int socketId)
 void Tcp::removeConnection(TcpConnection *conn)
 {
     EV_INFO << "Deleting Tcp connection\n";
+
+    //IF coupled increase
+    tcpCoupledMap.erase(conn->remoteAddr);
 
     tcpAppConnMap.erase(conn->socketId);
 

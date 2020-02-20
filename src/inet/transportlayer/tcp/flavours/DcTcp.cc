@@ -46,7 +46,7 @@ void DcTcp::receivedDataAck(uint32 firstSeqAcked)
        *          number of bytes.
        */
 
-      uint32 bytes_acked = state->snd_una - firstSeqAcked;;
+      uint32 bytes_acked = state->snd_una - firstSeqAcked;
       state->dctcp_bytesAcked += state->snd_una - firstSeqAcked;
 
       if(state->eceBit) {

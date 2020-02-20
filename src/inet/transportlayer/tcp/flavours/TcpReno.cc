@@ -90,6 +90,9 @@ void TcpReno::receivedDataAck(uint32 firstSeqAcked)
 {
     TcpTahoeRenoFamily::receivedDataAck(firstSeqAcked);
 
+
+    uint32 bytes_acked = state->snd_una - firstSeqAcked;
+
     if (state->dupacks >= state->DUPTHRESH) {    // DUPTHRESH = 3
         //
         // Perform Fast Recovery: set cwnd to ssthresh (deflating the window).
@@ -129,6 +132,18 @@ void TcpReno::receivedDataAck(uint32 firstSeqAcked)
             // perform Congestion Avoidance (RFC 2581)
             uint32 incr = state->snd_mss * state->snd_mss / state->snd_cwnd;
 
+            // perhaps move it somewhere in TcpTahoeRenoFamily so it doesn't have to be copied to every flavour?
+            if(state->coupledIncrease){
+              //coupled increase (RFC 6356 equation 1)
+              if(state->snd_cwnd_total == 0){
+                state->snd_cwnd_total = state->snd_cwnd;
+              }
+              uint32 incr2 = state->alpha * bytes_acked * state->snd_mss / state->snd_cwnd_total;
+              if(incr2 < incr){
+                incr = incr2;
+              }
+            }
+
             if (incr == 0)
                 incr = 1;
 
@@ -136,6 +151,11 @@ void TcpReno::receivedDataAck(uint32 firstSeqAcked)
 
             conn->emit(cwndSignal, state->snd_cwnd);
 
+            if(state->coupledIncrease){
+              state->snd_cwnd_total += incr;
+
+              conn->emit(cwndTotalSignal, state->snd_cwnd_total);
+            }
             //
             // Note: some implementations use extra additive constant mss / 8 here
             // which is known to be incorrect (RFC 2581 p5)
