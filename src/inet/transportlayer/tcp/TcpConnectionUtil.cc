@@ -474,7 +474,8 @@ void TcpConnection::configureStateVariables()
 
     state->ecnEnabled = tcpMain->par("ecnEnabled");
 
-    if(tcpMain->par("tcpAlgorithmClass").stdstringValue() == std::string("TcpReno"))
+//    if(tcpMain->par("tcpAlgorithmClass").stdstringValue() == std::string("TcpReno"))
+    if(dynamic_cast<TcpTahoeRenoFamilyStateVariables*>(state))
     {
       TcpTahoeRenoFamilyStateVariables *tmp_state = dynamic_cast<TcpTahoeRenoFamilyStateVariables*>(state);
       tmp_state->ssthresh = tcpMain->par("ssthresh");
