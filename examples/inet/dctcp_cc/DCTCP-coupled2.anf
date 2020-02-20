@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scave:Analysis xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:scave="http://www.omnetpp.org/omnetpp/scave">
+  <inputs>
+    <inputs name="/inet/examples/inet/dctcp_cc/results/DCTCP-coupled-*.vec"/>
+    <inputs name="/inet/examples/inet/dctcp_cc/results/DCTCP-coupled-*.sca"/>
+  </inputs>
+  <datasets>
+    <datasets name="one-conn">
+      <items xsi:type="scave:Add" filterPattern=" module(*.client1*.*)  AND cwndTotal:vector AND attr:experiment(DCTCP-coupled-one-conn) " type="VECTOR"/>
+    </datasets>
+    <datasets name="two-conn">
+      <items xsi:type="scave:Add" filterPattern=" module(*.client1*.*)  AND cwndTotal:vector AND attr:experiment(DCTCP-coupled-two-conn) " type="VECTOR"/>
+      <items xsi:type="scave:Group" name="DcTcp">
+        <items xsi:type="scave:Discard" filterPattern="itervar:tcp(&quot;\&quot;TcpReno\&quot;&quot;) " type="VECTOR"/>
+        <items xsi:type="scave:Compute" operation="integrate">
+          <params name="interpolation-mode" value="sample-hold"/>
+        </items>
+        <items xsi:type="scave:LineChart" name="two dctcp integ" lineNameFormat=""/>
+      </items>
+      <items xsi:type="scave:Group" name="Reno">
+        <items xsi:type="scave:Discard" filterPattern="itervar:tcp(&quot;\&quot;DcTcp\&quot;&quot;) " type="VECTOR"/>
+        <items xsi:type="scave:Compute" operation="integrate">
+          <params name="interpolation-mode" value="sample-hold"/>
+        </items>
+        <items xsi:type="scave:ComputeScalar" scalarName="max" valueExpr="max('integrate(cwndTotal:vector)')" moduleExpr="" groupByExpr=""/>
+        <items xsi:type="scave:LineChart" name="two reno integ" lineNameFormat=""/>
+      </items>
+    </datasets>
+    <datasets name="three-conn">
+      <items xsi:type="scave:Add" filterPattern=" module(*.client1*.*)  AND cwndTotal:vector AND attr:experiment(DCTCP-coupled-three-conn) " type="VECTOR"/>
+      <items xsi:type="scave:Group" name="DcTcp">
+        <items xsi:type="scave:Discard" filterPattern="itervar:tcp(&quot;\&quot;TcpReno\&quot;&quot;) " type="VECTOR"/>
+        <items xsi:type="scave:Group" name="int">
+          <items xsi:type="scave:Compute" operation="integrate">
+            <params name="interpolation-mode" value="sample-hold"/>
+          </items>
+          <items xsi:type="scave:LineChart" name="dctcp integ" lineNameFormat=""/>
+        </items>
+      </items>
+      <items xsi:type="scave:Group" name="Reno">
+        <items xsi:type="scave:Discard" filterPattern="itervar:tcp(&quot;\&quot;DcTcp\&quot;&quot;) " type="VECTOR"/>
+        <items xsi:type="scave:Group" name="int">
+          <items xsi:type="scave:Compute" operation="integrate">
+            <filters xsi:type="scave:Select"/>
+            <params name="interpolation-mode" value="sample-hold"/>
+          </items>
+          <items xsi:type="scave:Compute"/>
+          <items xsi:type="scave:ComputeScalar"/>
+          <items xsi:type="scave:LineChart" name="reno integ" lineNameFormat=""/>
+        </items>
+      </items>
+    </datasets>
+    <datasets name="four-conn">
+      <items xsi:type="scave:Add" filterPattern=" module(*.client1*.*)  AND cwndTotal:vector AND attr:experiment(DCTCP-coupled-four-conn) " type="VECTOR"/>
+      <items xsi:type="scave:Group" name="DcTcp">
+        <items xsi:type="scave:Discard" filterPattern="itervar:tcp(&quot;\&quot;TcpReno\&quot;&quot;) " type="VECTOR"/>
+        <items xsi:type="scave:Group" name="int">
+          <items xsi:type="scave:Compute" operation="integrate">
+            <params name="interpolation-mode" value="sample-hold"/>
+          </items>
+          <items xsi:type="scave:LineChart" name="four dctcp integ" lineNameFormat=""/>
+        </items>
+      </items>
+      <items xsi:type="scave:Group" name="Reno">
+        <items xsi:type="scave:Discard" filterPattern="itervar:tcp(&quot;\&quot;DcTcp\&quot;&quot;) " type="VECTOR"/>
+        <items xsi:type="scave:Group" name="int">
+          <items xsi:type="scave:Compute" operation="integrate">
+            <params name="interpolation-mode" value="sample-hold"/>
+          </items>
+          <items xsi:type="scave:LineChart" name="four reno integ" lineNameFormat=""/>
+        </items>
+      </items>
+    </datasets>
+    <datasets name="TcpReno" basedOn="//@datasets/@datasets.0">
+      <items xsi:type="scave:Discard" filterPattern="itervar:tcp(&quot;\&quot;DcTcp\&quot;&quot;) " type="VECTOR"/>
+      <items xsi:type="scave:Group" name="int">
+        <items xsi:type="scave:Compute" operation="integrate">
+          <params name="interpolation-mode" value="sample-hold"/>
+        </items>
+        <items xsi:type="scave:LineChart" name="integ" lineNameFormat=""/>
+      </items>
+      <items xsi:type="scave:Group" name="sum">
+        <items xsi:type="scave:Compute" operation="sum"/>
+        <items xsi:type="scave:LineChart" name="Sum" lineNameFormat=""/>
+      </items>
+    </datasets>
+    <datasets name="DcTcp" basedOn="//@datasets/@datasets.0">
+      <items xsi:type="scave:Discard" filterPattern="itervar:tcp(&quot;\&quot;TcpReno\&quot;&quot;) " type="VECTOR"/>
+      <items xsi:type="scave:Group" name="int">
+        <items xsi:type="scave:Compute" operation="integrate">
+          <params name="interpolation-mode" value="sample-hold"/>
+        </items>
+        <items xsi:type="scave:LineChart" name="integ" lineNameFormat=""/>
+      </items>
+      <items xsi:type="scave:Group" name="sum">
+        <items xsi:type="scave:Compute" operation="sum"/>
+        <items xsi:type="scave:LineChart" name="Sum" lineNameFormat=""/>
+      </items>
+    </datasets>
+  </datasets>
+  <chartSheets>
+    <chartSheets name="default" charts="//@datasets/@datasets.5/@items.1/@items.1 //@datasets/@datasets.5/@items.2/@items.1 //@datasets/@datasets.4/@items.1/@items.1 //@datasets/@datasets.4/@items.2/@items.1 //@datasets/@datasets.1/@items.1/@items.2 //@datasets/@datasets.1/@items.2/@items.3 //@datasets/@datasets.2/@items.1/@items.1/@items.1 //@datasets/@datasets.2/@items.2/@items.1/@items.3 //@datasets/@datasets.3/@items.1/@items.1/@items.1 //@datasets/@datasets.3/@items.2/@items.1/@items.1"/>
+  </chartSheets>
+</scave:Analysis>
