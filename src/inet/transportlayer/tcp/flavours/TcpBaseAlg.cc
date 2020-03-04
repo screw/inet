@@ -109,6 +109,8 @@ simsignal_t TcpBaseAlg::loadSignal = cComponent::registerSignal("load"); // will
 simsignal_t TcpBaseAlg::calcLoadSignal = cComponent::registerSignal("calcLoad"); // will record total number of RTOs
 simsignal_t TcpBaseAlg::markingProbSignal = cComponent::registerSignal("markingProb"); // will record marking probability
 
+simsignal_t TcpBaseAlg::ccAlphaSignal = cComponent::registerSignal("ccAlpha"); //Coupled congestion control Alpha
+
 TcpBaseAlg::TcpBaseAlg() : TcpAlgorithm(),
     state((TcpBaseAlgStateVariables *&)TcpAlgorithm::state)
 {

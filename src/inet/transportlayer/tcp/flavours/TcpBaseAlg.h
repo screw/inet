@@ -136,6 +136,7 @@ class INET_API TcpBaseAlg : public TcpAlgorithm
     static simsignal_t loadSignal; // will record load
     static simsignal_t calcLoadSignal; // will record total number of RTOs
     static simsignal_t markingProbSignal; // will record marking probability
+    static simsignal_t ccAlphaSignal;
 
   protected:
     /** @name Process REXMIT, PERSIST, DELAYED-ACK and KEEP-ALIVE timers */

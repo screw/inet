@@ -54,6 +54,8 @@ simple TcpConnection {
         @signal[load];   // will record load (currently only with DcTcp)
         @signal[calcLoad];    // will record calcLoad (currently only with DcTcp)
         @signal[markingProb];   // will record marking probability (currently only with DcTcp)
+        
+        @signal[ccAlpha]; // will record alpha for the coupled congestion control
 
         @statistic[state](record=vector; interpolationmode=sample-hold);
         @statistic[sndWnd](record=vector; interpolationmode=sample-hold);    // snd_wnd
@@ -86,5 +88,6 @@ simple TcpConnection {
         @statistic[load](record=vector; interpolationmode=sample-hold);    // will record load (currently only with DcTcp)
         @statistic[calcLoad](record=vector; interpolationmode=sample-hold);    // will record calcLoad (currently only with DcTcp)
         @statistic[markingProb](record=vector; interpolationmode=sample-hold);    // will record marking probability (currently only with DcTcp)
+        @statistic[ccAlpha](record=vector; interpolationmode=sample-hold);
 }
 

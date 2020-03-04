@@ -183,6 +183,7 @@ void Tcp::updateCoupledCwnd(const L3Address& srcAddr)
         TcpBaseAlg* alg = (TcpBaseAlg*)(*itVec)->getTcpAlgorithm();
         (*itVec)->emit(alg->cwndTotalSignal, cwnd_total);
         state->alpha = cwnd_total * (max_cwnd_rtt / sum_max_cwnd_rtt);
+        (*itVec)->emit(alg->ccAlphaSignal, state->alpha);
       }
     }
   }
