@@ -175,11 +175,11 @@ void DcTcp::receivedDataAck(uint32 firstSeqAcked)
 
             conn->emit(cwndSignal, state->snd_cwnd);
 
-            if(state->coupledIncrease){
-              state->snd_cwnd_total += incr;
-
-              conn->emit(cwndTotalSignal, state->snd_cwnd_total);
-            }
+//            if(state->coupledIncrease){
+//              state->snd_cwnd_total += incr;
+//
+//              conn->emit(cwndTotalSignal, state->snd_cwnd_total);
+//            }
 
             //
             // Note: some implementations use extra additive constant mss / 8 here
