@@ -166,13 +166,15 @@ void Tcp::updateCoupledCwnd(const L3Address& srcAddr)
         {
           continue;
         }
-        if (max_cwnd_rtt < (state->snd_cwnd / (srtt * srtt)))
+        if (max_cwnd_rtt < ((double)state->snd_cwnd / ((double)srtt * (double)srtt)))
         {
-          max_cwnd_rtt = state->snd_cwnd / (srtt * srtt);
+          max_cwnd_rtt = (double)state->snd_cwnd / ((double)srtt * (double)srtt);
         }
-        sum_max_cwnd_rtt += (state->snd_cwnd / srtt) * (state->snd_cwnd / srtt);
+        sum_max_cwnd_rtt += (double)(state->snd_cwnd / (double)srtt);
       }
     }
+    sum_max_cwnd_rtt = sum_max_cwnd_rtt * sum_max_cwnd_rtt;
+
     for (auto itVec = (*it).second.begin(); itVec != (*it).second.end(); itVec++)
     {
       TcpBaseAlgStateVariables* state;
@@ -182,8 +184,12 @@ void Tcp::updateCoupledCwnd(const L3Address& srcAddr)
         state->snd_cwnd_total = cwnd_total;
         TcpBaseAlg* alg = (TcpBaseAlg*)(*itVec)->getTcpAlgorithm();
         (*itVec)->emit(alg->cwndTotalSignal, cwnd_total);
+
+//        std::cout<< simTime() <<": " << (*itVec)->getName() << ": " << cwnd_total << "total" << endl;
+
         state->alpha = cwnd_total * (max_cwnd_rtt / sum_max_cwnd_rtt);
         (*itVec)->emit(alg->ccAlphaSignal, state->alpha);
+//        std::cout<< simTime() <<": " << (*itVec)->getName() << ": " << cwnd_total << "total" << endl;
       }
     }
   }
