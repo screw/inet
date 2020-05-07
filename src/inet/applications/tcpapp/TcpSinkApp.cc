@@ -49,7 +49,7 @@ void TcpSinkApp::initialize(int stage)
         cResultRecorder *vectorRecorder = cResultRecorderType::get("vector")->create();
 
         opp_string_map *attrs = new opp_string_map;
-        (*attrs)["title"] = "Throughput B/s";
+        (*attrs)["title"] = "Throughput b/s";
         (*attrs)["unit"] = "bytes";
 
         vectorRecorder->init(this, "throughput", "vector", nullptr, attrs);
