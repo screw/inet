@@ -1,0 +1,125 @@
+<ipsecConfig>
+	<Devices>
+		<Device id="client1">
+			<SPDEntry>
+				<Selector>
+					<LocalAddress>192.168.1.1</LocalAddress>
+					<RemoteAddress>192.168.1.2</RemoteAddress>
+					<Protocol>6</Protocol> <!-- 6 = TCP -->
+					<LocalPort>1025</LocalPort>
+					<RemotePort>1000</RemotePort>
+				</Selector>
+				<Direction>IN</Direction>
+				<Action>PROTECT</Action>
+				<SAEntry>
+					<Processing>ESP</Processing>					
+						<SPI>1</SPI> <!-- Must match with SPI for OUT rule at the other host -->					
+				</SAEntry>
+			</SPDEntry>
+			<SPDEntry>
+				<Selector>
+					<LocalAddress>192.168.1.1</LocalAddress>
+					<RemoteAddress>192.168.1.2</RemoteAddress>
+					<Protocol>6</Protocol> <!-- 6 = TCP -->
+					<LocalPort>1025</LocalPort>
+					<RemotePort>1000</RemotePort>
+				</Selector>
+				<Direction>OUT</Direction>
+				<Action>PROTECT</Action>
+				<SAEntry>
+					<Processing>ESP</Processing>					
+						<SPI>50</SPI> <!-- Must match with SPI for OUT rule at the other host -->					
+				</SAEntry>
+			</SPDEntry>
+			
+			<SPDEntry>
+				<Selector>
+					<LocalAddress>192.168.1.1</LocalAddress>
+					<RemoteAddress>192.168.1.2</RemoteAddress>
+					<Protocol>6</Protocol> <!-- 6 = TCP -->
+					<LocalPort>1026</LocalPort>
+					<RemotePort>1001</RemotePort>
+				</Selector>
+				<Direction>IN</Direction>
+				<Action>BYPASS</Action>
+
+			</SPDEntry>
+			<SPDEntry>
+				<Selector>
+					<LocalAddress>192.168.1.1</LocalAddress>
+					<RemoteAddress>192.168.1.2</RemoteAddress>
+					<Protocol>6</Protocol> <!-- 6 = TCP -->
+					<LocalPort>1026</LocalPort>
+					<RemotePort>1001</RemotePort>
+				</Selector>
+				<Direction>OUT</Direction>
+				<Action>BYPASS</Action>
+
+			</SPDEntry>
+		</Device>
+
+		<Device id="server">
+			<SPDEntry>
+				<Selector>
+					<LocalAddress>192.168.1.2</LocalAddress>
+					<RemoteAddress>192.168.1.1</RemoteAddress>
+					<Protocol>6</Protocol> <!-- 6 = TCP -->
+					<LocalPort>1000</LocalPort>
+					<RemotePort>1025</RemotePort>
+				</Selector>
+				<Direction>IN</Direction>
+				<Action>PROTECT</Action>
+				<SAEntry>
+					<Processing>ESP</Processing>
+					
+						<SPI>50</SPI> <!-- Must match with SPI for OUT rule at the other host -->				
+				</SAEntry>
+			</SPDEntry>
+			<SPDEntry>
+				<Selector>
+					<LocalAddress>192.168.1.2</LocalAddress>
+					<RemoteAddress>192.168.1.1</RemoteAddress>
+					<Protocol>6</Protocol> <!-- 6 = TCP -->
+					<LocalPort>1000</LocalPort>
+					<RemotePort>1025</RemotePort>
+				</Selector>
+				<Direction>OUT</Direction>
+				<Action>PROTECT</Action>
+				<SAEntry>
+					<Processing>ESP</Processing>
+					
+						<SPI>1</SPI> <!-- Must match with SPI for OUT rule at the other host -->
+					
+				</SAEntry>
+
+			</SPDEntry>
+			
+			
+			<SPDEntry>
+				<Selector>
+					<LocalAddress>192.168.1.2</LocalAddress>
+					<RemoteAddress>192.168.1.1</RemoteAddress>
+					<Protocol>6</Protocol> <!-- 6 = TCP -->
+					<LocalPort>1001</LocalPort>
+					<RemotePort>1026</RemotePort>
+				</Selector>
+				<Direction>IN</Direction>
+				<Action>BYPASS</Action>
+			</SPDEntry>
+			<SPDEntry>
+				<Selector>
+					<LocalAddress>192.168.1.2</LocalAddress>
+					<RemoteAddress>192.168.1.1</RemoteAddress>
+					<Protocol>6</Protocol> <!-- 6 = TCP -->
+					<LocalPort>1001</LocalPort>
+					<RemotePort>1026</RemotePort>
+				</Selector>
+				<Direction>OUT</Direction>
+				<Action>BYPASS</Action>
+
+
+			</SPDEntry>
+		</Device>
+	</Devices>
+
+</ipsecConfig>

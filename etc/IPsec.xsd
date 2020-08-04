@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:simpleType name="IPv4AddressType">
+		<xs:annotation>
+			<xs:documentation xml:lang="en">
+				A string containing an
+				IPv4 address in dotted decimal notation.
+			</xs:documentation>
+		</xs:annotation>
+
+		<xs:restriction base="xs:string">
+			<xs:pattern
+				value="(([0-1]?[0-9]?[0-9]|2([0-4][0-9]|5[0-5]))\.){3}([0-1]?[0-9]?[0-9]|2([0-4][0-9]|5[0-5]))" />
+		</xs:restriction>
+	</xs:simpleType>
+
+	<xs:simpleType name="DirectionType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="IN" />
+			<xs:enumeration value="OUT" />
+		</xs:restriction>
+
+	</xs:simpleType>
+
+	<xs:simpleType name="ActionType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="PROTECT" />
+			<xs:enumeration value="BYPASS" />
+			<xs:enumeration value="DROP" />
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="ProcessingType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="AH" />
+			<xs:enumeration value="ESP" />
+		</xs:restriction>
+	</xs:simpleType>
+
+
+
+	<xs:element name="ipsecConfig">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="Devices">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="Device" maxOccurs="unbounded">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="SPDEntry" maxOccurs="unbounded">
+											<xs:complexType>
+												<xs:sequence>
+													<xs:element name="Selector">
+														<xs:complexType>
+															<xs:sequence>
+																<xs:element name="LocalAddress"
+																	type="IPv4AddressType"></xs:element>
+																<xs:element name="RemoteAddress"
+																	type="IPv4AddressType"></xs:element>
+																<xs:element name="Protocol" type="xs:int"></xs:element>
+																<xs:choice>
+
+																	<xs:element name="LocalPort" type="xs:int"></xs:element>
+																	<xs:element name="RemotePort" type="xs:int"></xs:element>
+
+																	<xs:element name="icmpCode" type="xs:int"></xs:element>
+
+																</xs:choice>
+
+															</xs:sequence>
+														</xs:complexType>
+													</xs:element>
+													<xs:element name="Direction"
+														type="DirectionType">
+													</xs:element>
+													<xs:element name="Action" type="ActionType">
+
+													</xs:element>
+													<xs:element name="SAEntry">
+														<xs:complexType>
+															<xs:sequence>
+																<xs:element name="Processing"
+																	type="ProcessingType">
+
+																</xs:element>
+																<xs:element name="SPI" type="xs:int"></xs:element>
+															</xs:sequence>
+														</xs:complexType>
+													</xs:element>
+												</xs:sequence>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="id" type="xs:string"></xs:attribute>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>
