@@ -383,7 +383,7 @@ INetfilter::IHook::Result IPsec::protectDatagram(IPv4Datagram  *ipv4datagram, IP
     if (delay > 0 || lastProtectedOut > simTime()) {
         cMessage *selfmsg = new cMessage("IPsecProtectOutDelay");
         selfmsg->setContextPointer((INetworkDatagram*)ipv4datagram);
-        delay = std::max(delay, delay + lastProtectedOut.dbl());
+        delay = std::max((simTime().dbl() + delay) - simTime().dbl(), (lastProtectedOut.dbl() + delay) - simTime().dbl());
         scheduleAt(simTime() + delay, selfmsg);
         lastProtectedOut += delay;
 
@@ -437,7 +437,7 @@ INetfilter::IHook::Result IPsec::datagramLocalInHook(INetworkDatagram *datagram,
                 if (delay > 0 || lastProtectedIn > simTime()) {
                     cMessage *selfmsg = new cMessage("IPsecProtectInDelay");
                     selfmsg->setContextPointer(datagram);
-                    delay = std::max(delay, delay + lastProtectedIn.dbl());
+                    delay = std::max((simTime().dbl() + delay) - simTime().dbl(), (lastProtectedIn.dbl() + delay) - simTime().dbl());
                     scheduleAt(simTime() + delay, selfmsg);
                     lastProtectedIn += delay;
 
@@ -484,7 +484,7 @@ INetfilter::IHook::Result IPsec::datagramLocalInHook(INetworkDatagram *datagram,
             if (delay > 0 || lastProtectedIn > simTime()) {
                 cMessage *selfmsg = new cMessage("IPsecProtectInDelay");
                 selfmsg->setContextPointer(datagram);
-                delay = std::max(delay, delay + lastProtectedIn.dbl());
+                delay = std::max((simTime().dbl() + delay) - simTime().dbl(), (lastProtectedIn.dbl() + delay) - simTime().dbl());
                 scheduleAt(simTime() + delay, selfmsg);
                 lastProtectedIn += delay;
 
