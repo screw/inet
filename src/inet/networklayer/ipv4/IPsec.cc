@@ -383,11 +383,11 @@ INetfilter::IHook::Result IPsec::protectDatagram(IPv4Datagram  *ipv4datagram, IP
     if (delay > 0 || lastProtectedOut > simTime()) {
         cMessage *selfmsg = new cMessage("IPsecProtectOutDelay");
         selfmsg->setContextPointer((INetworkDatagram*)ipv4datagram);
-        delay = std::max((simTime().dbl() + delay) - simTime().dbl(), (lastProtectedOut.dbl() + delay) - simTime().dbl());
-        scheduleAt(simTime() + delay, selfmsg);
-        lastProtectedOut += delay;
+        lastProtectedOut = std::max(simTime(), lastProtectedOut) + delay;
+        scheduleAt(lastProtectedOut, selfmsg);
 
-        EV_INFO << "IPsec OUT PROTECT (delaying by: " << delay << "s), packet: " << egressPacketSelector->str() << std::endl;
+        simtime_t actualDelay = lastProtectedOut - simTime();
+        EV_INFO << "IPsec OUT PROTECT (delaying by: " << actualDelay << "s), packet: " << egressPacketSelector->str() << std::endl;
         return INetfilter::IHook::QUEUE;
     }
     else{
@@ -437,11 +437,11 @@ INetfilter::IHook::Result IPsec::datagramLocalInHook(INetworkDatagram *datagram,
                 if (delay > 0 || lastProtectedIn > simTime()) {
                     cMessage *selfmsg = new cMessage("IPsecProtectInDelay");
                     selfmsg->setContextPointer(datagram);
-                    delay = std::max((simTime().dbl() + delay) - simTime().dbl(), (lastProtectedIn.dbl() + delay) - simTime().dbl());
-                    scheduleAt(simTime() + delay, selfmsg);
-                    lastProtectedIn += delay;
+                    lastProtectedIn = std::max(simTime(), lastProtectedIn) + delay;
+                    scheduleAt(lastProtectedIn, selfmsg);
+                    simtime_t actualDelay = lastProtectedIn - simTime();
 
-                    EV_INFO << "IPsec IN ACCEPT AH (delaying by: " << delay << "s), packet: " << ingressPacketSelector.str() << std::endl;
+                    EV_INFO << "IPsec IN ACCEPT AH (delaying by: " << actualDelay << "s), packet: " << ingressPacketSelector.str() << std::endl;
                     return INetfilter::IHook::QUEUE;
                 }
                 else {
@@ -484,11 +484,11 @@ INetfilter::IHook::Result IPsec::datagramLocalInHook(INetworkDatagram *datagram,
             if (delay > 0 || lastProtectedIn > simTime()) {
                 cMessage *selfmsg = new cMessage("IPsecProtectInDelay");
                 selfmsg->setContextPointer(datagram);
-                delay = std::max((simTime().dbl() + delay) - simTime().dbl(), (lastProtectedIn.dbl() + delay) - simTime().dbl());
-                scheduleAt(simTime() + delay, selfmsg);
-                lastProtectedIn += delay;
+                lastProtectedOut = std::max(simTime(), lastProtectedOut) + delay;
+                scheduleAt(lastProtectedOut, selfmsg);
+                simtime_t actualDelay = lastProtectedOut - simTime();
 
-                EV_INFO << "IPsec IN ACCEPT ESP (delaying by: " << delay << "s), packet: " << ingressPacketSelector.str() << std::endl;
+                EV_INFO << "IPsec IN ACCEPT ESP (delaying by: " << actualDelay << "s), packet: " << ingressPacketSelector.str() << std::endl;
                 return INetfilter::IHook::QUEUE;
             }
             else {
