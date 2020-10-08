@@ -19,14 +19,21 @@
 #include "inet/networklayer/ipv4/ipsec/IPsecRule.h"
 
 namespace inet {
+namespace ipsec {
+
+std::ostream& operator<<(std::ostream& os, const IPsecRule& e)
+{
+    os << e.str();
+    return os;
+};
 
 IPsecRule::IPsecRule() {
-    // TODO Auto-generated constructor stub
+
 
 }
 
 IPsecRule::~IPsecRule() {
-    // TODO Auto-generated destructor stub
+
 }
 
 
@@ -62,4 +69,59 @@ void IPsecRule::setSelector(const IPsecSelector &selector) {
     this->selector = selector;
 }
 
+std::string IPsecRule::str() const
+{
+    std::stringstream out;
+
+    out << "Rule: " << selector;
+
+
+    out << " Direction: ";
+    switch(direction)
+    {
+        case Direction::dIN:
+            out << "IN";
+            break;
+        case Direction::dOUT:
+            out << "OUT";
+            break;
+        case Direction::dIN_OUT:
+            out << "IN_OUT";
+            break;
+    }
+
+    out << " Action: ";
+    switch(action)
+    {
+        case Action::aBYPASS:
+            out << "BYPASS";
+            break;
+        case Action::aDISCARD:
+            out << "DISCARD";
+            break;
+        case Action::aPROTECT:
+            out << "PROTECT";
+
+            out << " Alg: ";
+            switch(processing)
+            {
+                case ProcessingAlgs::pAH:
+                    out << "AH";
+                    break;
+                case ProcessingAlgs::pESP:
+                    out << "ESP";
+                    break;
+                case ProcessingAlgs::pAH_ESP:
+                    out << "AH_ESP";
+                    break;
+            }
+
+    }
+
+
+
+    return out.str();
+}
+
+} //ipsec namespace
 } /* namespace inet */

@@ -15,9 +15,11 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
+
+
 #include <algorithm>
 
-#include "inet/networklayer/ipv4/IPsec.h"
+#include "inet/networklayer/ipv4/ipsec/IPsec.h"
 #include "inet/common/ModuleAccess.h"
 #include "inet/networklayer/ipv4/IPv4Datagram_m.h"
 #include "inet/networklayer/ipv4/ipsec/IPAH_m.h"
@@ -27,9 +29,20 @@
 
 
 
-
-
 namespace inet {
+namespace ipsec {
+
+simsignal_t IPsec::inProtectedAcceptSignal = registerSignal("inProtectedAccept");
+simsignal_t IPsec::inProtectedDropSignal = registerSignal("inProtectedDrop");
+simsignal_t IPsec::inUnprotectedBypassSignal = registerSignal("inUnprotectedBypass");
+simsignal_t IPsec::inUnprotectedDropSignal = registerSignal("inUnprotectedDrop");
+
+simsignal_t IPsec::outBypassSignal = registerSignal("outBypass");
+simsignal_t IPsec::outProtectSignal = registerSignal("outProtect");
+simsignal_t IPsec::outDropSignal = registerSignal("outDrop");
+
+simsignal_t IPsec::inProcessDelaySignal = registerSignal("inProcessDelay");
+simsignal_t IPsec::outProcessDelaySignal = registerSignal("outProcessDelay");
 
 Define_Module(IPsec);
 
@@ -40,8 +53,6 @@ IPsec::IPsec()
 
 IPsec::~IPsec()
 {
-//    if (ipLayer)
-//           ipLayer->unregisterHook(0, this);
 
 }
 
@@ -50,7 +61,7 @@ void IPsec::initSecurityDBs(cXMLElement *spdConfig)
     cXMLElementList spdEntries = spdConfig->getChildrenByTagName("SPDEntry");
     for (auto spdEntriesIt = spdEntries.begin(); spdEntriesIt != spdEntries.end(); spdEntriesIt++) {
         //process one SPDEntry
-        SPDEntry *spdEntry = new SPDEntry();
+        SecurityPolicyDatabase::Entry *spdEntry = new SecurityPolicyDatabase::Entry();
         //get selector(s)
         cXMLElementList selectorList = (*spdEntriesIt)->getChildrenByTagName("Selector");
         for (auto selectorListIt = selectorList.begin(); selectorListIt != selectorList.end(); selectorListIt++) {
@@ -123,10 +134,6 @@ void IPsec::initSecurityDBs(cXMLElement *spdConfig)
                             else if (!strcmp(processingTag->getNodeValue(), "ESP")) {
                                 spdEntry->setProcessing(IPsecRule::ProcessingAlgs::pESP);
                             }
-//                            else if(!strcmp(processingTag->getNodeValue(), "AH_ESP"))
-//                            {
-//                                spdEntry->setProcessing(IPsecRule::ProcessingAlgs::AH_ESP);
-//                            }
                             else
                             {
                                 throw cRuntimeError("IpsecEntry: Unknown processing alg (AH/ESP)");
@@ -139,7 +146,7 @@ void IPsec::initSecurityDBs(cXMLElement *spdConfig)
                         cXMLElement *spiTag = (*saEntryListIt)->getFirstChildWithTag("SPI");
                         unsigned int spi = atoi(spiTag->getNodeValue());
                         if (spdEntry->getProcessing() == IPsecRule::ProcessingAlgs::pESP || spdEntry->getProcessing() == IPsecRule::ProcessingAlgs::pAH_ESP) {
-                            SADEntry *sadEntry = new SADEntry();
+                            SecurityAssociationDatabase::Entry *sadEntry = new SecurityAssociationDatabase::Entry();
                             sadEntry->setRule(spdEntry->getRule());
                             sadEntry->getRuleForUpdate()->setProcessing(IPsecRule::ProcessingAlgs::pESP);
                             sadEntry->setSpi(spi);
@@ -147,7 +154,7 @@ void IPsec::initSecurityDBs(cXMLElement *spdConfig)
                             spdEntry->addSADEntry(sadEntry);
                         }
                         else if (spdEntry->getProcessing() == IPsecRule::ProcessingAlgs::pAH || spdEntry->getProcessing() == IPsecRule::ProcessingAlgs::pAH_ESP) {
-                            SADEntry *sadEntry = new SADEntry();
+                            SecurityAssociationDatabase::Entry *sadEntry = new SecurityAssociationDatabase::Entry();
                             sadEntry->setRule(spdEntry->getRule());
                             sadEntry->getRuleForUpdate()->setProcessing(IPsecRule::ProcessingAlgs::pAH);
                             sadEntry->setSpi(spi);
@@ -172,23 +179,19 @@ void IPsec::initialize(int stage)
 {
     if(stage == INITSTAGE_NETWORK_LAYER)
     {
-
-
         ahProtectOutDelay = par("ahProtectOutDelay");
         ahProtectInDelay = par("ahProtectInDelay");
 
         espProtectOutDelay = par("espProtectOutDelay");
         espProtectInDelay = par("espProtectInDelay");
 
-
-
         ipLayer = getModuleFromPar<IPv4>(par("networkProtocolModule"), this);
 
         //register IPsec hook
         ipLayer->registerHook(0, this);
 
-        spdModule = getModuleFromPar<SPD>(par("spdModule"), this);
-        sadModule = getModuleFromPar<SAD>(par("sadModule"), this);
+        spdModule = getModuleFromPar<SecurityPolicyDatabase>(par("spdModule"), this);
+        sadModule = getModuleFromPar<SecurityAssociationDatabase>(par("sadModule"), this);
 
         cXMLElement *spdConfig = par("spdConfig").xmlValue();
 
@@ -218,7 +221,6 @@ INetfilter::IHook::Result IPsec::datagramPreRoutingHook(INetworkDatagram *datagr
 INetfilter::IHook::Result IPsec::datagramForwardHook(INetworkDatagram *datagram, const InterfaceEntry *inIE, const InterfaceEntry *& outIE, L3Address& nextHopAddr)
 {
 
-
     return INetfilter::IHook::ACCEPT;
 }
 
@@ -230,7 +232,6 @@ INetfilter::IHook::Result IPsec::datagramForwardHook(INetworkDatagram *datagram,
 void IPsec::initSelectorFromEgressPacket(IPv4Datagram *ipv4datagram,
         IPsecSelector *packetSelector) {
 
-//    packetSelector->setLocalAddress(ipv4datagram->getSourceAddress().toIPv4());
     packetSelector->setRemoteAddress(ipv4datagram->getDestinationAddress().toIPv4());
 
     packetSelector->setNextProtocol(ipv4datagram->getTransportProtocol());
@@ -266,23 +267,31 @@ INetfilter::IHook::Result IPsec::datagramPostRoutingHook(INetworkDatagram *datag
     egressPacketSelector.setLocalAddress(outIE->getIPv4Address());
 
     //search Security Policy Database
-    SPDEntry *spdEntry = spdModule->findEntry(IPsecRule::Direction::dOUT, &egressPacketSelector);
+    SecurityPolicyDatabase::Entry *spdEntry = spdModule->findEntry(IPsecRule::Direction::dOUT, &egressPacketSelector);
     if(spdEntry != nullptr){
         if (spdEntry->getAction() == IPsecRule::Action::aPROTECT) {
+            emit(outProtectSignal, 1L);
+            outProtect++;
             return protectDatagram(ipv4datagram, &egressPacketSelector, spdEntry);
         }
         else if (spdEntry->getAction() == IPsecRule::Action::aBYPASS) {
 
             EV_INFO << "IPsec OUT BYPASS rule, packet: " << egressPacketSelector.str() << std::endl;
+            emit(outBypassSignal, 1L);
+            outBypass++;
             return INetfilter::IHook::ACCEPT;
         }
         else if (spdEntry->getAction() == IPsecRule::Action::aDISCARD) {
             EV_INFO << "IPsec OUT DROP rule, packet: " << egressPacketSelector.str() << std::endl;
+            emit(outDropSignal, 1L);
+            outDrop++;
             return INetfilter::IHook::DROP;
         }
 
     }
     EV_INFO << "IPsec OUT BYPASS, no matching rule, packet: " << egressPacketSelector.str() << std::endl;
+    emit(outDropSignal, 1L);
+    outDrop++;
     return INetfilter::IHook::DROP;
 
 }
@@ -316,7 +325,7 @@ void IPsec::initSelectorFromIngressPacket(IPv4Datagram *ipv4datagram,
     }
 }
 
-cPacket* IPsec::espProtect(cPacket *transport, SADEntry* sadEntry, int transportType)
+cPacket* IPsec::espProtect(cPacket *transport, SecurityAssociationDatabase::Entry* sadEntry, int transportType)
 {
 
     IPESP* espPacket = new IPESP();
@@ -328,12 +337,11 @@ cPacket* IPsec::espProtect(cPacket *transport, SADEntry* sadEntry, int transport
     espPacket->encapsulate(transport);
     espPacket->setNextHeader(transportType);
 
-
     return espPacket;
 
 }
 
-cPacket* IPsec::ahProtect(cPacket* transport, SADEntry* sadEntry, int transportType)
+cPacket* IPsec::ahProtect(cPacket* transport, SecurityAssociationDatabase::Entry* sadEntry, int transportType)
 {
 
     IPAH* ahPacket = new IPAH();
@@ -348,13 +356,13 @@ cPacket* IPsec::ahProtect(cPacket* transport, SADEntry* sadEntry, int transportT
 
 }
 
-INetfilter::IHook::Result IPsec::protectDatagram(IPv4Datagram  *ipv4datagram, IPsecSelector *egressPacketSelector, SPDEntry  *spdEntry )
+INetfilter::IHook::Result IPsec::protectDatagram(IPv4Datagram  *ipv4datagram, IPsecSelector *egressPacketSelector, SecurityPolicyDatabase::Entry  *spdEntry )
 {
     Enter_Method_Silent();
     cPacket* transport = ipv4datagram->decapsulate();
     double delay = 0;
 
-    for (auto saIt = spdEntry->sadEntryList.begin(); saIt != spdEntry->sadEntryList.end(); saIt++) {
+    for (auto saIt = spdEntry->entries.begin(); saIt != spdEntry->entries.end(); saIt++) {
         int transportType = ipv4datagram->getTransportProtocol();
 
         if ((*saIt)->getProcessing() == IPsecRule::ProcessingAlgs::pESP) {
@@ -388,18 +396,19 @@ INetfilter::IHook::Result IPsec::protectDatagram(IPv4Datagram  *ipv4datagram, IP
 
         simtime_t actualDelay = lastProtectedOut - simTime();
         EV_INFO << "IPsec OUT PROTECT (delaying by: " << actualDelay << "s), packet: " << egressPacketSelector->str() << std::endl;
+        emit(outProcessDelaySignal, actualDelay.dbl());
+
         return INetfilter::IHook::QUEUE;
     }
     else{
         EV_INFO << "IPsec OUT PROTECT packet: " << egressPacketSelector->str() << std::endl;
+        emit(outProcessDelaySignal, 0.0);
         return INetfilter::IHook::ACCEPT;
     }
 }
 
 INetfilter::IHook::Result IPsec::datagramLocalInHook(INetworkDatagram *datagram, const InterfaceEntry *inIE)
 {
-//oh hey the datagram is for us
-
     Enter_Method_Silent();
 
     IPv4Datagram* ipv4datagram = (IPv4Datagram*)datagram;
@@ -411,7 +420,7 @@ INetfilter::IHook::Result IPsec::datagramLocalInHook(INetworkDatagram *datagram,
     IPsecRule rule;
     rule.setDirection(IPsecRule::Direction::dIN);
 
-    SADEntry *sadEntry;
+    SecurityAssociationDatabase::Entry *sadEntry;
 
     double delay = 0.0;
     if (transportProtocol == IP_PROT_AH) {
@@ -424,7 +433,6 @@ INetfilter::IHook::Result IPsec::datagramLocalInHook(INetworkDatagram *datagram,
         if(sadEntry != nullptr){
 
             //found SA
-            //TODO ICV verification, Replay Protection
             ipv4datagram->encapsulate(ah->decapsulate());
             ipv4datagram->setTransportProtocol(ah->getNextHeader());
 
@@ -434,6 +442,9 @@ INetfilter::IHook::Result IPsec::datagramLocalInHook(INetworkDatagram *datagram,
 
                 delete ah;
 
+                emit(inProtectedAcceptSignal, 1L);
+                inAccept++;
+
                 if (delay > 0 || lastProtectedIn > simTime()) {
                     cMessage *selfmsg = new cMessage("IPsecProtectInDelay");
                     selfmsg->setContextPointer(datagram);
@@ -442,23 +453,25 @@ INetfilter::IHook::Result IPsec::datagramLocalInHook(INetworkDatagram *datagram,
                     simtime_t actualDelay = lastProtectedIn - simTime();
 
                     EV_INFO << "IPsec IN ACCEPT AH (delaying by: " << actualDelay << "s), packet: " << ingressPacketSelector.str() << std::endl;
+                    emit(inProcessDelaySignal, actualDelay.dbl());
                     return INetfilter::IHook::QUEUE;
                 }
                 else {
                     EV_INFO << "IPsec IN ACCEPT AH, packet: " << ingressPacketSelector.str() << std::endl;
+                    emit(inProcessDelaySignal, 0.0);
                     return INetfilter::IHook::ACCEPT;
                 }
             }
-
 
         }
         delete ah;
 
         if (sadEntry == nullptr) {
             EV_INFO << "IPsec IN DROP AH, no matching rule, packet: " << ingressPacketSelector.str() << std::endl;
+            emit(inProtectedDropSignal, 1L);
+            inDrop++;
             return INetfilter::IHook::DROP;
         }
-
     }
 
     transportProtocol  = ipv4datagram->getTransportProtocol();
@@ -473,7 +486,8 @@ INetfilter::IHook::Result IPsec::datagramLocalInHook(INetworkDatagram *datagram,
 
         if(sadEntry != nullptr){
             //found SA
-            //TODO ICV verification
+            emit(inProtectedAcceptSignal, 1L);
+            inAccept++;
 
             ipv4datagram->encapsulate(esp->decapsulate());
             ipv4datagram->setTransportProtocol(esp->getNextHeader());
@@ -489,36 +503,41 @@ INetfilter::IHook::Result IPsec::datagramLocalInHook(INetworkDatagram *datagram,
                 simtime_t actualDelay = lastProtectedOut - simTime();
 
                 EV_INFO << "IPsec IN ACCEPT ESP (delaying by: " << actualDelay << "s), packet: " << ingressPacketSelector.str() << std::endl;
+                emit(inProcessDelaySignal, actualDelay.dbl());
                 return INetfilter::IHook::QUEUE;
             }
             else {
                 EV_INFO << "IPsec IN ACCEPT ESP, packet: " << ingressPacketSelector.str() << std::endl;
+                emit(inProcessDelaySignal, 0.0);
                 return INetfilter::IHook::ACCEPT;
             }
-
-
         }
 
         delete esp;
 
         if(sadEntry == nullptr)
         {
-            //TODO EV_INFO << "Received ESP protected packet without matching SPI in SAD";
             EV_INFO << "IPsec IN DROP ESP, no matching rule, packet: " << ingressPacketSelector.str() << std::endl;
+            emit(inProtectedDropSignal, 1L);
+            inDrop++;
             return INetfilter::IHook::DROP;
         }
 
     }
 
-    SPDEntry *spdEntry = spdModule->findEntry(IPsecRule::Direction::dIN, &ingressPacketSelector);
+    SecurityPolicyDatabase::Entry *spdEntry = spdModule->findEntry(IPsecRule::Direction::dIN, &ingressPacketSelector);
     if (spdEntry != nullptr) {
 
         if (spdEntry->getAction() == IPsecRule::Action::aBYPASS) {
             EV_INFO << "IPsec BYPASS rule, packet: " << ingressPacketSelector.str() << std::endl;
+            emit(inUnprotectedBypassSignal, 1L);
+            inBypass++;
             return INetfilter::IHook::ACCEPT;
         }
         else {
             EV_INFO << "IPsec DROP rule, packet: " << ingressPacketSelector.str() << std::endl;
+            emit(inUnprotectedDropSignal, 1L);
+            inDrop++;
             return INetfilter::IHook::DROP;
         }
 
@@ -526,17 +545,22 @@ INetfilter::IHook::Result IPsec::datagramLocalInHook(INetworkDatagram *datagram,
 
 
     EV_INFO << "IPsec IN DROP, no matching rule, packet: " << ingressPacketSelector.str() << std::endl;
+    emit(inUnprotectedDropSignal, 1L);
+    inDrop++;
     return INetfilter::IHook::DROP;
 }
 
 INetfilter::IHook::Result IPsec::datagramLocalOutHook(INetworkDatagram *datagram, const InterfaceEntry *& outIE, L3Address& nextHopAddr)
 {
-// first for packet from Upper layer  (UDP/TCP) maybe ICMP as well?
-
-    //packet does not have srcAddress yet
     return INetfilter::IHook::ACCEPT;
-
 }
 
+void IPsec::refreshDisplay() const
+{
+    char buf[80];
+    sprintf(buf, "IN: ACCEPT: %d DROP: %d BYPASS: %d\n OUT: PROTECT: %d DROP: %d BYPASS: %d", inAccept, inDrop, inBypass, outProtect, outDrop, outBypass );
+    getDisplayString().setTagArg("t", 0, buf);
+}
 
+} //ipsec namespace
 } //namespace

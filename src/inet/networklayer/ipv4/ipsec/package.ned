@@ -15,33 +15,7 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __INET_SAD_H_
-#define __INET_SAD_H_
-
-#include "inet/common/INETDefs.h"
-#include "inet/networklayer/ipv4/ipsec/SADEntry.h"
-
-using namespace omnetpp;
-
-namespace inet {
-
-/**
- * TODO -
- */
-class INET_API SAD : public cSimpleModule
-{
-private:
-    std::vector<SADEntry*> db; //TODO make private
-  protected:
-    virtual void initialize();
-    virtual void handleMessage(cMessage *msg);
+package inet.networklayer.ipv4.ipsec;
 
 
-  public:
-    void addEntry(SADEntry* sadEntry);
-    SADEntry* findEntry(IPsecRule *rule, unsigned int spi);
-};
-
-} //namespace
-
-#endif
+@namespace(inet::ipsec);

@@ -21,8 +21,9 @@ package inet.networklayer.ipv4;
 import inet.networklayer.contract.IARP;
 import inet.networklayer.configurator.ipv4.IPv4NodeConfigurator;
 import inet.networklayer.contract.INetworkLayer;
-import inet.networklayer.ipv4.ipsec.SAD;
-import inet.networklayer.ipv4.ipsec.SPD;
+import inet.networklayer.ipv4.ipsec.SecurityAssociationDatabase;
+import inet.networklayer.ipv4.ipsec.SecurityPolicyDatabase;
+import inet.networklayer.ipv4.ipsec.IPsec;
 
 
 //
@@ -87,10 +88,10 @@ module IPv4NetworkLayer like INetworkLayer
         iPsec: IPsec if hasIpsec {
             @display("p=164,162");
         }
-        spd: SPD {
-            @display("p=212,162");
+        spd: SecurityPolicyDatabase if hasIpsec {
+            @display("p=250,120");
         }
-        sad: SAD {
+        sad: SecurityAssociationDatabase if hasIpsec {
             @display("p=250,162");
         }
     connections allowunconnected:

@@ -22,6 +22,7 @@
 #include "inet/networklayer/contract/ipv4/IPv4Address.h"
 
 namespace inet {
+namespace ipsec {
 
 class INET_API IPsecSelector {
 private:
@@ -54,6 +55,9 @@ public:
     std::string str() const;
 };
 
+std::ostream& operator<<(std::ostream& os, const IPsecSelector& e);
+
+} //ipsec namespace
 } /* namespace inet */
 
 #endif /* INET_NETWORKLAYER_IPV4_IPSEC_IPSECSELECTOR_H_ */

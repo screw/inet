@@ -15,38 +15,10 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include "SPD.h"
+package inet.networklayer.ipv4.ipsec;
 
-namespace inet {
-
-Define_Module(SPD);
-
-void SPD::initialize()
+// This module represents Security Policy Database (SPD)
+simple SecurityPolicyDatabase
 {
-    // TODO - Generated method body
+    @display("i=block/table2;is=s");
 }
-
-SPDEntry* SPD::findEntry(unsigned int direction, IPsecSelector *selector)
-{
-    std::vector<SPDEntry*>::iterator it = db.begin();
-
-    for (; it != db.end(); it++) {
-        if(((*it)->getDirection() == direction || (*it)->getDirection() == IPsecRule::Direction::dIN_OUT ) && (*it)->getSelector().isMatchingSelector(selector) ) {
-            return (*it);
-        }
-    }
-
-    return nullptr;
-}
-
-void SPD::addEntry(SPDEntry *entry)
-{
-    db.push_back(entry);
-}
-
-void SPD::handleMessage(cMessage *msg)
-{
-    // TODO - Generated method body
-}
-
-} //namespace

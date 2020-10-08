@@ -18,9 +18,9 @@
 package inet.networklayer.ipv4.ipsec;
 
 //
-// TODO auto-generated module
+// This module represents Security Association Database (SAD)
 //
-simple SPD
+simple SecurityAssociationDatabase
 {
     @display("i=block/table2;is=s");
 }

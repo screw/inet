@@ -18,13 +18,12 @@
 
 package inet.examples.inet.ipsec;
 
-import inet.common.misc.NetAnimTrace;
 import inet.networklayer.configurator.ipv4.IPv4NetworkConfigurator;
 import inet.node.inet.StandardHost;
 import ned.DatarateChannel;
 
 
-network IPsec
+network TwoHosts
 {
     parameters:
         double per = default(0);
@@ -48,9 +47,6 @@ network IPsec
         configurator: IPv4NetworkConfigurator {
             parameters:
                 @display("p=53,134");
-        }
-        netAnimTrace: NetAnimTrace {
-            @display("p=184,142");
         }
     connections:
         client1.pppg++ <--> C <--> server.pppg++;

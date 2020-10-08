@@ -23,6 +23,7 @@
 #include "inet/networklayer/ipv4/ipsec/IPsecSelector.h"
 
 namespace inet {
+namespace ipsec {
 
 class INET_API IPsecRule {
 public:
@@ -48,7 +49,6 @@ public:
 private:
     unsigned int direction = 0;  //rules applies to IN, OUT, or both INOUT traffic
     unsigned int action = Action::aDISCARD;
-//    unsigned int spi; // TOOD move to SAD?
     unsigned int processing = 0; //aply AH, ESP, or both pAH_ESP
     IPsecSelector selector;
 
@@ -63,8 +63,12 @@ public:
     void setProcessing(unsigned int processing = 0);
     const IPsecSelector& getSelector() const;
     void setSelector(const IPsecSelector &selector);
+    std::string str() const;
 };
 
+std::ostream& operator<<(std::ostream& os, const IPsecRule& e);
+
+} //ipsec namespace
 } /* namespace inet */
 
 #endif /* INET_NETWORKLAYER_IPV4_IPSEC_IPSECRULE_H_ */

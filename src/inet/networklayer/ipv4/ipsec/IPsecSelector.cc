@@ -19,6 +19,13 @@
 #include "inet/networklayer/common/IPProtocolId_m.h"
 
 namespace inet {
+namespace ipsec {
+
+std::ostream& operator<<(std::ostream& os, const IPsecSelector& e)
+{
+    os << e.str();
+    return os;
+};
 
 IPsecSelector::IPsecSelector() {
 
@@ -94,7 +101,7 @@ void IPsecSelector::setRemotePort(unsigned int remotePort) {
 }
 
 IPsecSelector::~IPsecSelector() {
-    // TODO Auto-generated destructor stub
+
 }
 
 bool IPsecSelector::isMatchingSelector(IPsecSelector *other) const {
@@ -127,28 +134,20 @@ std::string IPsecSelector::str() const
     out << "Prot: " << nextProtocol;
     switch(nextProtocol)
     {
-    case IP_PROT_TCP:
-    case IP_PROT_UDP:
+        case IP_PROT_TCP:
+        case IP_PROT_UDP:
+            out << " Local: " << localAddress.str()<<":" << localPort << ";";
+            out << " Remote: " << remoteAddress.str() << ":" << remotePort << ";";
+            break;
 
-        out << " Local: " << localAddress.str()<<":" << localPort << ";";
-
-        out << " Remote: " << remoteAddress.str() << ":" << remotePort << ";";
-        break;
-
-    case IP_PROT_ICMP:
-    case IP_PROT_ESP:
-    case IP_PROT_AH:
-        out << " Local: " << localAddress.str() <<  ";";
-
-        out << " Remote: " << remoteAddress.str() <<";";
+        case IP_PROT_ICMP:
+        case IP_PROT_ESP:
+        case IP_PROT_AH:
+            out << " Local: " << localAddress.str() <<  ";";
+            out << " Remote: " << remoteAddress.str() <<";";
     }
-
-
     return out.str();
-
-
-
-
 }
 
+} //ipsec namespace
 } /* namespace inet */
